@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACES HMS Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #0f3a18, #2f7d32);
+      color: #0f2c11;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .sidebar {
+      background-color: #114d26;
+      color: white;
+      height: 100vh;
+      padding: 20px;
+    }
+    .sidebar button {
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    .room-box {
+      width: 80px;
+      height: 60px;
+      font-weight: bold;
+      font-size: 18px;
+      color: white;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .vacant { background-color: #2e7d32; }
+    .occupied { background-color: #c62828; }
+    .housekeeping { background-color: #1565c0; }
+    .maintenance { background-color: #fdd835; color: black; }
+    .reserved { background-color: #ef6c00; }
+    .info-label span {
+      font-weight: bold;
+    }
+    .logout-section {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-md-2 sidebar d-flex flex-column">
+        <div class="text-center mb-4">
+          <img src="your-logo.png" alt="Logo" class="img-fluid" width="80">
+          <h5>ACES HMS</h5>
+        </div>
+        <button class="btn btn-light">Check in</button>
+        <button class="btn btn-light">Check out</button>
+        <button class="btn btn-light">Archive</button>
+        <button class="btn btn-light">Book Reservation</button>
+        <button class="btn btn-light">Guest accounts</button>
+
+        <div class="logout-section">
+          <p><em>You are logged in as <a href="#">Admin123</a></em></p>
+          <button class="btn btn-outline-light btn-sm">Sign out</button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-md-10 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3>Dashboard</h3>
+          <div class="d-flex align-items-center">
+            <button class="btn btn-success me-2">View Reservations</button>
+            <input type="date" class="form-control" value="2025-06-04">
+          </div>
+        </div>
+
+        <!-- Room Grid -->
+        <div class="row g-3 mb-4">
+          <div class="col-auto room-box vacant">R1</div>
+          <div class="col-auto room-box occupied">R2</div>
+          <div class="col-auto room-box reserved">R5</div>
+          <div class="col-auto room-box vacant">R6</div>
+          <div class="col-auto room-box vacant">R7</div>
+          <div class="col-auto room-box maintenance">R3</div>
+          <div class="col-auto room-box vacant">R4</div>
+          <div class="col-auto room-box housekeeping">R11</div>
+          <div class="col-auto room-box vacant">R12</div>
+          <div class="col-auto room-box occupied">R8</div>
+          <div class="col-auto room-box housekeeping">R9</div>
+          <div class="col-auto room-box occupied">R10</div>
+        </div>
+
+        <!-- Room Info -->
+        <h5>Room Information:</h5>
+        <div class="d-flex flex-wrap gap-4">
+          <div class="d-flex align-items-center"><span class="room-box vacant me-2">5</span> Vacant</div>
+          <div class="d-flex align-items-center"><span class="room-box occupied me-2">3</span> Occupied</div>
+          <div class="d-flex align-items-center"><span class="room-box housekeeping me-2">2</span> Housekeeping</div>
+          <div class="d-flex align-items-center"><span class="room-box maintenance me-2">1</span> Under Maintenance</div>
+          <div class="d-flex align-items-center"><span class="room-box reserved me-2">1</span> Reserved</div>
+          <div class="ms-auto"><strong>Total: 11</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
