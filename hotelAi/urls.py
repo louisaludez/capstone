@@ -17,11 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path, include
+from accounts import views as account_views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include("frontOffice.urls")),
-    path("",include("loginSignup.urls"))
+    
+    path('accounts/', include('accounts.urls')),
+     # URLs for signup, login, logout
+    path('home/', account_views.home, name='home'),
 
     
     
