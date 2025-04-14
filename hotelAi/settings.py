@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [ '10.0.13.251','localhost','127.0.0.1']
 
-
+LOGIN_REDIRECT_URL = "/"  # new
 # Application definition
 
 INSTALLED_APPS = [
