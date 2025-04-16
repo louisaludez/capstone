@@ -27,6 +27,9 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
      # URLs for signup, login, logout
     path('home/', account_views.home, name='home'),
+    path('staff/', include('staff.urls')),
+    path('laundry/staff', include('laundryStaff.urls')),
+    path('laundry/manager', include('laundryManager.urls')),
 
     
     

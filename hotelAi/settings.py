@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myHotel',
     'frontOffice',
-    'accounts'
+    'accounts',
+    'staff',
+    'laundry',
+    'laundryManager',
+    'laundryStaff',
 ]
 
 MIDDLEWARE = [

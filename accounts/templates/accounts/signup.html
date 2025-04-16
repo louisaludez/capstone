@@ -84,7 +84,7 @@
       </div>
 
       <!-- Password Field -->
-      <div class="mb-3">
+     <div class="mb-3">
         <input type="password" name="password1" class="form-control" placeholder="Password" id="id_password1" required>
         {% if form.password1.errors %}
           <div class="text-danger">{{ form.password1.errors }}</div>
@@ -99,6 +99,15 @@
           <div class="text-danger">{{ form.password2.errors }}</div>
         {% endif %}
       </div>
+        <!-- Role Selection -->
+      <div class="mb-3">
+        <select name="role" class="form-control" id="id_role" required>
+          <option value="" disabled selected class="form-control">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="personnel">Personnel</option>
+        </select>
+      </div>
+
 
       <div class="d-flex justify-content-between align-items-center">
         <p>Already have an account? <a href="{% url 'login' %}" class="login-link">Login</a></p>
