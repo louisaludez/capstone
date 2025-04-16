@@ -43,9 +43,11 @@
       <div class="col-md-2 sidebar d-flex flex-column align-items-center">
         <img src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e4/The_Polytechnic_Ibadan_logo.png/150px-The_Polytechnic_Ibadan_logo.png" alt="Logo" width="100" class="mb-3" />
         <h4 class="text-center">ACES HMS</h4>
-        <button class="btn btn-success">POS</button>
-        <button class="btn btn-light">Orders</button>
-        <button class="btn btn-light">Messenger</button>
+                <nav class="nav flex-column">
+            <a class="nav-link" href="{% url 'HomeLaundryStaff' %}">POS</a>
+            <a class="nav-link" href="{% url 'OrdersLaundryStaff'%}">Orders</a>
+            <a class="nav-link active" href="{% url 'MessagesLaundryStaff'%}">Messenger</a>
+          </nav>
         <p class="mt-auto small">You are logged in as <em>LStaff123</em></p>
         <button class="btn btn-outline-light btn-sm">Sign out</button>
       </div>
