@@ -40,12 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myHotel',
     'frontOffice',
-    'accounts',
+    
     'staff',
     'laundry',
     'laundryManager',
     'laundryStaff',
     'hmsAdmin',
+    'users',
     
 ]
 
@@ -134,3 +135,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'users.CustomUser'

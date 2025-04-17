@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACES HMS - Messenger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      body {
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        background-color: #114d26;
+        color: white;
+        height: 100vh;
+        padding: 20px;
+      }
+      .sidebar button {
+        margin-bottom: 10px;
+        width: 100%;
+      }
+      .chat-box {
+        height: 80vh;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+      }
+      
+      .chat-message {
+        max-width: 70%;
+        margin-bottom: 1rem;
+      }
+      
+      .chat-message.user {
+        margin-left: auto;
+        background-color: #5ba95f;
+        color: white;
+      }
+      
+      .chat-message.staff {
+        background-color: #e9ecef;
+      }
+      .logout-section {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar d-flex flex-column">
+          <div class="text-center mb-4">
+            <img src="your-logo.png" alt="Logo" class="img-fluid" width="80" />
+            <h5>ACES HMS</h5>
+          </div>
+          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#checkInModal">Check in</button>
+          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#checkOutModal">Check out</button>
+
+          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#reservationModal">Book Reservation</button>
+          <button class="btn btn-light">Messenger</button>
+
+          <div class="logout-section">
+            <p>
+              <em>You are logged in as <a href="#">Staff123</a></em>
+            </p>
+            <form action="{% url 'logout' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light btn-sm">Sign out</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Special Services Column -->
+        <div class="col-md-3 bg-white border-end p-4">
+          <h5 class="mb-3">Special Services</h5>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-success service-button active">Personnel</button>
+            <button class="btn btn-outline-success service-button">Concierge</button>
+            <button class="btn btn-outline-success service-button">Food and Beverage</button>
+            <button class="btn btn-outline-success service-button">Cafe</button>
+            <button class="btn btn-outline-success service-button">Restaurant</button>
+            <button class="btn btn-outline-success service-button">Room Service</button>
+            <button class="btn btn-outline-success service-button">Admin</button>
+          </div>
+        </div>
+
+        <!-- Chatbox Column -->
+        <div class="col-md-7 p-4">
+          <h5 class="mb-3">Personnel</h5>
+          <div class="chat-box mb-3">
+            <!-- Chat messages -->
+            <div class="chat-message staff p-2 rounded">Good morning, any guests in need of assistance?</div>
+            <div class="chat-message user p-2 rounded">Please pickup laundry from room 203.</div>
+            <div class="chat-message staff p-2 rounded">This is noted. Otw</div>
+          </div>
+
+          <!-- Chat Input -->
+          <form class="d-flex gap-2">
+            <input type="text" class="form-control" placeholder="Enter your message here..." />
+            <button type="submit" class="btn btn-success">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

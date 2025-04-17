@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign Up - ACES HMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      body {
+        background: linear-gradient(to right, #0f0f0f, #2e7d32);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .signup-container {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 900px;
+        width: 100%;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+      }
+      .signup-title {
+        font-size: 40px;
+        font-weight: bold;
+        color: #1a3e1a;
+      }
+      .form-control {
+        border-radius: 10px;
+      }
+      .signup-btn {
+        background-color: #1a3e1a;
+        color: #fff;
+        border-radius: 20px;
+        padding: 10px 30px;
+      }
+      .signup-btn:hover {
+        background-color: #145214;
+      }
+      .login-link {
+        font-weight: bold;
+        color: #1a3e1a;
+      }
+      .login-link:hover {
+        text-decoration: underline;
+      }
+      .logo-img {
+        height: 60px;
+      }
+      .illustration-img {
+        width: 100%;
+        max-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="signup-container d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+      <div class="flex-fill">
+        <h2 class="signup-title mb-4">Sign Up</h2>
+
+        <!-- Start of the form, with CSRF token for security -->
+        <form method="POST">
+          {% csrf_token %}
+
+          <!-- Username Field -->
+          <div class="mb-3">
+            <input type="text" name="username" class="form-control" placeholder="Username" id="id_username" required />
+            {% if form.username.errors %}
+              <div class="text-danger">{{ form.username.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Email Field -->
+          <div class="mb-3">
+            <input type="email" name="email" class="form-control" placeholder="Email" id="id_email" required />
+            {% if form.email.errors %}
+              <div class="text-danger">{{ form.email.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Password Field -->
+          <div class="mb-3">
+            <input type="password" name="password1" class="form-control" placeholder="Password" id="id_password1" required />
+            {% if form.password1.errors %}
+              <div class="text-danger">{{ form.password1.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="mb-4">
+            <input type="password" name="password2" class="form-control" placeholder="Confirm Password" id="id_password2" required />
+            {% if form.password2.errors %}
+              <div class="text-danger">{{ form.password2.errors }}</div>
+            {% endif %}
+          </div>
+          <!-- Role Selection -->
+          <div class="mb-3">
+            <select name="role" class="form-control" id="id_role" required>
+              <option value="" disabled selected class="form-control">Select Role</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="laundry">Laundry</option>
+              <option value="asa">asa</option>
+            </select>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <p>
+              Already have an account? <a href="{% url 'login' %}" class="login-link">Login</a>
+            </p>
+            <button type="submit" class="btn signup-btn">Sign up</button>
+          </div>
+        </form>
+
+        <div class="mt-4 d-flex align-items-center gap-3">
+          <img src="{% static 'accounts/images/ACESLOGO.png' %}" alt="Logo" class="logo-img" />
+          <span style="font-weight: bold; font-size: 20px; color: #1a3e1a;">ACES HMS</span>
+        </div>
+      </div>
+
+      <div class="flex-fill text-center">
+        <img src="{% static 'accounts/images/ILLUSTRATION.png' %}" alt="Illustration" class="illustration-img" />
+      </div>
+    </div>
+  </body>
+</html>
