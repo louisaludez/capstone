@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'laundry',
     'laundryManager',
     'laundryStaff',
+    'hmsAdmin',
+    
 ]
 
 MIDDLEWARE = [

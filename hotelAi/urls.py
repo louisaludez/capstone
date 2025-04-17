@@ -30,6 +30,7 @@ urlpatterns = [
     path('staff/', include('staff.urls')),
     path('laundry/staff', include('laundryStaff.urls')),
     path('laundry/manager', include('laundryManager.urls')),
+    path('hmsAdmin/', include('hmsAdmin.urls')),
 
     
     
