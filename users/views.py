@@ -18,9 +18,11 @@ def login(request):
             auth_login(request, user)
             # 👇 Check the role and redirect accordingly
             if user.role == 'admin':
-                return redirect('admin_dashboard')  # or your actual url name
-            elif user.role == 'personnel':
-                return redirect('personnel_dashboard')
+                return redirect('HomeAdmin')  
+            elif user.role == 'staff':
+                return redirect('HomeStaff')
+            elif user.role == 'laundry':
+                return redirect('HomeLaundryStaff')
             else:
                 return redirect('default_dashboard')  # fallback
         else:

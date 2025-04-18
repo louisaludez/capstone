@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myHotel',
     'frontOffice',
-    
     'staff',
     'laundry',
     'laundryManager',
