@@ -1,6 +1,7 @@
 from django.shortcuts import render
-
+from globals import decorator
 # Create your views here.
+@decorator.role_required('admin')
 def home(request):
     return render(request, "hmsAdmin/home.html")
 def messages(request):

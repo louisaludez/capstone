@@ -1,8 +1,7 @@
-from urllib import request
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from .forms import CustomUserCreationForm
 
 class RegisterView(CreateView):
@@ -28,3 +27,6 @@ def login(request):
         else:
             return render(request, "registration/login.html", {"error": "Invalid credentials"}) 
     return render(request, "registration/login.html")
+def logout_view(request):
+    auth_logout(request)
+    return redirect('login')
