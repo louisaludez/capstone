@@ -99,11 +99,31 @@
           <!-- Role Selection -->
           <div class="mb-3">
             <select name="role" class="form-control" id="id_role" required>
-              <option value="" disabled selected class="form-control">Select Role</option>
-              <option value="admin">Admin</option>
-              <option value="staff">Staff</option>
-              <option value="laundry">Laundry</option>
-              <option value="asa">asa</option>
+              <option value="" disabled selected>Select Role</option>
+
+              <optgroup label="General">
+                <option value="personnel">Personnel</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+              </optgroup>
+
+              <optgroup label="Supervisors">
+                <option value="supervisor_laundry">Supervisor - Laundry</option>
+                <option value="supervisor_concierge">Supervisor - Concierge</option>
+                <option value="supervisor_cafe">Supervisor - Cafe</option>
+                <option value="supervisor_restaurant">Supervisor - Restaurant</option>
+                <option value="supervisor_room_service">Supervisor - Room Service</option>
+                <option value="supervisor_fnb">Supervisor - Food and Beverages</option>
+              </optgroup>
+
+              <optgroup label="Staff">
+                <option value="staff_laundry">Staff - Laundry</option>
+                <option value="staff_concierge">Staff - Concierge</option>
+                <option value="staff_cafe">Staff - Cafe</option>
+                <option value="staff_restaurant">Staff - Restaurant</option>
+                <option value="staff_room_service">Staff - Room Service</option>
+                <option value="staff_fnb">Staff - Food and Beverages</option>
+              </optgroup>
             </select>
           </div>
 
