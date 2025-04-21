@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-f&1o28n36+c)%nivdj-6z*@vh+gqpfxxft2p3=zi4n&g1htt9+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '10.0.13.251','localhost','127.0.0.1','192.168.1.205']
+ALLOWED_HOSTS = allowed_hosts = ['*']
 
 LOGIN_REDIRECT_URL = "/"  # new
 # Application definition
@@ -46,7 +46,15 @@ INSTALLED_APPS = [
     'laundryStaff',
     'hmsAdmin',
     'users',
-    'globals'
+    'globals',
+    'cafe',
+    'restaurant',
+    'room_service',
+    'fnb',
+    'concierge',
+    'api',
+    'rest_framework',
+    'static'
 ]
 
 MIDDLEWARE = [
@@ -129,7 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATICFILES_DIRS = [BASE_DIR / "static"]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

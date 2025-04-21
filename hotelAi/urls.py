@@ -24,10 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include("staff.urls")),
     path('staff/', include('staff.urls')),
-    path('laundry/staff/', include('laundryStaff.urls')),
-    path('laundry/manager/', include('laundryManager.urls')),
+    path('laundry/', include('laundry.urls')),
+   
     path('hmsAdmin/', include('hmsAdmin.urls')),
     path('users/', include('users.urls')),
+    
 
     
     
