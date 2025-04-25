@@ -42,8 +42,7 @@ INSTALLED_APPS = [
     'frontOffice',
     'staff',
     'laundry',
-    'laundryManager',
-    'laundryStaff',
+   
     'hmsAdmin',
     'users',
     'globals',
