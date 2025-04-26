@@ -1,254 +1,324 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ACES HMS - Orders</title>
-    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      .sidebar {
-        background-color: #1a3d1f;
-        color: white;
-        min-height: 100vh;
-        padding: 20px;
-      }
-      .sidebar .btn {
-        width: 100%;
-        margin-bottom: 10px;
-        text-align: left;
-      }
-      .sidebar .btn.active {
-        background-color: #5bbd6d;
-        color: white;
-      }
-      .status-badge {
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 0.875rem;
-      }
-      .status-pending {
-        background-color: #f39c12;
-        color: white;
-      }
-      .status-finished {
-        background-color: #2ecc71;
-        color: white;
-      }
-      .status-cancelled {
-        background-color: #e74c3c;
-        color: white;
-      }
-      .actions i {
-        cursor: pointer;
-        margin-right: 10px;
-      }
-      .actions i:hover {
-        opacity: 0.7;
-      }
-    </style>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="{% static 'main.css'%}" />
   </head>
   <body>
     <div class="d-flex">
       <!-- Sidebar -->
-      <div class="sidebar d-flex flex-column justify-content-between">
-        <div>
-          <div class="mb-4 text-center">
-            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/6/64/Polytechnic_University_of_the_Philippines_Logo.svg/1200px-Polytechnic_University_of_the_Philippines_Logo.svg.png" alt="Logo" width="80" />
-            <h4 class="mt-2">ACES HMS</h4>
+      {% include '../includes/supervisor_sidebar.html' with active_page='orders' %}
+      <div
+        class="container-fluid bg-light bg-main-content"
+        style="
+          background-imgage: url('{% static 'images/bg.png' %}');
+          background-size: cover;
+        "
+      >
+        <!-- Main Content -->
+        <div class="col p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Orders</h1>
+            <div class="d-flex">
+              <div class="input-group">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                >
+                  <i class="bi bi-funnel"></i> Filter
+                </button>
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                >
+                  Sort <i class="bi bi-sort-down"></i>
+                </button>
+              </div>
+              <div class="input-group ms-2">
+                <input type="text" class="form-control" placeholder="Search" />
+                <button class="btn btn-outline-secondary" type="button">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
           </div>
-          <a href="{% url 'supervisor_laundry_home' %}" class="btn btn-success active">Orders</a>
-          <a href="{% url 'supervisor_laundry_reports' %}" class="btn btn-light">Reports</a>
-          <a href="{% url 'supervisor_laundry_messages' %}" class="btn btn-light">Messenger</a>
-        </div>
-        <div>
-          <p>
-            You are logged in as <strong>{{ user.username }}</strong>
-          </p>
-          <button class="btn btn-danger">Sign out</button>
-        </div>
-      </div>
 
-      <!-- Main Content -->
-      <div class="flex-grow-1 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3>Orders</h3>
-          <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary">Filter</button>
-            <button class="btn btn-outline-secondary">Sort</button>
-            <input type="text" class="form-control" placeholder="Search" style="width: 200px;" />
+          <div class="card shadow-sm">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover m-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th width="40"><input type="checkbox" /></th>
+                      <th>Receipt No.</th>
+                      <th>Customer</th>
+                      <th>Service Type</th>
+                      <th>Date and Time</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>Juan Dela Cruz</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-warning">Pending</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>John Loui Saludez</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-success">Finished</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>Clarissa Sotto</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-warning">Pending</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>Dane Joel</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-success">Finished</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>Ken</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-danger">Cancelled</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>00001</td>
+                      <td>Juan Dela Cruz</td>
+                      <td>Wash and Fold</td>
+                      <td>11:11<br />13/04/2025</td>
+                      <td><span class="badge bg-success">Finished</span></td>
+                      <td>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  Pages
+                  <select
+                    class="form-select form-select-sm d-inline-block w-auto"
+                  >
+                    <option>100/100</option>
+                  </select>
+                </div>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item">
+                      <a class="page-link" href="#"
+                        ><i class="bi bi-chevron-left"></i
+                      ></a>
+                    </li>
+                    <li class="page-item active">
+                      <a class="page-link" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">2</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">3</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">...</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">100</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#"
+                        ><i class="bi bi-chevron-right"></i
+                      ></a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
-
-        <table class="table table-bordered align-middle text-center">
-          <thead class="table-light">
-            <tr>
-              <th>
-                <input type="checkbox" />
-              </th>
-              <th>Receipt No.</th>
-              <th>Customer</th>
-              <th>Service Type</th>
-              <th>Date and Time</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Example Row -->
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>Juan Dela Cruz</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-pending">Pending</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-            <!-- Repeat rows with different statuses -->
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>John Loui Saludez</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-finished">Finished</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>Clarissa Sotto</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-pending">Pending</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>Dane Joel</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-finished">Finished</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>Ken</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-cancelled">Cancelled</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <input type="checkbox" />
-              </td>
-              <td>00001</td>
-              <td>Juan Dela Cruz</td>
-              <td>Wash and Fold</td>
-              <td>
-                11:11<br />13/04/2025
-              </td>
-              <td>
-                <span class="status-badge status-finished">Finished</span>
-              </td>
-              <td class="actions">
-                <i class="bi bi-eye-slash-fill"></i>
-                <i class="bi bi-pencil-square"></i>
-                <i class="bi bi-trash-fill text-danger"></i>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-end">
-            <li class="page-item disabled">
-              <a class="page-link" href="#">‹</a>
-            </li>
-            <li class="page-item active">
-              <a class="page-link" href="#">1</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="#">2</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="#">3</a>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#">...</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="#">100</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="#">›</a>
-            </li>
-          </ul>
-        </nav>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize any data tables or interactive elements
+        initializeStatusToggle();
+        setupPagination();
+        setupSearchFilter();
 
-    <!-- Bootstrap Icons CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
+        // Logout functionality
+        document
+          .getElementById("logoutBtn")
+          .addEventListener("click", function () {
+            window.location.href = "index.html";
+          });
+      });
+
+      // Function to initialize status toggle buttons
+      function initializeStatusToggle() {
+        const statusCells = document.querySelectorAll("td:nth-child(6)");
+        statusCells.forEach((cell) => {
+          const badge = cell.querySelector(".badge");
+          if (badge) {
+            badge.addEventListener("click", function () {
+              const statuses = ["Pending", "Finished", "Cancelled"];
+              const currentIndex = statuses.indexOf(this.textContent);
+              const nextIndex = (currentIndex + 1) % statuses.length;
+              const nextStatus = statuses[nextIndex];
+
+              this.textContent = nextStatus;
+              this.className = "badge";
+
+              if (nextStatus === "Pending") {
+                this.classList.add("bg-warning");
+              } else if (nextStatus === "Finished") {
+                this.classList.add("bg-success");
+              } else if (nextStatus === "Cancelled") {
+                this.classList.add("bg-danger");
+              }
+            });
+          }
+        });
+      }
+
+      // Function to setup pagination
+      function setupPagination() {
+        const pageLinks = document.querySelectorAll(".pagination .page-link");
+        pageLinks.forEach((link) => {
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            // Remove active class from all page items
+            document
+              .querySelectorAll(".pagination .page-item")
+              .forEach((item) => {
+                item.classList.remove("active");
+              });
+
+            // Add active class to parent of clicked link (if it's a page number)
+            if (!this.querySelector("i")) {
+              this.parentElement.classList.add("active");
+            }
+          });
+        });
+      }
+
+      // Function to setup search and filter functionality
+      function setupSearchFilter() {
+        const searchInput = document.querySelector(
+          'input[placeholder="Search"]'
+        );
+        if (searchInput) {
+          searchInput.addEventListener("input", function () {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach((row) => {
+              const text = row.textContent.toLowerCase();
+              if (text.includes(searchTerm)) {
+                row.style.display = "";
+              } else {
+                row.style.display = "none";
+              }
+            });
+          });
+        }
+      }
+    </script>
   </body>
 </html>

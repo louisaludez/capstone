@@ -20,10 +20,10 @@ def login(request):
                 return redirect('HomeAdmin')  
             elif user.role == 'staff':
                 return redirect('HomeStaff')
-            elif user.role == 'laundry':
-                return redirect('HomeLaundryStaff')
-            else:
-                return redirect('default_dashboard')  # fallback
+            elif user.role == 'supervisor_laundry':
+                return redirect('supervisor_laundry_home')
+           
+             # fallback
         else:
             return render(request, "registration/login.html", {"error": "Invalid credentials"}) 
     return render(request, "registration/login.html")
