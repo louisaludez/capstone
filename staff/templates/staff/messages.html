@@ -1,114 +1,216 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ACES HMS - Messenger</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <style>
-      body {
-        min-height: 100vh;
-      }
-      
-      .sidebar {
-        background-color: #114d26;
-        color: white;
-        height: 100vh;
-        padding: 20px;
-      }
-      .sidebar button {
-        margin-bottom: 10px;
-        width: 100%;
-      }
-      .chat-box {
-        height: 80vh;
-        overflow-y: auto;
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 0.5rem;
-      }
-      
-      .chat-message {
-        max-width: 70%;
-        margin-bottom: 1rem;
-      }
-      
-      .chat-message.user {
-        margin-left: auto;
-        background-color: #5ba95f;
-        color: white;
-      }
-      
-      .chat-message.staff {
-        background-color: #e9ecef;
-      }
-      .logout-section {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-      }
-    </style>
+    <title>ACES HMS - Special Services</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="{% static 'main.css' %}" />
   </head>
   <body>
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-2 sidebar d-flex flex-column">
-          <div class="text-center mb-4">
-            <img src="your-logo.png" alt="Logo" class="img-fluid" width="80" />
-            <h5>ACES HMS</h5>
-          </div>
-          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#checkInModal">Check in</button>
-          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#checkOutModal">Check out</button>
-
-          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#reservationModal">Book Reservation</button>
-          <button class="btn btn-light">Messenger</button>
-
-          <div class="logout-section">
-            <p>
-              <em>You are logged in as <a href="#">Staff123</a></em>
-            </p>
-            <form action="{% url 'login' %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-outline-light btn-sm">Sign out</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Special Services Column -->
-        <div class="col-md-3 bg-white border-end p-4">
-          <h5 class="mb-3">Special Services</h5>
-          <div class="d-grid gap-2">
-            <button class="btn btn-outline-success service-button active">Personnel</button>
-            <button class="btn btn-outline-success service-button">Concierge</button>
-            <button class="btn btn-outline-success service-button">Food and Beverage</button>
-            <button class="btn btn-outline-success service-button">Cafe</button>
-            <button class="btn btn-outline-success service-button">Restaurant</button>
-            <button class="btn btn-outline-success service-button">Room Service</button>
-            <button class="btn btn-outline-success service-button">Admin</button>
-          </div>
-        </div>
-
-        <!-- Chatbox Column -->
-        <div class="col-md-7 p-4">
-          <h5 class="mb-3">Personnel</h5>
-          <div class="chat-box mb-3">
-            <!-- Chat messages -->
-            <div class="chat-message staff p-2 rounded">Good morning, any guests in need of assistance?</div>
-            <div class="chat-message user p-2 rounded">Please pickup laundry from room 203.</div>
-            <div class="chat-message staff p-2 rounded">This is noted. Otw</div>
+    <div class="d-flex">
+      <!-- Sidebar -->
+      {% include './includes/personnel-sidebar.html' with active_page='messages' %}
+      <!-- Main Content -->
+      <div class="container-fluid bg-light bg-main-content" style="
+          background-imgage: url('{% static 'images/bg.png' %}');
+          background-size: cover;
+        ">
+        <div class="col p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Special Services</h1>
           </div>
 
-          <!-- Chat Input -->
-          <form class="d-flex gap-2">
-            <input type="text" class="form-control" placeholder="Enter your message here..." />
-            <button type="submit" class="btn btn-success">Send</button>
-          </form>
+          <div class="row">
+            <!-- Left section: Service navigation -->
+            <div class="col-md-3">
+              <div class="d-grid mb-3">
+                <button class="btn btn-success py-2">Personnel</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Concierge</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Food and Beverage</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Cafe</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Restaurant</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Room Service</button>
+              </div>
+              <div class="d-grid mb-3">
+                <button class="btn btn-outline-dark py-2">Admin</button>
+              </div>
+            </div>
+
+            <!-- Right section: Chat area -->
+            <div class="col-md-9">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                  <div class="d-flex align-items-center">
+                    <div class="avatar bg-secondary rounded-circle text-white me-2" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      ">
+                      <i class="bi bi-person"></i>
+                    </div>
+                    <h5 class="mb-0">Personnel</h5>
+                  </div>
+                </div>
+                <div class="card-body" style="height: 500px; overflow-y: auto">
+                  <div class="d-flex mb-3">
+                    <div class="me-2">
+                      <div class="avatar bg-secondary rounded-circle text-white" style="
+                          width: 40px;
+                          height: 40px;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                        ">
+                        <i class="bi bi-person"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="small text-muted mb-1">staff123</div>
+                      <div class="p-3 bg-light rounded-3">Good morning, any guests in need of assistance?</div>
+                      <div class="small text-muted mt-1">11:11 AM</div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-end mb-3">
+                    <div class="text-end me-2">
+                      <div class="small text-muted mb-1">Lstaff123</div>
+                      <div class="p-3 bg-light rounded-3">Please pickup laundry from room 203.</div>
+                      <div class="small text-muted mt-1">11:11 AM</div>
+                    </div>
+                    <div class="avatar bg-secondary rounded-circle text-white" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      ">
+                      <i class="bi bi-person"></i>
+                    </div>
+                  </div>
+
+                  <div class="d-flex mb-3">
+                    <div class="me-2">
+                      <div class="avatar bg-secondary rounded-circle text-white" style="
+                          width: 40px;
+                          height: 40px;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                        ">
+                        <i class="bi bi-person"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="small text-muted mb-1">staff123</div>
+                      <div class="p-3 bg-light rounded-3">This is noted. Otw</div>
+                      <div class="small text-muted mt-1">11:11 AM</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-footer bg-white p-2">
+                  <div class="d-flex">
+                    <div class="btn btn-outline-secondary me-2">
+                      <i class="bi bi-paperclip"></i>
+                    </div>
+                    <input type="text" class="form-control" placeholder="Enter your message here..." />
+                    <button class="btn btn-success ms-2"><i class="bi bi-send-fill"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Send message functionality
+        const messageInput = document.querySelector('input[placeholder="Enter your message here..."]')
+        const sendButton = messageInput ? messageInput.nextElementSibling : null
+      
+        if (sendButton && messageInput) {
+          const sendMessage = () => {
+            const message = messageInput.value.trim()
+            if (message) {
+              // Create new message element
+              const msgContainer = document.createElement('div')
+              msgContainer.className = 'd-flex justify-content-end mb-3'
+      
+              const msgContent = `
+                                      <div class="text-end me-2">
+                                          <div class="small text-muted mb-1">Lstaff123</div>
+                                          <div class="p-3 bg-light rounded-3">
+                                              ${message}
+                                          </div>
+                                          <div class="small text-muted mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                      </div>
+                                      <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                          <i class="bi bi-person"></i>
+                                      </div>
+                                  `
+      
+              msgContainer.innerHTML = msgContent
+      
+              // Add to chat
+              const chatBody = document.querySelector('.card-body[style*="overflow-y: auto"]')
+              if (chatBody) {
+                chatBody.appendChild(msgContainer)
+                chatBody.scrollTop = chatBody.scrollHeight
+              }
+      
+              // Clear input
+              messageInput.value = ''
+            }
+          }
+      
+          // Send on button click
+          sendButton.addEventListener('click', sendMessage)
+      
+          // Send on Enter key
+          messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              sendMessage()
+            }
+          })
+        }
+      
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+          window.location.href = 'index.html'
+        })
+      
+        // Category buttons
+        const categoryButtons = document.querySelectorAll('.btn:not(#logoutBtn):not([class*="send"])')
+        categoryButtons.forEach((button) => {
+          button.addEventListener('click', function () {
+            // Remove active class from all buttons
+            categoryButtons.forEach((btn) => btn.classList.remove('btn-success', 'text-white'))
+            categoryButtons.forEach((btn) => btn.classList.add('btn-outline-dark'))
+      
+            // Add active class to clicked button
+            this.classList.remove('btn-outline-dark')
+            this.classList.add('btn-success', 'text-white')
+          })
+        })
+      })
+    </script>
   </body>
 </html>

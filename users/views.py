@@ -18,10 +18,11 @@ def login(request):
             # 👇 Check the role and redirect accordingly
             if user.role == 'admin':
                 return redirect('HomeAdmin')  
-            elif user.role == 'staff':
+            elif user.role == 'personnel':
                 return redirect('HomeStaff')
             elif user.role == 'supervisor_laundry':
                 return redirect('supervisor_laundry_home')
+            
            
              # fallback
         else:

@@ -1,0 +1,19 @@
+{% load static %}
+<div class="sidebar bg-gradient text-white">
+  <div class="text-center p-3">
+    <img src="{% static 'images/aces-logo.png' %}" alt="ACES Logo" class="logo mb-2" />
+    <h2 class="brand-text text-white">ACES HMS</h2>
+  </div>
+  <div class="sidebar-menu mt-4 mb-5">
+    <a href="{% url 'HomeStaff' %}" class="{% if active_page == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-clipboard-check me-2"></i>
+      Dashboard
+    </a>
+
+    <a href="{% url 'MessageStaff' %}" class="{% if active_page == 'messages' %}active{% endif %}"><i class="bi bi-chat-dots me-2"></i> Messenger</a>
+  </div>
+  <div class="mt-5">
+    <p class="small mb-1 mt-5 text-center mx-auto" style="font-size: 0.8rem">You are logged in as {{ user.username }}</p>
+    <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill text-center mx-5">Sign out</a>
+  </div>
+</div>

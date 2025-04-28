@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f&1o28n36+c)%nivdj-6z*@vh+gqpfxxft2p3=zi4n&g1htt9+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = allowed_hosts = ['*']
 
@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'concierge',
     'api',
     'rest_framework',
-    'static'
+    'static',
+    'chat'
 ]
 
 MIDDLEWARE = [

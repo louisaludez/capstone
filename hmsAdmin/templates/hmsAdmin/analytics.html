@@ -12,14 +12,207 @@
   </head>
   <body>
     <div class="d-flex">
-      {% comment %}sidebar{% endcomment %}
+      <!-- Sidebar -->
       {% include '../includes/hms-admin-sidebar.html' with active_page='analytics' %}
-      {% comment %}main content{% endcomment %}
-
       <div class="container-fluid bg-light bg-main-content" style="
           background-imgage: url('{% static 'images/bg.png' %}');
           background-size: cover;
-        "></div>
+        ">
+        <!-- Main Content -->
+        <div class="col p-4">
+          <h1 class="mb-4">Dashboard</h1>
+          <div class="row">
+            <!-- Statistics Chart -->
+            <div class="col-8">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <canvas id="statsChart" height="110"></canvas>
+                  <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
+                    <div>
+                      <span class="text-success">+8.8%</span>
+                      <span class="text-muted ms-2">All Time High</span>
+                    </div>
+                    <div>
+                      <span class="h4">98.78%</span>
+                      <span class="text-muted ms-2">Total No. of Guests</span>
+                    </div>
+                    <div>
+                      <span class="text-muted">Month of April</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Statistics Chart End -->
+            </div>
+            <!-- Key Metrics -->
+            <div class="col mb-4">
+              <div class="row-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <h6 class="text-muted">Total No. of Guests</h6>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0">1201</h2>
+                      <span class="badge bg-success ms-2">+15%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <h6 class="text-muted">Peak Month</h6>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0">April</h2>
+                      <span class="badge bg-success ms-2">+17%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <h6 class="text-muted">Overall revenue</h6>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0">155000.00</h2>
+                      <span class="badge bg-danger ms-2">-15%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-4">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Peak Seasons</h5>
+                  <div class="body">
+                    <canvas id="barChart" height="110"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body d-flex flex-column align-items-center" style="height: 230px;">
+                  <h5 class="card-title" style="margin-bottom: 10px;">HMS Users Increase Rate</h5>
+                  <div style="flex: 1; width: 100%; position: relative;">
+                    <canvas id="pieChart" style="height: 100%; width: 100%;"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Users Table -->
+        </div>
+      </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Initialize dashboard features
+      document.addEventListener('DOMContentLoaded', function () {
+        // Add any dashboard initialization code here
+        console.log('Dashboard loaded')
+      
+        // Create statistics chart
+        const ctx = document.getElementById('statsChart')
+        const ctx2 = document.getElementById('barChart')
+        const ctx3 = document.getElementById('pieChart').getContext('2d')
+        const data = {
+          labels: ['Completed', 'Remaining'],
+          datasets: [
+            {
+              data: [70, 30], // 70% completed
+              backgroundColor: ['#4caf50', '#ccc'],
+              hoverBackgroundColor: ['#45a049', '#bbb'],
+              borderWidth: 0
+            }
+          ]
+        }
+      
+        const centerTextPlugin = {
+          id: 'centerText',
+          beforeDraw(chart) {
+            const { width } = chart
+            const { height } = chart
+            const ctx = chart.ctx
+            ctx.restore()
+            const fontSize = (height / 5).toFixed(2)
+            ctx.font = `${fontSize}px Arial`
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = '#fff'
+      
+            const text = '70%'
+            const textX = Math.round((width - ctx.measureText(text).width) / 2)
+            const textY = height / 2
+      
+            ctx.fillText(text, textX, textY)
+            ctx.save()
+          }
+        }
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [
+              {
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        })
+      
+        new Chart(ctx2, {
+          type: 'bar',
+          data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [
+              {
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        })
+      
+        new Chart(ctx3, {
+          type: 'doughnut',
+          data: data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%', // size of the center hole
+            plugins: {
+              legend: {
+                display: false // hide legend if you want
+              }
+            }
+          },
+          plugins: [centerTextPlugin]
+        })
+      
+        // Attach logout event handler
+        document.getElementById('logoutBtn').addEventListener('click', logout)
+      })
+    </script>
   </body>
 </html>
