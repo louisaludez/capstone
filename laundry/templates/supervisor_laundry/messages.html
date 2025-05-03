@@ -5,28 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ACES HMS - Special Services</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="{% static 'main.css'%}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="{% static 'main.css' %}" />
   </head>
   <body>
     <div class="d-flex">
       <!-- Sidebar -->
-      {% include '../includes/supervisor_sidebar.html' with active_page='messages'%}
+      {% include '../includes/supervisor_sidebar.html' with active_page='messages' %}
       <!-- Main Content -->
-      <div
-        class="container-fluid bg-light bg-main-content"
-        style="
+      <div class="container-fluid bg-light bg-main-content" style="
           background-imgage: url('{% static 'images/bg.png' %}');
           background-size: cover;
-        "
-      >
+        ">
         <div class="col p-4">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Special Services</h1>
@@ -42,9 +33,7 @@
                 <button class="btn btn-outline-dark py-2">Concierge</button>
               </div>
               <div class="d-grid mb-3">
-                <button class="btn btn-outline-dark py-2">
-                  Food and Beverage
-                </button>
+                <button class="btn btn-outline-dark py-2">Food and Beverage</button>
               </div>
               <div class="d-grid mb-3">
                 <button class="btn btn-outline-dark py-2">Cafe</button>
@@ -65,16 +54,13 @@
               <div class="card shadow-sm">
                 <div class="card-header bg-white">
                   <div class="d-flex align-items-center">
-                    <div
-                      class="avatar bg-secondary rounded-circle text-white me-2"
-                      style="
+                    <div class="avatar bg-secondary rounded-circle text-white me-2" style="
                         width: 40px;
                         height: 40px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                      "
-                    >
+                      ">
                       <i class="bi bi-person"></i>
                     </div>
                     <h5 class="mb-0">Personnel</h5>
@@ -83,24 +69,19 @@
                 <div class="card-body" style="height: 500px; overflow-y: auto">
                   <div class="d-flex mb-3">
                     <div class="me-2">
-                      <div
-                        class="avatar bg-secondary rounded-circle text-white"
-                        style="
+                      <div class="avatar bg-secondary rounded-circle text-white" style="
                           width: 40px;
                           height: 40px;
                           display: flex;
                           align-items: center;
                           justify-content: center;
-                        "
-                      >
+                        ">
                         <i class="bi bi-person"></i>
                       </div>
                     </div>
                     <div>
                       <div class="small text-muted mb-1">staff123</div>
-                      <div class="p-3 bg-light rounded-3">
-                        Good morning, any guests in need of assistance?
-                      </div>
+                      <div class="p-3 bg-light rounded-3">Good morning, any guests in need of assistance?</div>
                       <div class="small text-muted mt-1">11:11 AM</div>
                     </div>
                   </div>
@@ -108,45 +89,35 @@
                   <div class="d-flex justify-content-end mb-3">
                     <div class="text-end me-2">
                       <div class="small text-muted mb-1">Lstaff123</div>
-                      <div class="p-3 bg-light rounded-3">
-                        Please pickup laundry from room 203.
-                      </div>
+                      <div class="p-3 bg-light rounded-3">Please pickup laundry from room 203.</div>
                       <div class="small text-muted mt-1">11:11 AM</div>
                     </div>
-                    <div
-                      class="avatar bg-secondary rounded-circle text-white"
-                      style="
+                    <div class="avatar bg-secondary rounded-circle text-white" style="
                         width: 40px;
                         height: 40px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                      "
-                    >
+                      ">
                       <i class="bi bi-person"></i>
                     </div>
                   </div>
 
                   <div class="d-flex mb-3">
                     <div class="me-2">
-                      <div
-                        class="avatar bg-secondary rounded-circle text-white"
-                        style="
+                      <div class="avatar bg-secondary rounded-circle text-white" style="
                           width: 40px;
                           height: 40px;
                           display: flex;
                           align-items: center;
                           justify-content: center;
-                        "
-                      >
+                        ">
                         <i class="bi bi-person"></i>
                       </div>
                     </div>
                     <div>
                       <div class="small text-muted mb-1">staff123</div>
-                      <div class="p-3 bg-light rounded-3">
-                        This is noted. Otw
-                      </div>
+                      <div class="p-3 bg-light rounded-3">This is noted. Otw</div>
                       <div class="small text-muted mt-1">11:11 AM</div>
                     </div>
                   </div>
@@ -157,14 +128,13 @@
                     <div class="btn btn-outline-secondary me-2">
                       <i class="bi bi-paperclip"></i>
                     </div>
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Enter your message here..."
-                    />
-                    <button class="btn btn-success ms-2">
-                      <i class="bi bi-send-fill"></i>
-                    </button>
+                    <form method="post" class="d-flex" action="{% url 'send_message' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="receiver_id" value="4" />
+
+                      <input type="text" name="body" class="form-control" placeholder="Enter your message here..." required />
+                      <button type="submit" class="btn btn-success ms-2"><i class="bi bi-send-fill"></i></button>
+                    </form>
                   </div>
                 </div>
               </div>
@@ -175,94 +145,77 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener('DOMContentLoaded', function () {
         // Send message functionality
-        const messageInput = document.querySelector(
-          'input[placeholder="Enter your message here..."]'
-        );
-        const sendButton = messageInput
-          ? messageInput.nextElementSibling
-          : null;
-
+        const messageInput = document.querySelector('input[placeholder="Enter your message here..."]')
+        const sendButton = messageInput ? messageInput.nextElementSibling : null
+      
         if (sendButton && messageInput) {
           const sendMessage = () => {
-            const message = messageInput.value.trim();
+            const message = messageInput.value.trim()
             if (message) {
               // Create new message element
-              const msgContainer = document.createElement("div");
-              msgContainer.className = "d-flex justify-content-end mb-3";
-
+              const msgContainer = document.createElement('div')
+              msgContainer.className = 'd-flex justify-content-end mb-3'
+      
               const msgContent = `
-                    <div class="text-end me-2">
-                        <div class="small text-muted mb-1">Lstaff123</div>
-                        <div class="p-3 bg-light rounded-3">
-                            ${message}
-                        </div>
-                        <div class="small text-muted mt-1">${new Date().toLocaleTimeString(
-                          [],
-                          { hour: "2-digit", minute: "2-digit" }
-                        )}</div>
-                    </div>
-                    <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-person"></i>
-                    </div>
-                `;
-
-              msgContainer.innerHTML = msgContent;
-
+                                                                                            <div class="text-end me-2">
+                                                                                                <div class="small text-muted mb-1">Lstaff123</div>
+                                                                                                <div class="p-3 bg-light rounded-3">
+                                                                                                    ${message}
+                                                                                                </div>
+                                                                                                <div class="small text-muted mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                                                            </div>
+                                                                                            <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                                                                <i class="bi bi-person"></i>
+                                                                                            </div>
+                                                                                        `
+      
+              msgContainer.innerHTML = msgContent
+      
               // Add to chat
-              const chatBody = document.querySelector(
-                '.card-body[style*="overflow-y: auto"]'
-              );
+              const chatBody = document.querySelector('.card-body[style*="overflow-y: auto"]')
               if (chatBody) {
-                chatBody.appendChild(msgContainer);
-                chatBody.scrollTop = chatBody.scrollHeight;
+                chatBody.appendChild(msgContainer)
+                chatBody.scrollTop = chatBody.scrollHeight
               }
-
+      
               // Clear input
-              messageInput.value = "";
+              messageInput.value = ''
             }
-          };
-
+          }
+      
           // Send on button click
-          sendButton.addEventListener("click", sendMessage);
-
+          sendButton.addEventListener('click', sendMessage)
+      
           // Send on Enter key
-          messageInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              sendMessage();
+          messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              sendMessage()
             }
-          });
+          })
         }
-
+      
         // Logout functionality
-        document
-          .getElementById("logoutBtn")
-          .addEventListener("click", function () {
-            window.location.href = "index.html";
-          });
-
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+          window.location.href = 'index.html'
+        })
+      
         // Category buttons
-        const categoryButtons = document.querySelectorAll(
-          '.btn:not(#logoutBtn):not([class*="send"])'
-        );
+        const categoryButtons = document.querySelectorAll('.btn:not(#logoutBtn):not([class*="send"])')
         categoryButtons.forEach((button) => {
-          button.addEventListener("click", function () {
+          button.addEventListener('click', function () {
             // Remove active class from all buttons
-            categoryButtons.forEach((btn) =>
-              btn.classList.remove("btn-success", "text-white")
-            );
-            categoryButtons.forEach((btn) =>
-              btn.classList.add("btn-outline-dark")
-            );
-
+            categoryButtons.forEach((btn) => btn.classList.remove('btn-success', 'text-white'))
+            categoryButtons.forEach((btn) => btn.classList.add('btn-outline-dark'))
+      
             // Add active class to clicked button
-            this.classList.remove("btn-outline-dark");
-            this.classList.add("btn-success", "text-white");
-          });
-        });
-      });
+            this.classList.remove('btn-outline-dark')
+            this.classList.add('btn-success', 'text-white')
+          })
+        })
+      })
     </script>
   </body>
 </html>

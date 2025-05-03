@@ -8,6 +8,7 @@ import json
 @csrf_exempt
 
 def send_message(request):
+    print("send_message called")
     if request.method == 'POST':
         try:
             data = json.loads(request.body)

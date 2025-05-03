@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'static',
-    'chat'
+    'chat',
     'channels'
 ]
 

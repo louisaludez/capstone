@@ -1,5 +1,6 @@
+# messaging/models.py
 from django.db import models
-from django.conf import settings
+from django.conf import settings  # 👈 this is the key part
 
 class Message(models.Model):
     sender = models.ForeignKey(

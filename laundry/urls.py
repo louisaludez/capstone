@@ -10,6 +10,7 @@ urlpatterns = [
     path('supervisor/', supervisor_laundry_home, name='supervisor_laundry_home'),
     path('supervisor/messages',supervisor_laundry_messages,name='supervisor_laundry_messages'),
     path('supervisor/orders',supervisor_laundry_reports,name='supervisor_laundry_reports'),
+    path('supervisor/messages/chat', send_message_view, name='send_message'),
     
 
 ]

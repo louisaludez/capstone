@@ -16,6 +16,7 @@ def login(request):
         if user is not None:
             auth_login(request, user)
             # 👇 Check the role and redirect accordingly
+            print('user login')
             if user.role == 'admin':
                 return redirect('HomeAdmin')  
             elif user.role == 'personnel':
@@ -49,4 +50,5 @@ def login(request):
     return render(request, "registration/login.html")
 def logout_view(request):
     auth_logout(request)
+    print('user logout')
     return redirect('login')
