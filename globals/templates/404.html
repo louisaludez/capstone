@@ -1,48 +1,42 @@
-{% load static %}
+<!-- templates/404.html -->
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <title>Lost? Just like Zoro!</title>
     <style>
-      .custom-bg {
-        background: linear-gradient(to right, #e2e8f0, #e5e7eb);
+      body {
+        background-color: #ffffff; /* Changed to white */
+        color: #0c0c0c; /* Adjusted text color for contrast */
+        font-family: 'Arial', sans-serif;
+        text-align: center;
+        padding: 50px;
       }
-      
-      .custom-btn:hover {
-        background-color: #f3e8ff !important;
-        transition: background-color 0.3s ease-in-out;
+      img {
+        max-width: 400px;
+        margin-top: 20px;
+        border-radius: 15px; /* Added roundness to the image */
       }
-      
-      @media (prefers-color-scheme: dark) {
-        .custom-bg {
-          background: linear-gradient(to right, #1f2937, #111827);
-          color: white !important;
-        }
-      
-        .custom-btn {
-          background-color: #374151 !important;
-          color: white !important;
-        }
-      
-        .custom-btn:hover {
-          background-color: #4b5563 !important;
-        }
+      a {
+        color: #4caf50;
+        text-decoration: none;
+        font-size: 20px;
+        display: inline-block;
+        margin-top: 30px;
+      }
+      a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <div class="custom-bg text-dark">
-      <div class="d-flex align-items-center justify-content-center min-vh-100 px-2">
-        <div class="text-center">
-          <h1 class="display-1 fw-bold">404</h1>
-          <p class="fs-2 fw-medium mt-4">Oops! Page not found</p>
-          <p class="mt-4 mb-5">The page you're looking for doesn't exist or has been moved.</p>
-          <a href="/" class="btn btn-light fw-semibold rounded-pill px-4 py-2 custom-btn">Go Home</a>
-        </div>
-      </div>
-    </div>
+    <h1>404 - Page Not Found</h1>
+    <p>Looks like you've gotten lost... just like Zoro.</p>
+
+    <img src="https://preview.redd.it/if-zoro-got-lost-and-ended-up-in-the-back-rooms-do-you-v0-404t0gtyebcb1.png?auto=webp&s=f188b2b5be9e79886d78bab59e03f9eb3cb0a331" alt="Zoro Lost" />
+
+    <br />
+    <a href="/">Go Back to Home</a>
   </body>
 </html>
