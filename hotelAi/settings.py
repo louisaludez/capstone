@@ -31,7 +31,8 @@ LOGIN_REDIRECT_URL = "/"  # new
 # Application definition
 
 INSTALLED_APPS = [
-    
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,8 +55,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'static',
     'chat',
-    'channels'
+   
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,7 +88,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hotelAi.wsgi.application'
-
+ASGI_APPLICATION = 'hotelAi.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

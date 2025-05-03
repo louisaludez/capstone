@@ -67,70 +67,56 @@
                   </div>
                 </div>
                 <div class="card-body" style="height: 500px; overflow-y: auto">
-                  <div class="d-flex mb-3">
-                    <div class="me-2">
-                      <div class="avatar bg-secondary rounded-circle text-white" style="
-                          width: 40px;
-                          height: 40px;
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                        ">
-                        <i class="bi bi-person"></i>
+                  {% for message in messages %}
+                    {% if message.sender == request.user %}
+                      <!-- Right-aligned message (from current user) -->
+                      <div class="d-flex justify-content-end mb-3">
+                        <div class="text-end me-2">
+                          <div class="small text-muted mb-1">{{ message.sender.username }}</div>
+                          <div class="p-3 bg-light rounded-3">{{ message.body }}</div>
+                          <div class="small text-muted mt-1">{{ message.timestamp|date:'h:i A' }}</div>
+                        </div>
+                        <div class="avatar bg-secondary rounded-circle text-white" style="
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;">
+                          <i class="bi bi-person"></i>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div class="small text-muted mb-1">staff123</div>
-                      <div class="p-3 bg-light rounded-3">Good morning, any guests in need of assistance?</div>
-                      <div class="small text-muted mt-1">11:11 AM</div>
-                    </div>
-                  </div>
-
-                  <div class="d-flex justify-content-end mb-3">
-                    <div class="text-end me-2">
-                      <div class="small text-muted mb-1">Lstaff123</div>
-                      <div class="p-3 bg-light rounded-3">Please pickup laundry from room 203.</div>
-                      <div class="small text-muted mt-1">11:11 AM</div>
-                    </div>
-                    <div class="avatar bg-secondary rounded-circle text-white" style="
-                        width: 40px;
-                        height: 40px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                      ">
-                      <i class="bi bi-person"></i>
-                    </div>
-                  </div>
-
-                  <div class="d-flex mb-3">
-                    <div class="me-2">
-                      <div class="avatar bg-secondary rounded-circle text-white" style="
-                          width: 40px;
-                          height: 40px;
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                        ">
-                        <i class="bi bi-person"></i>
+                    {% else %}
+                      <!-- Left-aligned message (from others) -->
+                      <div class="d-flex mb-3">
+                        <div class="me-2">
+                          <div class="avatar bg-secondary rounded-circle text-white" style="
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;">
+                            <i class="bi bi-person"></i>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="small text-muted mb-1">{{ message.sender.username }}</div>
+                          <div class="p-3 bg-light rounded-3">{{ message.body }}</div>
+                          <div class="small text-muted mt-1">{{ message.timestamp|date:'h:i A' }}</div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div class="small text-muted mb-1">staff123</div>
-                      <div class="p-3 bg-light rounded-3">This is noted. Otw</div>
-                      <div class="small text-muted mt-1">11:11 AM</div>
-                    </div>
-                  </div>
+                    {% endif %}
+                  {% empty %}
+                    <p class="text-muted">No messages yet.</p>
+                  {% endfor %}
                 </div>
 
                 <div class="card-footer bg-white p-2">
                   <div class="d-flex">
-                    <div class="btn btn-outline-secondary me-2">
-                      <i class="bi bi-paperclip"></i>
-                    </div>
                     <form method="post" class="d-flex" action="{% url 'send_message' %}">
                       {% csrf_token %}
                       <input type="hidden" name="receiver_id" value="4" />
+
+                      <button type="button" class="btn btn-outline-secondary me-2"><i class="bi bi-paperclip"></i></button>
 
                       <input type="text" name="body" class="form-control" placeholder="Enter your message here..." required />
                       <button type="submit" class="btn btn-success ms-2"><i class="bi bi-send-fill"></i></button>
@@ -149,53 +135,6 @@
         // Send message functionality
         const messageInput = document.querySelector('input[placeholder="Enter your message here..."]')
         const sendButton = messageInput ? messageInput.nextElementSibling : null
-      
-        if (sendButton && messageInput) {
-          const sendMessage = () => {
-            const message = messageInput.value.trim()
-            if (message) {
-              // Create new message element
-              const msgContainer = document.createElement('div')
-              msgContainer.className = 'd-flex justify-content-end mb-3'
-      
-              const msgContent = `
-                                                                                            <div class="text-end me-2">
-                                                                                                <div class="small text-muted mb-1">Lstaff123</div>
-                                                                                                <div class="p-3 bg-light rounded-3">
-                                                                                                    ${message}
-                                                                                                </div>
-                                                                                                <div class="small text-muted mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                                                                            </div>
-                                                                                            <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                                                                <i class="bi bi-person"></i>
-                                                                                            </div>
-                                                                                        `
-      
-              msgContainer.innerHTML = msgContent
-      
-              // Add to chat
-              const chatBody = document.querySelector('.card-body[style*="overflow-y: auto"]')
-              if (chatBody) {
-                chatBody.appendChild(msgContainer)
-                chatBody.scrollTop = chatBody.scrollHeight
-              }
-      
-              // Clear input
-              messageInput.value = ''
-            }
-          }
-      
-          // Send on button click
-          sendButton.addEventListener('click', sendMessage)
-      
-          // Send on Enter key
-          messageInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              sendMessage()
-            }
-          })
-        }
       
         // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', function () {
