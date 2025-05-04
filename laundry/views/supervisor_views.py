@@ -37,11 +37,11 @@ def send_message_view(request):
                 subject=subject,
                 body=body
             )
-            return redirect('supervisor_laundry_messages')  # Change this to any valid URL name you want
+            return redirect('supervisor_laundry_messages') 
         except User.DoesNotExist:
-            return render(request, 'laundry/send_message.html', {
+            return render(request, 'supervisor_laundry/messages.html', {
                 'error': 'Receiver not found.'
             })
 
     users = User.objects.exclude(id=request.user.id)
-    return render(request, 'laundry/supervisor_laundry/messages.html', {'users': users})
+    return render(request, 'supervisor_laundry/messages.html', {'users': users})

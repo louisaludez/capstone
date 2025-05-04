@@ -6,7 +6,8 @@ from users.models import CustomUser  # Replace 'your_app' with the actual app na
 @decorator.role_required('admin')
 def home(request):
     users = CustomUser.objects.all()  # Assuming you have a User model
-    print(users)
+    # Print the username of each user
+
     return render(request, "hmsAdmin/home.html", {"users": users})
 
 @decorator.role_required('admin')
