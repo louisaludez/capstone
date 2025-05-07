@@ -492,3 +492,106 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Main content cafe   */
+.cafe-pos-container {
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+/* Search Bar */
+.search-container {
+    position: relative;
+}
+
+.search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+}
+
+/* Menu Grid */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.menu-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+}
+
+/* Category Navigation */
+.nav-tabs-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+}
+
+.category-tab {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    color: #666;
+    cursor: pointer;
+}
+
+.category-tab.active {
+    color: #1a472a;
+    border-bottom: 2px solid #1a472a;
+}
+
+/* Order Panel */
+.order-panel {
+    background: white;
+    border-radius: 12px;
+    margin: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.customer-info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-type-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.order-items {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.total-row {
+    font-size: 1.2em;
+    font-weight: bold;
+    border-top: 1px solid #ddd;
+    padding-top: 1rem;
+}
+
+.btn-edit {
+    background: none;
+    border: none;
+    color: #666;
+}
+
+.btn-edit:hover {
+    color: #1a472a;
+}
