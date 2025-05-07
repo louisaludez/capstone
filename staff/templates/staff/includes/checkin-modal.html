@@ -63,7 +63,11 @@
 
               <div class="mb-3">
                 <label for="room_number" class="form-label">Room No.</label>
-                <input type="number" class="form-control" name="room_number" id="room_number" />
+                <select class="form-select" name="room_number" id="room_number" required>
+                  {% for room in rooms %}
+                    <option value="{{ room.room_number }}">{{ room.room_number }}</option>
+                  {% endfor %}
+                </select>
               </div>
 
               <div class="mb-3">

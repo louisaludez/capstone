@@ -25,6 +25,7 @@ def message(request):
 
 def check_in(request):
     if request.method == 'POST':
+        print(request)
         customer_name = request.POST.get('customer_name')
         customer_address = request.POST.get('customer_address')
         customer_zipCode = request.POST.get('customer_zipCode')
@@ -33,7 +34,7 @@ def check_in(request):
         checkin_date = request.POST.get('checkin_date')
         checkout_date = request.POST.get('checkout_date')
         room_type = request.POST.get('room_type')
-        room_number_id = request.POST.get('room_number')
+        room_number_id = int(request.POST.get('room_number'))
         special_requests = request.POST.get('special_requests')
         number_of_guests = request.POST.get('number_of_guests')
         payment_method = request.POST.get('payment_method')
@@ -67,11 +68,21 @@ def check_in(request):
             )
 
             messages.success(request, 'Guest checked in successfully.')
-            return redirect('dashboard')  # Replace with your actual redirect target
+            return redirect('HomeStaff')  # Replace with your actual redirect target
 
         except Room.DoesNotExist:
             messages.error(request, 'Selected room does not exist.')
         except Exception as e:
             messages.error(request, f'An error occurred: {e}')
 
-    return render(request, 'checkin.html')  # Replace with your actual template
+        rooms = Room.objects.all()
+        available_rooms = rooms.filter(status='available').count()
+        occupied_rooms = rooms.filter(status='occupied').count()
+        room_count = rooms.count()
+        under_maintenance_rooms = rooms.filter(status='under_maintenance').count()
+        housekeeping_rooms = rooms.filter(status='house_keeping').count()
+    return render(request, "staff/home.html", {'rooms': rooms,'available_rooms_count': available_rooms,
+                                               'occupied_rooms_count': occupied_rooms, 'under_maintenance_rooms_count': under_maintenance_rooms,
+            'housekeeping_rooms_count': housekeeping_rooms
+                                               ,'room_count': room_count})  # Pass rooms to the template
+  # Replace with your actual template
