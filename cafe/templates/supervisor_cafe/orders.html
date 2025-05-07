@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACES HMS - Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="{% static 'main.css' %}" />
+  </head>
+  <body>
+    <div class="d-flex">
+      {% include '../includes/supervisor_cafe_sidebar.html' with active_page='orders' %}
+      <div class="container-fluid bg-light bg-main-content" style="
+          background-imgage: url('{% static 'images/bg.png' %}');
+          background-size: cover;
+        ">
+        <div class="container-fluid bg-light bg-main-content" style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover;">
+          <div class="col p-0">
+            <div class="orders-container">
+              <div class="d-flex justify-content-between align-items-center p-4">
+                <h2 class="mb-0">Orders</h2>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn btn-outline-secondary">Filter</button>
+                  <button class="btn btn-outline-secondary">Sort <i class="bi bi-filter-left"></i></button>
+                  <input type="text" class="form-control" placeholder="Search" style="width: 200px;" />
+                </div>
+              </div>
+              <div class="d-flex justify-content-center mb-3">
+                <div class="btn-group">
+                  <button class="btn btn-outline-success active">All</button>
+                  <button class="btn btn-outline-success">Paid</button>
+                  <button class="btn btn-outline-success">Pending</button>
+                </div>
+              </div>
+
+              <div class="px-4 pb-4">
+                {% for i in range|make_list %}
+                  <div class="border rounded p-3 mb-3 d-flex justify-content-between align-items-center shadow-sm">
+                    <div>
+                      <div class="fw-bold">John Loui Saludez</div>
+                      <div>
+                        Order Number: <span class="fw-semibold">#00001</span>
+                      </div>
+                      <div>
+                        Receipt Number: <span class="fw-semibold">#00001</span>
+                      </div>
+                      <div>
+                        Service type: <span class="fw-bold">Room Service</span>
+                      </div>
+                      <div class="text-muted small">17/04/25 11:11 AM</div>
+                    </div>
+                    <div class="text-end">
+                      <div class="mb-2">
+                        <i class="bi bi-eye-slash me-2"></i>
+                        <i class="bi bi-pencil-square me-2"></i>
+                        <i class="bi bi-trash text-danger"></i>
+                      </div>
+                      <div class="fw-bold">440.00</div>
+                      {% if forloop.counter|divisibleby:2 %}
+                        <span class="badge bg-success">Paid</span>
+                      {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

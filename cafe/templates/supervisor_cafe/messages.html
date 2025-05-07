@@ -12,7 +12,7 @@
   <body>
     <div class="d-flex">
       <!-- Sidebar -->
-      {% include '../includes/staff_sidebar.html' with active_page='messages' %}
+      {% include '../includes/supervisor_cafe_sidebar.html' with active_page='messages' %}
       <!-- Main Content -->
       <div class="container-fluid bg-light bg-main-content" style="
           background-imgage: url('{% static 'images/bg.png' %}');
@@ -128,7 +128,7 @@
                     <div class="btn btn-outline-secondary me-2">
                       <i class="bi bi-paperclip"></i>
                     </div>
-                    <form method="POST" action="{% url 'send_message' %}">
+                    <form method="POST" action="">
                       {% csrf_token %}
 
                       <div class="d-flex">
@@ -160,17 +160,17 @@
               msgContainer.className = 'd-flex justify-content-end mb-3'
       
               const msgContent = `
-                                            <div class="text-end me-2">
-                                                <div class="small text-muted mb-1">Lstaff123</div>
-                                                <div class="p-3 bg-light rounded-3">
-                                                    ${message}
-                                                </div>
-                                                <div class="small text-muted mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                            </div>
-                                            <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="bi bi-person"></i>
-                                            </div>
-                                        `
+                                                                    <div class="text-end me-2">
+                                                                        <div class="small text-muted mb-1">Lstaff123</div>
+                                                                        <div class="p-3 bg-light rounded-3">
+                                                                            ${message}
+                                                                        </div>
+                                                                        <div class="small text-muted mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                                    </div>
+                                                                    <div class="avatar bg-secondary rounded-circle text-white" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                                        <i class="bi bi-person"></i>
+                                                                    </div>
+                                                                `
       
               msgContainer.innerHTML = msgContent
       
