@@ -45,9 +45,9 @@ def check_in(request):
         total_balance = request.POST.get('total_balance')
 
         try:
-            room = Room.objects.get(id=room_number_id)
-
-            checkin = Checkin.objects.create(
+            room = Room.objects.get(room_number=room_number_id)
+            
+            checkin = Reservation.objects.create(
                 customer_name=customer_name,
                 customer_address=customer_address,
                 customer_zipCode=customer_zipCode,
@@ -66,9 +66,9 @@ def check_in(request):
                 billing_address=billing_address,
                 total_balance=Decimal(total_balance) if total_balance else None,
             )
-
+            Room.objects.filter(room_number=room_number_id).update(status='occupied')
             messages.success(request, 'Guest checked in successfully.')
-            return redirect('HomeStaff')  # Replace with your actual redirect target
+            return redirect('HomeStaff') 
 
         except Room.DoesNotExist:
             messages.error(request, 'Selected room does not exist.')
@@ -81,8 +81,10 @@ def check_in(request):
         room_count = rooms.count()
         under_maintenance_rooms = rooms.filter(status='under_maintenance').count()
         housekeeping_rooms = rooms.filter(status='house_keeping').count()
-    return render(request, "staff/home.html", {'rooms': rooms,'available_rooms_count': available_rooms,
-                                               'occupied_rooms_count': occupied_rooms, 'under_maintenance_rooms_count': under_maintenance_rooms,
-            'housekeeping_rooms_count': housekeeping_rooms
-                                               ,'room_count': room_count})  # Pass rooms to the template
-  # Replace with your actual template
+    return render(request, "staff/home.html", {'rooms': rooms,
+                                               'available_rooms_count': available_rooms,
+                                               'occupied_rooms_count': occupied_rooms, 
+                                               'under_maintenance_rooms_count': under_maintenance_rooms,
+                                               'housekeeping_rooms_count': housekeeping_rooms,
+                                               'room_count': room_count})  
+

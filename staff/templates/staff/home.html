@@ -16,12 +16,16 @@
       }
       
       .room-card {
-        padding: 20px;
-        text-align: center;
+        text-align: center !important;
         border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
         transition: transform 0.2s;
+        height: 100px;
+        padding-top: 30px;
+        font-size: 2rem;
+        width: 160px;
+        margin: 0 auto;
       }
       
       .room-card:hover {
@@ -91,8 +95,8 @@
         <div class="room-grid p-3">
           <div class="row g-3">
             {% for room in rooms %}
-              <div class="col-md-3">
-                <div class="room-card {{ room.status }} text-white">{{ room.room_number }}</div>
+              <div class="col">
+                <div class="room-card {{ room.status }} text-white text-center">{{ room.room_number }}</div>
               </div>
             {% endfor %}
           </div>
@@ -100,9 +104,9 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons p-3 d-flex gap-3">
-          <button class="btn btn-outline-primary flex-fill" data-bs-toggle="modal" data-bs-target="#checkInModal">Check in</button>
-          <button class="btn btn-outline-primary flex-fill">Book Reservation</button>
-          <button class="btn btn-outline-primary flex-fill">Check out</button>
+          <button class="btn btn-outline-dark flex-fill" data-bs-toggle="modal" data-bs-target="#checkInModal">Check in</button>
+          <button class="btn btn-outline-dark flex-fill">Book Reservation</button>
+          <button class="btn btn-outline-dark flex-fill">Check out</button>
         </div>
 
         <!-- Room Information -->

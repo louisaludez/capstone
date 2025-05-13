@@ -24,5 +24,6 @@ def analytics(request):
 
 @decorator.role_required('admin')
 def accounts(request):
-    return render(request, "hmsAdmin/accounts.html")
+    users = CustomUser.objects.all()
+    return render(request, "hmsAdmin/accounts.html", {"users": users})
 
