@@ -1,0 +1,111 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Concierge
+Dashboard{% endblock %} {% block extra_css %}
+<style>
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+  .service-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .service-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .service-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+  }
+
+  .service-title {
+    background: #1b4332;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+
+  /* Main content wrapper */
+  .main-wrapper {
+    margin-left: 18%; /* Match sidebar width from base.html */
+    padding: 2rem;
+    width: 82%; /* Remaining width */
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="main-wrapper">
+  <h1 class="page-title">Concierge Services</h1>
+
+  <div class="service-grid">
+    <div class="service-card">
+      <img
+        src="{% static 'concierge/images/tour-icon.svg' %}"
+        alt="Tours"
+        class="service-icon"
+      />
+      <div
+        class="service-title"
+        style="cursor: pointer"
+        onclick="window.location.href='{% url 'concierge:book_tours' %}'"
+      >
+        Book Tours
+      </div>
+    </div>
+
+    <div class="service-card">
+      <img
+        src="{% static 'concierge/images/reservation-icon.svg' %}"
+        alt="Reservations"
+        class="service-icon"
+      />
+      <div
+        class="service-title"
+        style="cursor: pointer"
+        onclick="window.location.href='{% url 'concierge:book_reservations' %}'"
+      >
+        Book Reservations
+      </div>
+    </div>
+  </div>
+
+  <div class="notification-section">
+    <div class="list-group">
+      <a
+        href=""
+        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+      >
+        <div class="d-flex align-items-center">
+          <i class="fas fa-bell me-2"></i> Unread Notifications
+          <span class="badge bg-danger rounded-pill ms-2">3</span>
+        </div>
+      </a>
+      <a href="" class="list-group-item list-group-item-action">
+        <i class="fas fa-tasks text-primary me-2"></i>
+        5 pending bookings
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

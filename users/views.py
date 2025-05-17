@@ -28,7 +28,7 @@ def login(request):
                 return redirect('staff_laundry_home')
              # fallback
             elif user.role == 'supervisor_concierge':
-                return redirect('supervisor_concierge_home')
+                return redirect('concierge:dashboard')
             elif user.role == 'supervisor_cafe':
                 return redirect('supervisor_cafe_home')
             elif user.role == 'supervisor_room_service':
@@ -42,7 +42,7 @@ def login(request):
             elif user.role == 'staff_restaurant':
                 return redirect('staff_restaurant_home')
             elif user.role == 'staff_room_servie':
-                return redirect('staff_room_service_home')
+                return redirect('room_service:dashboardrm')
             elif user.role == 'staff_fnb':
                 return redirect('staff_fnb_home')
         else:

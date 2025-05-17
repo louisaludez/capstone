@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Room Service | Laundry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .room-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .room-btn {
+        padding: 1rem;
+        text-align: center;
+        border-radius: 8px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.2s;
+    }
+
+    .room-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .room-btn.no-requests {
+        background-color: #1B4332;
+    }
+
+    .room-btn.pending {
+        background-color: #FFC107;
+    }
+
+    .room-btn.in-progress {
+        background-color: #0D47A1;
+    }
+
+    .request-table {
+        width: 100%;
+        margin-top: 2rem;
+    }
+
+    .request-table th {
+        background-color: #f5f5f5;
+        padding: 0.75rem;
+    }
+
+    .request-table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .status-badge.pending {
+        background-color: #FFF3CD;
+        color: #856404;
+    }
+
+    .status-badge.in-progress {
+        background-color: #CCE5FF;
+        color: #004085;
+    }
+
+    .status-badge.finished {
+        background-color: #D4EDDA;
+        color: #155724;
+    }
+
+    .action-icons i {
+        margin: 0 0.25rem;
+        cursor: pointer;
+    }
+
+    .action-icons i.fa-eye {
+        color: #0D47A1;
+    }
+
+    .action-icons i.fa-edit {
+        color: #1B4332;
+    }
+
+    .action-icons i.fa-trash {
+        color: #DC3545;
+    }
+
+    .legend {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-3">
+    <h1 class="text-start mx-5" style="font-size: 2rem; font-weight: bold; margin-left: 228px !important;">Room Service | Laundry</h1>
+
+    <!-- Room Grid -->
+    <div class="room-grid mx-5">
+        <button class="room-btn no-requests">R1</button>
+        <button class="room-btn in-progress">R2</button>
+        <button class="room-btn pending">R3</button>
+        <button class="room-btn no-requests">R4</button>
+        <button class="room-btn pending">R5</button>
+        <button class="room-btn in-progress">R6</button>
+        <button class="room-btn no-requests">R7</button>
+        <button class="room-btn in-progress">R8</button>
+        <button class="room-btn in-progress">R9</button>
+        <button class="room-btn in-progress">R10</button>
+        <button class="room-btn no-requests">R11</button>
+        <button class="room-btn no-requests">R12</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend mx-5">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #1B4332;"></div>
+            <span>No requests</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #FFC107;"></div>
+            <span>Pending requests</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #0D47A1;"></div>
+            <span>In progress</span>
+        </div>
+    </div>
+
+    <!-- Request Table -->
+    <div class="mx-5">
+        <table class="request-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox"></th>
+                    <th>Room no.</th>
+                    <th>Customer</th>
+                    <th>Service Type</th>
+                    <th>Date and Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>12</td>
+                    <td>Juan Dela Cruz</td>
+                    <td>Wash and Fold</td>
+                    <td>11:11 13/04/2025</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <span class="status-badge pending">Pending</span>
+                            <span class="status-badge in-progress">In progress</span>
+                        </div>
+                    </td>
+                    <td class="action-icons">
+                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-trash"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>5</td>
+                    <td>John Loui Saludez</td>
+                    <td>Wash</td>
+                    <td>11:11 13/04/2025</td>
+                    <td><span class="status-badge finished">Finished</span></td>
+                    <td class="action-icons">
+                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-trash"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>3</td>
+                    <td>Clarissa Sotto</td>
+                    <td>Wash</td>
+                    <td>11:11 13/04/2025</td>
+                    <td><span class="status-badge finished">Finished</span></td>
+                    <td class="action-icons">
+                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-trash"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

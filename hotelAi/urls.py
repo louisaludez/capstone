@@ -29,7 +29,8 @@ urlpatterns = [
     path('users/', include('users.urls')),
      path('chat/', include(('chat.urls', 'chat'), namespace='chat')),
     path('cafe/', include('cafe.urls')),
-
+    path('room-service/', include('room_service.urls')),
+    path('concierge/', include('concierge.urls')),
     
     
 ]

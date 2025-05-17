@@ -1,0 +1,220 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Concierge | Book
+Tours{% endblock %} {% block extra_css %}
+<style>
+  /* Main content wrapper */
+  .main-wrapper {
+    margin-left: 18%; /* Match sidebar width from base.html */
+    padding: 2rem;
+    width: 82%; /* Remaining width */
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+
+  .tour-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  .tour-btn {
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s;
+  }
+
+  .tour-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .tour-btn.available {
+    background-color: #1b4332;
+  }
+
+  .tour-btn.booked {
+    background-color: #ffc107;
+  }
+
+  .tour-btn.in-progress {
+    background-color: #0d47a1;
+  }
+
+  .request-table {
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .request-table th {
+    background-color: #f5f5f5;
+    padding: 0.75rem;
+  }
+
+  .request-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+  }
+
+  .status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .status-badge.confirmed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .status-badge.in-progress {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .action-icons i {
+    margin: 0 0.25rem;
+    cursor: pointer;
+  }
+
+  .action-icons i.fa-eye {
+    color: #0d47a1;
+  }
+
+  .action-icons i.fa-edit {
+    color: #1b4332;
+  }
+
+  .action-icons i.fa-trash {
+    color: #dc3545;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="main-wrapper">
+  <h1 class="page-title">Book Tours</h1>
+
+  <!-- Tour Time Slots Grid -->
+  <div class="tour-grid">
+    <button class="tour-btn available">9:00 AM</button>
+    <button class="tour-btn booked">10:00 AM</button>
+    <button class="tour-btn in-progress">11:00 AM</button>
+    <button class="tour-btn available">1:00 PM</button>
+    <button class="tour-btn booked">2:00 PM</button>
+    <button class="tour-btn in-progress">3:00 PM</button>
+    <button class="tour-btn available">4:00 PM</button>
+    <button class="tour-btn in-progress">5:00 PM</button>
+    <button class="tour-btn booked">6:00 PM</button>
+    <button class="tour-btn available">7:00 PM</button>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #1b4332"></div>
+      <span>Available</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffc107"></div>
+      <span>Booked</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #0d47a1"></div>
+      <span>In Progress</span>
+    </div>
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="request-table-wrapper">
+    <table class="request-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" /></th>
+          <th>Time Slot</th>
+          <th>Guest Name</th>
+          <th>Tour Type</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox" /></td>
+          <td>10:00 AM</td>
+          <td>Maria Santos</td>
+          <td>City Tour</td>
+          <td>13/04/2025</td>
+          <td>
+            <span class="status-badge confirmed">Confirmed</span>
+          </td>
+          <td class="action-icons">
+            <i class="fas fa-eye"></i>
+            <i class="fas fa-edit"></i>
+            <i class="fas fa-trash"></i>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" /></td>
+          <td>2:00 PM</td>
+          <td>John Smith</td>
+          <td>Historical Tour</td>
+          <td>13/04/2025</td>
+          <td>
+            <span class="status-badge pending">Pending</span>
+          </td>
+          <td class="action-icons">
+            <i class="fas fa-eye"></i>
+            <i class="fas fa-edit"></i>
+            <i class="fas fa-trash"></i>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" /></td>
+          <td>5:00 PM</td>
+          <td>Emma Wilson</td>
+          <td>Food Tour</td>
+          <td>13/04/2025</td>
+          <td>
+            <span class="status-badge in-progress">In Progress</span>
+          </td>
+          <td class="action-icons">
+            <i class="fas fa-eye"></i>
+            <i class="fas fa-edit"></i>
+            <i class="fas fa-trash"></i>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
