@@ -4,12 +4,11 @@
 {% block title %}ACES HMS - Training{% endblock %}
 
 {% block sidebar %}
-  {% include 'includes/hms-admin-sidebar.html' with active_page='training' %}
+{% include 'includes/hms-admin-sidebar.html' with active_page='training' %}
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid bg-main-content py-5">
-
+<div class="container p-4">
   <h2 class="text-center fw-bold mb-5" style="color:#1a1a1a; font-size: 2rem;">Training Simulation</h2>
 
   <div class="row justify-content-center g-4 mb-4">
@@ -19,7 +18,8 @@
         <img src="{% static 'images/speech-icon.svg' %}" alt="Speech to Text Icon" class="mb-3" style="height: 60px;">
         <h5 class="fw-bold mb-2">Speech - to - text Speed and Accuracy Test</h5>
         <p class="text-muted small mb-0">
-          An assessment designed to measure how accurately a person or a system can convert spoken language into written text.
+          An assessment designed to measure how accurately a person or a system can convert spoken language into written
+          text.
         </p>
       </div>
     </div>
@@ -27,20 +27,21 @@
     <!-- Multiple Choice Test Card -->
     <div class="col-md-4">
       <div class="border rounded-4 text-center p-4 h-100 shadow-sm">
-        <img src="{% static 'images/multiple-choice-icon.svg' %}" alt="Multiple Choice Icon" class="mb-3" style="height: 60px;">
+        <img src="{% static 'images/multiple-choice-icon.svg' %}" alt="Multiple Choice Icon" class="mb-3"
+          style="height: 60px;">
         <h5 class="fw-bold mb-2">Multiple Choice Scenario Based Test</h5>
         <p class="text-muted small mb-0">
-          An assessment format where participants are presented with realistic situations and must choose the best response or course of action from a list of multiple options.
+          An assessment format where participants are presented with realistic situations and must choose the best
+          response or course of action from a list of multiple options.
         </p>
       </div>
     </div>
   </div>
-
-  <!-- Training Materials Button -->
-  <div class="text-center">
-    <button class="btn text-white px-4 py-2" style="background-color: #6ba539; border-radius: 6px; font-weight: 500;">
-      Training Materials
-    </button>
-  </div>
+</div>
+<!-- Training Materials Button -->
+<div class="text-center">
+  <button class="btn text-white px-4 py-2" style="background-color: #6ba539; border-radius: 6px; font-weight: 500;">
+    Training Materials
+  </button>
 </div>
 {% endblock %}

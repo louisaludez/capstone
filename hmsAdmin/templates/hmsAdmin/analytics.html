@@ -4,90 +4,88 @@
 {% block title %}ACES HMS - Dashboard{% endblock %}
 
 {% block sidebar %}
-  {% include 'includes/hms-admin-sidebar.html' with active_page='analytics' %}
+{% include 'includes/hms-admin-sidebar.html' with active_page='analytics' %}
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid bg-light bg-main-content p-4" style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover;">
-  <h1 class="mb-4">Dashboard</h1>
-  <div class="row">
-    <!-- Statistics Chart -->
-    <div class="col-8">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          <canvas id="statsChart" height="110"></canvas>
-          <div class="d-flex justify-content-between mt-3">
-            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
-            <div>
-              <span class="text-success">+8.8%</span>
-              <span class="text-muted ms-2">All Time High</span>
-            </div>
-            <div>
-              <span class="h4">98.78%</span>
-              <span class="text-muted ms-2">Total No. of Guests</span>
-            </div>
-            <div>
-              <span class="text-muted">Month of April</span>
-            </div>
+<h1 class="mb-4">Dashboard</h1>
+<div class="row">
+  <!-- Statistics Chart -->
+  <div class="col-8">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <canvas id="statsChart" height="110"></canvas>
+        <div class="d-flex justify-content-between mt-3">
+          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
+          <div>
+            <span class="text-success">+8.8%</span>
+            <span class="text-muted ms-2">All Time High</span>
           </div>
-        </div>
-      </div>
-    </div>
-    <!-- Key Metrics -->
-    <div class="col mb-4">
-      <div class="row-md-4 mb-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6 class="text-muted">Total No. of Guests</h6>
-            <div class="d-flex align-items-center">
-              <h2 class="mb-0">1201</h2>
-              <span class="badge bg-success ms-2">+15%</span>
-            </div>
+          <div>
+            <span class="h4">98.78%</span>
+            <span class="text-muted ms-2">Total No. of Guests</span>
           </div>
-        </div>
-      </div>
-      <div class="row-md-4 mb-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6 class="text-muted">Peak Month</h6>
-            <div class="d-flex align-items-center">
-              <h2 class="mb-0">April</h2>
-              <span class="badge bg-success ms-2">+17%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row-md-4 mb-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h6 class="text-muted">Overall revenue</h6>
-            <div class="d-flex align-items-center">
-              <h2 class="mb-0">155000.00</h2>
-              <span class="badge bg-danger ms-2">-15%</span>
-            </div>
+          <div>
+            <span class="text-muted">Month of April</span>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="row">
-    <div class="col-6 mb-4">
-      <div class="card mb-4 shadow-sm">
+  <!-- Key Metrics -->
+  <div class="col mb-4">
+    <div class="row-md-4 mb-3">
+      <div class="card shadow-sm">
         <div class="card-body">
-          <h5 class="card-title">Peak Seasons</h5>
-          <div class="body">
-            <canvas id="barChart" height="110"></canvas>
+          <h6 class="text-muted">Total No. of Guests</h6>
+          <div class="d-flex align-items-center">
+            <h2 class="mb-0">1201</h2>
+            <span class="badge bg-success ms-2">+15%</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-6">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body d-flex flex-column align-items-center" style="height: 230px;">
-          <h5 class="card-title mb-3">HMS Users Increase Rate</h5>
-          <div style="flex: 1; width: 100%; position: relative;">
-            <canvas id="pieChart" style="height: 100%; width: 100%;"></canvas>
+    <div class="row-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Peak Month</h6>
+          <div class="d-flex align-items-center">
+            <h2 class="mb-0">April</h2>
+            <span class="badge bg-success ms-2">+17%</span>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="row-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Overall revenue</h6>
+          <div class="d-flex align-items-center">
+            <h2 class="mb-0">155000.00</h2>
+            <span class="badge bg-danger ms-2">-15%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-6 mb-4">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Peak Seasons</h5>
+        <div class="body">
+          <canvas id="barChart" height="110"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body d-flex flex-column align-items-center" style="height: 230px;">
+        <h5 class="card-title mb-3">HMS Users Increase Rate</h5>
+        <div style="flex: 1; width: 100%; position: relative;">
+          <canvas id="pieChart" style="height: 100%; width: 100%;"></canvas>
         </div>
       </div>
     </div>

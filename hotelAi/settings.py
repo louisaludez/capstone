@@ -39,23 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myHotel',
-    'frontOffice',
     'staff',
     'laundry',
     'hmsAdmin',
     'users',
     'globals',
     'cafe',
-    'restaurant',
-    'room_service',
-    'fnb',
-    'concierge',
     'api',
     'rest_framework',
     'static',
     'chat',
     'django_extensions',
+    'concierge',
+    'room_service',
    
 ]
 
@@ -90,6 +86,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'hotelAi.wsgi.application'
 ASGI_APPLICATION = 'hotelAi.asgi.application'
+
+# Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

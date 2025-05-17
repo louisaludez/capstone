@@ -5,8 +5,21 @@ from .models import Message
 from django.contrib.auth.models import User
 import json
 
-@csrf_exempt
+def cleanup_obsolete_messages():
+    # Remove messages related to restaurant and food & beverage
+    Message.objects.filter(
+        sender_role__in=['staff_restaurant', 'manager_restaurant', 'Restaurant', 
+                        'staff_fnb', 'manager_fnb', 'Food and Beverage']
+    ).delete()
+    Message.objects.filter(
+        receiver_role__in=['staff_restaurant', 'manager_restaurant', 'Restaurant', 
+                          'staff_fnb', 'manager_fnb', 'Food and Beverage']
+    ).delete()
 
+# Run cleanup
+cleanup_obsolete_messages()
+
+@csrf_exempt
 def send_message(request):
     print("send_message called")
     if request.method == 'POST':
