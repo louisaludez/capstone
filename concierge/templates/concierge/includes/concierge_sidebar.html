@@ -1,0 +1,44 @@
+{% load static %}
+<div
+  class="sidebar bg-gradient text-white d-flex flex-column"
+  style="height: 100vh; min-width: 18%; max-width: 18%"
+>
+  <!-- Logo + Brand -->
+  <div class="text-center p-3">
+    <img
+      src="{% static 'images/aces-logo.png' %}"
+      alt="ACES Logo"
+      class="logo mb-2"
+    />
+    <h2 class="brand-text text-white">ACES HMS</h2>
+  </div>
+
+  <!-- Menu Links -->
+  <div class="sidebar-menu mt-4 flex-grow-1">
+    <a
+      href="{% url 'concierge:dashboard' %}"
+      class="{% if active_page == 'tasks' %}active{% endif %}"
+      ><i class="bi bi-speedometer2 me-2"></i>Tasks</a
+    >
+    <a
+      href="{% url 'concierge:timeline' %}"
+      class="{% if active_page == 'timeline' %}active{% endif %}"
+      ><i class="bi bi-people me-2"></i>Timeline</a
+    >
+    <a
+      href="{% url 'concierge:messenger_concierge' %}"
+      class="{% if active_page == 'messenger' %}active{% endif %}"
+      ><i class="bi bi-mortarboard me-2"></i>Messenger</a
+    >
+  </div>
+
+  <!-- Footer (user info + sign out) -->
+  <div class="mt-auto p-3 d-flex flex-column align-items-center">
+    <p class="small text-center mb-2" style="font-size: 0.8rem">
+      You are logged in as {{ user.username }}
+    </p>
+    <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill"
+      >Sign out</a
+    >
+  </div>
+</div>

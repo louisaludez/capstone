@@ -1,0 +1,10 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Concierge
+Dashboard{% endblock %} {% block sidebar %} {% include './includes/concierge_sidebar.html' with active_page='timeline' %} {% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'concierge/dashboard.css' %}" />
+
+
+{% endblock %} {% block content %}
+
+
+{% endblock %} {% block extra_js %} {% endblock %}

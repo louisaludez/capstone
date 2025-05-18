@@ -22,11 +22,10 @@ def login(request):
             elif user.role == 'personnel':
                 return redirect('HomeStaff')
             elif user.role == 'supervisor_laundry':
-                return redirect('supervisor_laundry_home')
-            
+                return redirect('supervisor_laundry_home')          
             elif user.role == 'staff_laundry':
                 return redirect('staff_laundry_home')
-             # fallback
+            
             elif user.role == 'supervisor_concierge':
                 return redirect('concierge:dashboard')
             elif user.role == 'supervisor_cafe':

@@ -1,0 +1,55 @@
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.service-card {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-icon {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+
+.service-title {
+  background: #1b4332;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 5px;
+  margin-top: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Main content wrapper */
+.main-wrapper {
+  margin-left: 18%; /* Match sidebar width from base.html */
+  padding: 2rem;
+  width: 82%; /* Remaining width */
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  margin-left: 10px !important;
+} 

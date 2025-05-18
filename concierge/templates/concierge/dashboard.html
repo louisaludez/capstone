@@ -1,5 +1,8 @@
 {% extends 'base.html' %} {% load static %} {% block title %}Concierge
-Dashboard{% endblock %} {% block extra_css %}
+Dashboard{% endblock %} {% block sidebar %} {% include './includes/concierge_sidebar.html' with active_page='tasks' %} {% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'concierge/dashboard.css' %}" />
+{% endblock %} {% block extra_heads %}
 <style>
   .service-grid {
     display: grid;
@@ -43,7 +46,8 @@ Dashboard{% endblock %} {% block extra_css %}
 
   /* Main content wrapper */
   .main-wrapper {
-    margin-left: 18%; /* Match sidebar width from base.html */
+    /* Match sidebar width from base.html */
+    margin-right: 100px !important;
     padding: 2rem;
     width: 82%; /* Remaining width */
   }
@@ -52,11 +56,12 @@ Dashboard{% endblock %} {% block extra_css %}
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 2rem;
+  
   }
 </style>
 {% endblock %} {% block content %}
-<div class="main-wrapper">
-  <h1 class="page-title">Concierge Services</h1>
+
+  <h1 class="page-title" style="margin-left: 35px;">Concierge Services</h1>
 
   <div class="service-grid">
     <div class="service-card">
@@ -67,7 +72,6 @@ Dashboard{% endblock %} {% block extra_css %}
       />
       <div
         class="service-title"
-        style="cursor: pointer"
         onclick="window.location.href='{% url 'concierge:book_tours' %}'"
       >
         Book Tours
@@ -82,7 +86,6 @@ Dashboard{% endblock %} {% block extra_css %}
       />
       <div
         class="service-title"
-        style="cursor: pointer"
         onclick="window.location.href='{% url 'concierge:book_reservations' %}'"
       >
         Book Reservations
@@ -107,5 +110,5 @@ Dashboard{% endblock %} {% block extra_css %}
       </a>
     </div>
   </div>
-</div>
-{% endblock %}
+
+{% endblock %} {% block extra_js %} {% endblock %}
