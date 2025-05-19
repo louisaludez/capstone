@@ -5,7 +5,9 @@ from .models import *
 from django.contrib import messages
 from decimal import Decimal
 from datetime import datetime
-
+from django.db import models
+from django.utils import timezone
+from chat.models import Message
 # Create your views here.
 @decorator.role_required('personnel')
 def home(request):
@@ -20,8 +22,20 @@ def home(request):
             'housekeeping_rooms_count': housekeeping_rooms
                                                ,'room_count': room_count})
 def message(request):
-    return render(request, "staff/messages.html")
-
+    
+    receiver_role = request.GET.get('receiver_role', 'personnel')
+    room_name = f"chat_{receiver_role}"
+    user_role = request.user.role
+    messages_qs = Message.objects.filter(
+        (models.Q(sender_role=user_role, receiver_role=receiver_role)) |
+        (models.Q(sender_role=receiver_role, receiver_role=user_role))
+    ).order_by('created_at')
+    return render(request, "staff/messages.html", {
+        "room_name": room_name,
+        "receiver_role": receiver_role,
+        "messages": messages_qs,
+        "current_user_id": request.user.id,
+    })
 
 def check_in(request):
     if request.method == 'POST':

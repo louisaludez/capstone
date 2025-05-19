@@ -40,7 +40,7 @@ def login(request):
                 return redirect('staff_cafe_home')
             elif user.role == 'staff_restaurant':
                 return redirect('staff_restaurant_home')
-            elif user.role == 'staff_room_servie':
+            elif user.role == 'staff_room_service':
                 return redirect('room_service:dashboardrm')
             elif user.role == 'staff_fnb':
                 return redirect('staff_fnb_home')

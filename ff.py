@@ -20,7 +20,8 @@ filipino_first_names = [
     "John", "Mark", "Michael", "Christian", "Paolo", "Marco", "Daniel", "David",
     "Andrea", "Angela", "Michelle", "Patricia", "Christine", "Jennifer", "Mary",
     "Jasmine", "Nicole", "Sarah", "Kathleen", "Joyce", "Marvin", "Ryan",
-    "Joshua", "Justin", "Adrian", "Bryan", "Carlo", "Patrick", "Jerome"
+    "Joshua", "Justin", "Adrian", "Bryan", "Carlo", "Patrick", "Jerome",
+    "Francis","Dane","Randolp","Kyle","Jasper",
 ]
 
 filipino_surnames = [
@@ -31,7 +32,8 @@ filipino_surnames = [
     "Domingo", "Dizon", "Vasquez", "Cortez", "Gutierrez", "Navarro", "Estrada",
     "De Guzman", "Salvador", "Mercado", "De Leon", "Villanueva", "Aguilar", "Robles",
     "De Vera", "Ruiz", "Pascual", "Sison", "Marquez", "Valencia", "Soriano",
-    "Santiago", "Miranda", "Ocampo", "Romero", "Lacson", "Padilla", "Diaz"
+    "Santiago", "Miranda", "Ocampo", "Romero", "Lacson", "Padilla", "Diaz","Bautista",
+    "Alcantara", "Saludez", "Lopez", "Duterte", "Dela Rosa", "Marcos", "Masangcay", "Bayot",
 ]
 
 def generate_filipino_email():

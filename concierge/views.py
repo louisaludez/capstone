@@ -3,6 +3,7 @@ from globals import decorator
 from chat.models import Message
 from django.db import models
 from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
 @login_required
@@ -10,30 +11,29 @@ def dashboard(request):
     """
     Display the main concierge dashboard with service options
     """
-    context = {
-        'active_page': 'concierge'
-    }
-    return render(request, 'concierge/dashboard.html', context)
+    
+    return render(request, 'concierge/dashboard.html' )
 
 @login_required
 def book_tours(request):
     """
     Handle tour booking operations
     """
-    context = {
+    {
         'active_page': 'concierge'
     }
-    return render(request, 'concierge/book_tours.html', context)
+    return render(request, 'concierge/book_tours.html' )
 
 @login_required
 def book_reservations(request):
     """
     Handle restaurant/venue reservations
     """
-    context = {
+    {
         'active_page': 'concierge'
     }
-    return render(request, 'concierge/book_reservations.html', context)
+    return render(request, 'concierge/book_reservations.html' )
+
 def messenger(request):
     """
     Handle the messenger functionality for concierge
@@ -51,11 +51,7 @@ def messenger(request):
         "messages": messages_qs,
         "current_user_id": request.user.id,
     })
+
+@login_required
 def timeline(request):
-    """
-    Display the timeline of events or activities
-    """
-    context = {
-        'active_page': 'concierge'
-    }
-    return render(request, 'concierge/timeline.html', context)
+    return render(request, 'concierge/timeline.html')

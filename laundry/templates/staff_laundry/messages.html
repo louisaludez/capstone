@@ -15,9 +15,9 @@
   <div class="d-flex">
     <!-- Sidebar -->
     {% include '../includes/staff_sidebar.html' with active_page='messages' %}
-    <!-- Main Content -->
-     
-<div class="container-fluid vh-100 d-flex justify-content-center align-items-start p-0">
+    <!-- Main Content --> 
+
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-start p-0 mt-5">
   <div class="row w-100" style="max-width: 900px;">
     <!-- Left section: Service navigation -->
     <div class="col-md-3">
@@ -90,9 +90,9 @@
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
+
 <script>
   const roomName = "{{ room_name }}";
   const senderId = "{{ request.user.id }}";

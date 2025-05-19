@@ -16,17 +16,17 @@
   <!-- Menu Links -->
   <div class="sidebar-menu mt-4 flex-grow-1">
     <a
-      href="{% url 'concierge:dashboard' %}"
+      href="{% url 'room_service:dashboardrm' %}"
       class="{% if active_page == 'tasks' %}active{% endif %}"
       ><i class="bi bi-speedometer2 me-2"></i>Tasks</a
     >
     <a
-      href="{% url 'concierge:timeline' %}"
+      href="{% url 'room_service:timeline' %}"
       class="{% if active_page == 'timeline' %}active{% endif %}"
       ><i class="bi bi-people me-2"></i>Timeline</a
     >
     <a
-      href="{% url 'concierge:messenger' %}"
+      href="{% url 'room_service:messenger' %}"
       class="{% if active_page == 'messenger' %}active{% endif %}"
       ><i class="bi bi-mortarboard me-2"></i>Messenger</a
     >

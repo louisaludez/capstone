@@ -24,8 +24,9 @@
     />
 
     <!-- Custom CSS -->
+    {% block css%}
     <link rel="stylesheet" href="{% static 'main.css' %}" />
-
+ {% endblock %}
     {% block extra_head %} {% endblock %}  
   </head>
 

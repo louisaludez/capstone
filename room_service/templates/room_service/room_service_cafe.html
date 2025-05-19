@@ -1,127 +1,123 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Room Service |
-Laundry{% endblock %} {% block extra_css %}
+{% extends 'base.html' %} {% load static %} {% block title %}Concierge
+Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_sidebar.html' with active_page='tasks' %} {% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'concierge/dashboard.css' %}" />
+
 <style>
-  /* Main content wrapper */
-  .main-wrapper {
-    margin-left: 18%; /* Match sidebar width from base.html */
-    padding: 2rem;
-    width: 82%; /* Remaining width */
-  }
-
-  .page-title {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 2rem;
-  }
-
-  .room-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-    margin: 2rem 0;
-  }
-
-  .room-btn {
-    padding: 1rem;
-    text-align: center;
-    border-radius: 8px;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    border: none;
-    transition: transform 0.2s;
-  }
-
-  .room-btn:hover {
-    transform: translateY(-2px);
-  }
-
-  .room-btn.no-requests {
-    background-color: #1b4332;
-  }
-
-  .room-btn.pending {
-    background-color: #ffc107;
-  }
-
-  .room-btn.in-progress {
-    background-color: #0d47a1;
-  }
-
-  .request-table {
-    width: 100%;
-    margin-top: 2rem;
-  }
-
-  .request-table th {
-    background-color: #f5f5f5;
-    padding: 0.75rem;
-  }
-
-  .request-table td {
-    padding: 0.75rem;
-    vertical-align: middle;
-  }
-
-  .status-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-  }
-
-  .status-badge.pending {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-
-  .status-badge.in-progress {
-    background-color: #cce5ff;
-    color: #004085;
-  }
-
-  .status-badge.finished {
-    background-color: #d4edda;
-    color: #155724;
-  }
-
-  .action-icons i {
-    margin: 0 0.25rem;
-    cursor: pointer;
-  }
-
-  .action-icons i.fa-eye {
-    color: #0d47a1;
-  }
-
-  .action-icons i.fa-edit {
-    color: #1b4332;
-  }
-
-  .action-icons i.fa-trash {
-    color: #dc3545;
-  }
-
-  .legend {
-    display: flex;
-    gap: 1rem;
-    margin: 1rem 0;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-  }
-</style>
-{% endblock %} {% block content %}
-<div class="main-wrapper">
-  <h1 class="page-title">Room Service | Laundry</h1>
+ 
+    .page-title {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+  
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+  
+    .room-btn {
+      padding: 1rem;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s;
+    }
+  
+    .room-btn:hover {
+      transform: translateY(-2px);
+    }
+  
+    .room-btn.no-requests {
+      background-color: #1b4332;
+    }
+  
+    .room-btn.pending {
+      background-color: #ffc107;
+    }
+  
+    .room-btn.in-progress {
+      background-color: #0d47a1;
+    }
+  
+    .request-table {
+      width: 100%;
+      margin-top: 2rem;
+    }
+  
+    .request-table th {
+      background-color: #f5f5f5;
+      padding: 0.75rem;
+    }
+  
+    .request-table td {
+      padding: 0.75rem;
+      vertical-align: middle;
+    }
+  
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+  
+    .status-badge.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+  
+    .status-badge.in-progress {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+  
+    .status-badge.finished {
+      background-color: #d4edda;
+      color: #155724;
+    }
+  
+    .action-icons i {
+      margin: 0 0.25rem;
+      cursor: pointer;
+    }
+  
+    .action-icons i.fa-eye {
+      color: #0d47a1;
+    }
+  
+    .action-icons i.fa-edit {
+      color: #1b4332;
+    }
+  
+    .action-icons i.fa-trash {
+      color: #dc3545;
+    }
+  
+    .legend {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+  
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+  </style>
+{% endblock %}{% block content %}
+<h1 class="page-title">Room Service | Laundry</h1>
 
   <!-- Room Grid -->
   <div class="room-grid">
@@ -217,5 +213,5 @@ Laundry{% endblock %} {% block extra_css %}
       </tbody>
     </table>
   </div>
-</div>
-{% endblock %}
+  
+{% endblock %} {% block extra_js %} {% endblock %}

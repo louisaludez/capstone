@@ -55,7 +55,7 @@ def staff_laundry_messages(request):
     except:
         receiver_username = "Unknown"
 
-    return render(request, "hmsAdmin/messages.html", {
+    return render(request, "staff_laundry/messages.html", {
         "room_name": room_name,
         "receiver_role": receiver_role,
         "receiver_username": receiver_username,

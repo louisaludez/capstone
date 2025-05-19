@@ -44,7 +44,7 @@ def is_valid_role(role):
         'staff_laundry', 'manager_laundry',
         'staff_cafe', 'manager_cafe',
         'staff_room_service', 'manager_room_service',
-        'admin'
+        'admin','personnel'
     ]
     return role in valid_roles
 
