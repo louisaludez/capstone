@@ -1,110 +1,613 @@
-{% extends './base.html' %}
-{% load static %}
-
-{% block title %}Registered HMS Users | ACES HMS{% endblock %}
-
-{% block sidebar %}
-{% include 'includes/hms-admin-sidebar.html' with active_page='accounts' %}
-{% endblock %}
-
+{% extends './base.html' %} {% load static %} {% block title %}Registered HMS
+Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='accounts' %} {% endblock %}
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1>Registered HMS Users</h1>
-  <div class="d-flex">
-    <div class="input-group">
-      <button class="btn btn-outline-secondary dropdown-toggle" type="button">
-        <i class="bi bi-funnel"></i> Filter
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Registered HMS Users</h4>
+    <div class="d-flex gap-2">
+      <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#addUserModal"
+      >
+        <i class="bi bi-plus-lg"></i> Add User
       </button>
-      <button class="btn btn-outline-secondary dropdown-toggle" type="button">
-        Sort <i class="bi bi-sort-down"></i>
-      </button>
+      <div class="input-group">
+        <input
+          id="customSearch"
+          type="text"
+          class="form-control form-control-sm"
+          placeholder="Search"
+        />
+        <button
+          id="customSearchBtn"
+          class="btn btn-outline-secondary btn-sm"
+          type="button"
+        >
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
     </div>
-    <div class="input-group ms-2">
-      <input id="customSearch" type="text" class="form-control" placeholder="Search" />
-      <button id="customSearchBtn" class="btn btn-outline-secondary" type="button">
-        <i class="bi bi-search"></i>
-      </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="usersTable" class="table table-hover table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th width="30"><input type="checkbox" /></th>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Registration Date</th>
+              <th>Status</th>
+              <th width="100">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+              <td>
+                <span class="badge bg-success">Active</span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-sm btn-link p-0 me-2 view-user"
+                  data-user-id="{{ user.id }}"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-link p-0 me-2 edit-user"
+                  data-user-id="{{ user.id }}"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-link p-0 text-danger delete-user"
+                  data-user-id="{{ user.id }}"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center">No users found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table id="usersTable" class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th width="40"><input type="checkbox" /></th>
-            <th>User ID.</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Registration Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td><input type="checkbox" /></td>
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.role }}</td>
-            <td>
-              {{ user.date_joined|time:"H:i" }}<br />
-              {{ user.date_joined|date:"d/m/Y" }}
-            </td>
-            <td>
-              {% if user.status == 'pending' %}
-              <span class="badge bg-warning">Pending</span>
-              {% elif user.status == 'finished' %}
-              <span class="badge bg-success">Finished</span>
-              {% elif user.status == 'cancelled' %}
-              <span class="badge bg-danger">Cancelled</span>
-              {% else %}
-              <span class="badge bg-secondary">{{ user.status }}</span>
-              {% endif %}
-            </td>
-            <td>
-              <button class="btn btn-sm btn-link"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-sm btn-link"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-link text-danger"><i class="bi bi-trash"></i></button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7" class="text-center">No users found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<!-- Add User Modal -->
+<div
+  class="modal fade"
+  id="addUserModal"
+  tabindex="-1"
+  aria-labelledby="addUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addUserForm" method="POST" action="{% url 'add_user' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="">Select Role</option>
+              <option value="personnel">Personnel</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="supervisor_laundry">Supervisor - Laundry</option>
+              <option value="supervisor_concierge">
+                Supervisor - Concierge
+              </option>
+              <option value="supervisor_cafe">Supervisor - Cafe</option>
+              <option value="staff_laundry">Staff - Laundry</option>
+              <option value="staff_concierge">Staff - Concierge</option>
+              <option value="staff_cafe">Staff - Cafe</option>
+              <option value="staff_room_service">Staff - Room Service</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="submit" form="addUserForm" class="btn btn-primary">
+          Add User
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
-{% endblock %}
+<!-- View User Modal -->
+<div
+  class="modal fade"
+  id="viewUserModal"
+  tabindex="-1"
+  aria-labelledby="viewUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Username</label>
+          <p id="viewUsername" class="mb-0"></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Email</label>
+          <p id="viewEmail" class="mb-0"></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Role</label>
+          <p id="viewRole" class="mb-0"></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Date Joined</label>
+          <p id="viewDateJoined" class="mb-0"></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Last Login</label>
+          <p id="viewLastLogin" class="mb-0"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-{% block extra_js %}
+<!-- Edit User Modal -->
+<div
+  class="modal fade"
+  id="editUserModal"
+  tabindex="-1"
+  aria-labelledby="editUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="editUserForm">
+          {% csrf_token %}
+          <input type="hidden" id="editUserId" name="user_id" />
+          <div class="mb-3">
+            <label for="editEmail" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="editEmail"
+              name="email"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editUsername" class="form-label">Username</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editUsername"
+              name="username"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editPassword" class="form-label"
+              >Password (leave blank to keep current)</label
+            >
+            <input
+              type="password"
+              class="form-control"
+              id="editPassword"
+              name="password"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editRole" class="form-label">Role</label>
+            <select class="form-select" id="editRole" name="role" required>
+              <option value="">Select Role</option>
+              <option value="personnel">Personnel</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="supervisor_laundry">Supervisor - Laundry</option>
+              <option value="supervisor_concierge">
+                Supervisor - Concierge
+              </option>
+              <option value="supervisor_cafe">Supervisor - Cafe</option>
+              <option value="staff_laundry">Staff - Laundry</option>
+              <option value="staff_concierge">Staff - Concierge</option>
+              <option value="staff_cafe">Staff - Cafe</option>
+              <option value="staff_room_service">Staff - Room Service</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="submit" form="editUserForm" class="btn btn-primary">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div
+  class="modal fade"
+  id="deleteUserModal"
+  tabindex="-1"
+  aria-labelledby="deleteUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete this user? This action cannot be
+          undone.
+        </p>
+        <input type="hidden" id="deleteUserId" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div
+    id="notificationToast"
+    class="toast"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <div class="toast-header">
+      <i class="bi bi-info-circle me-2"></i>
+      <strong class="me-auto" id="toastTitle">Notification</strong>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="toast"
+        aria-label="Close"
+      ></button>
+    </div>
+    <div class="toast-body" id="toastMessage"></div>
+  </div>
+</div>
+
+{% endblock %} {% block extra_js %}
 <script>
   $(function () {
     // Initialize DataTable without its built-in search box
-    var table = $('#usersTable').DataTable({
+    var table = $("#usersTable").DataTable({
       paging: true,
-      pageLength: 10,
+      pageLength: 6,
       lengthChange: false,
-      info: false,
-      searching: false,  // disable default search
+      info: true,
+      searching: false, // disable default search
       order: [], // disable initial sort
-      columnDefs: [{ orderable: false, targets: [0, 6] }]
+      columnDefs: [{ orderable: false, targets: [0, 6] }],
     });
 
     // Custom search input and button hooked to DataTables search
-    $('#customSearch').on('input', function () {
+    $("#customSearch").on("input", function () {
       table.search(this.value).draw();
     });
-    $('#customSearchBtn').on('click', function () {
-      table.search($('#customSearch').val()).draw();
+    $("#customSearchBtn").on("click", function () {
+      table.search($("#customSearch").val()).draw();
+    });
+
+    // Initialize toast
+    const toast = new bootstrap.Toast(
+      document.getElementById("notificationToast"),
+      {
+        animation: true,
+        autohide: true,
+        delay: 3000,
+      }
+    );
+
+    // Function to show notification
+    function showNotification(title, message, isSuccess = true) {
+      const toastEl = document.getElementById("notificationToast");
+      const toastTitle = document.getElementById("toastTitle");
+      const toastMessage = document.getElementById("toastMessage");
+
+      // Update toast content
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+
+      // Update toast style based on success/error
+      if (isSuccess) {
+        toastEl.classList.remove("bg-danger", "text-white");
+        toastEl.classList.add("bg-success", "text-white");
+      } else {
+        toastEl.classList.remove("bg-success", "text-white");
+        toastEl.classList.add("bg-danger", "text-white");
+      }
+
+      // Show toast
+      toast.show();
+    }
+
+    // Function to update table row
+    function updateTableRow(userId, data) {
+      const row = table.row($(`tr[data-user-id="${userId}"]`));
+      if (row.length) {
+        const newData = [
+          `<input type="checkbox" />`,
+          data.id,
+          data.username,
+          data.role,
+          data.date_joined,
+          `<span class="badge bg-success">Active</span>`,
+          `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="btn btn-sm btn-link p-0 me-2 edit-user" data-user-id="${data.id}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-link p-0 text-danger delete-user" data-user-id="${data.id}">
+            <i class="bi bi-trash"></i>
+          </button>`,
+        ];
+        row.data(newData).draw(false);
+      }
+    }
+
+    // Function to add new row to table
+    function addTableRow(data) {
+      const newRow = [
+        `<input type="checkbox" />`,
+        data.id,
+        data.username,
+        data.role,
+        data.date_joined,
+        `<span class="badge bg-success">Active</span>`,
+        `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
+          <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn btn-sm btn-link p-0 me-2 edit-user" data-user-id="${data.id}">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-link p-0 text-danger delete-user" data-user-id="${data.id}">
+          <i class="bi bi-trash"></i>
+        </button>`,
+      ];
+      table.row.add(newRow).draw(false);
+    }
+
+    // Function to remove row from table
+    function removeTableRow(userId) {
+      const row = table.row($(`tr[data-user-id="${userId}"]`));
+      if (row.length) {
+        row.remove().draw(false);
+      }
+    }
+
+    // View User - Using event delegation
+    $(document).on("click", ".view-user", function () {
+      const userId = $(this).data("user-id");
+      $.get(`/hmsAdmin/accountsAdmin/view-user/${userId}/`, function (data) {
+        $("#viewUsername").text(data.username);
+        $("#viewEmail").text(data.email);
+        $("#viewRole").text(data.role);
+        $("#viewDateJoined").text(data.date_joined);
+        $("#viewLastLogin").text(data.last_login);
+        $("#viewUserModal").modal("show");
+      });
+    });
+
+    // Edit User - Using event delegation
+    $(document).on("click", ".edit-user", function () {
+      const userId = $(this).data("user-id");
+      $.get(`/hmsAdmin/accountsAdmin/edit-user/${userId}/`, function (data) {
+        $("#editUserId").val(data.id);
+        $("#editUsername").val(data.username);
+        $("#editEmail").val(data.email);
+        $("#editRole").val(data.role);
+        $("#editPassword").val(""); // Clear password field
+        $("#editUserModal").modal("show");
+      });
+    });
+
+    // Handle Edit Form Submit
+    $("#editUserForm").on("submit", function (e) {
+      e.preventDefault();
+      const userId = $("#editUserId").val();
+
+      $.ajax({
+        url: `/hmsAdmin/accountsAdmin/edit-user/${userId}/`,
+        type: "POST",
+        data: $(this).serialize(),
+        headers: {
+          "X-CSRFToken": $('input[name="csrfmiddlewaretoken"]').val(),
+        },
+        success: function (response) {
+          if (response.status === "success") {
+            showNotification("Success", response.message, true);
+            $("#editUserModal").modal("hide");
+            // Refresh the page after a short delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            showNotification("Error", response.message, false);
+          }
+        },
+        error: function () {
+          showNotification(
+            "Error",
+            "An error occurred while updating the user.",
+            false
+          );
+        },
+      });
+    });
+
+    // Delete User - Using event delegation
+    $(document).on("click", ".delete-user", function () {
+      const userId = $(this).data("user-id");
+      $("#deleteUserId").val(userId);
+      $("#deleteUserModal").modal("show");
+    });
+
+    // Handle Delete Confirmation
+    $("#confirmDelete").on("click", function () {
+      const userId = $("#deleteUserId").val();
+
+      $.ajax({
+        url: `/hmsAdmin/accountsAdmin/delete-user/${userId}/`,
+        type: "POST",
+        data: {
+          csrfmiddlewaretoken: "{{ csrf_token }}",
+        },
+        success: function (response) {
+          if (response.status === "success") {
+            showNotification("Success", response.message, true);
+            $("#deleteUserModal").modal("hide");
+            // Refresh the page after a short delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            showNotification("Error", response.message, false);
+          }
+        },
+        error: function () {
+          showNotification(
+            "Error",
+            "An error occurred while deleting the user.",
+            false
+          );
+        },
+      });
+    });
+
+    // Handle Add User Form Submit
+    $("#addUserForm").on("submit", function (e) {
+      e.preventDefault();
+
+      $.ajax({
+        url: $(this).attr("action"),
+        type: "POST",
+        data: $(this).serialize(),
+        success: function (response) {
+          if (response.status === "success") {
+            showNotification("Success", response.message, true);
+            $("#addUserModal").modal("hide");
+            $("#addUserForm")[0].reset();
+            // Refresh the page after a short delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            showNotification("Error", response.message, false);
+          }
+        },
+        error: function (xhr, errmsg, err) {
+          showNotification(
+            "Error",
+            "An error occurred while adding the user. Please try again.",
+            false
+          );
+        },
+      });
     });
   });
 </script>
