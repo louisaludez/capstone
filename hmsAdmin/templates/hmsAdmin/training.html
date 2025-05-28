@@ -1,46 +1,73 @@
-{% extends './base.html' %}
-{% load static %}
-
-{% block title %}ACES HMS - Training{% endblock %}
-
-{% block sidebar %}
-{% include 'includes/hms-admin-sidebar.html' with active_page='training' %}
-{% endblock %}
-
+{% extends './base.html' %} {% load static %} {% block title %}ACES HMS -
+Training{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} {% endblock %}
 {% block content %}
+<h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+  Training Materials
+</h2>
 <div class="container p-4">
-  <h2 class="text-center fw-bold mb-5" style="color:#1a1a1a; font-size: 2rem;">Training Simulation</h2>
+
 
   <div class="row justify-content-center g-4 mb-4">
     <!-- Speech-to-text Test Card -->
     <div class="col-md-4">
-      <div class="border rounded-4 text-center p-4 h-100 shadow-sm">
-        <img src="{% static 'images/SPTT2.png' %}" alt="Speech to Text Icon" class="mb-3" style="height: 60px;">
-        <h5 class="fw-bold mb-2">Speech - to - text Speed and Accuracy Test</h5>
-        <p class="text-muted small mb-0">
-          An assessment designed to measure how accurately a person or a system can convert spoken language into written
-          text.
-        </p>
-      </div>
+      <a
+        href="{% url 'speech_to_text_page' %}"
+        style="text-decoration: none; color: inherit"
+      >
+        <div
+          class="border rounded-4 text-center p-4 h-100 shadow-sm"
+          style="cursor: pointer"
+        >
+          <img
+            src="{% static 'images/SPTT2.png' %}"
+            alt="Speech to Text Icon"
+            class="mb-3"
+            style="height: 60px"
+          />
+          <h5 class="fw-bold mb-2">
+            Speech - to - text Speed and Accuracy Test
+          </h5>
+          <p class="text-muted small mb-0">
+            An assessment designed to measure how accurately a person or a
+            system can convert spoken language into written text.
+          </p>
+        </div>
+      </a>
     </div>
 
     <!-- Multiple Choice Test Card -->
     <div class="col-md-4">
-      <div class="border rounded-4 text-center p-4 h-100 shadow-sm">
-        <img src="{% static 'images/type.png' %}" alt="Multiple Choice Icon" class="mb-3"
-          style="height: 60px;">
-        <h5 class="fw-bold mb-2">Multiple Choice Scenario Based Test</h5>
-        <p class="text-muted small mb-0">
-          An assessment format where participants are presented with realistic situations and must choose the best
-          response or course of action from a list of multiple options.
-        </p>
-      </div>
+      <a
+        href="{% url 'mcq_page' %}"
+        style="text-decoration: none; color: inherit"
+      >
+        <div
+          class="border rounded-4 text-center p-4 h-100 shadow-sm"
+          style="cursor: pointer"
+        >
+          <img
+            src="{% static 'images/type.png' %}"
+            alt="Multiple Choice Icon"
+            class="mb-3"
+            style="height: 60px"
+          />
+          <h5 class="fw-bold mb-2">Multiple Choice Scenario Based Test</h5>
+          <p class="text-muted small mb-0">
+            An assessment format where participants are presented with realistic
+            situations and must choose the best response or course of action
+            from a list of multiple options.
+          </p>
+        </div>
+      </a>
     </div>
   </div>
 </div>
 <!-- Training Materials Button -->
 <div class="text-center">
-  <button class="btn text-white px-4 py-2" style="background-color: #6ba539; border-radius: 6px; font-weight: 500;">
+  <button
+    class="btn text-white px-4 py-2"
+    style="background-color: #6ba539; border-radius: 6px; font-weight: 500"
+  >
     Training Materials
   </button>
 </div>

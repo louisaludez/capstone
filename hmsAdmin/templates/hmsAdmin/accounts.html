@@ -41,7 +41,6 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
               <th>Username</th>
               <th>Role</th>
               <th>Registration Date</th>
-              <th>Status</th>
               <th width="100">Actions</th>
             </tr>
           </thead>
@@ -52,10 +51,10 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
               <td>{{ user.id }}</td>
               <td>{{ user.username }}</td>
               <td>{{ user.role }}</td>
-              <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
-              <td>
-                <span class="badge bg-success">Active</span>
-              </td>
+              <td
+                class="date-joined"
+                data-date="{{ user.date_joined|date:'c' }}"
+              ></td>
               <td>
                 <button
                   class="btn btn-sm btn-link p-0 me-2 view-user"
@@ -79,7 +78,7 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7" class="text-center">No users found.</td>
+              <td colspan="6" class="text-center">No users found.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -138,6 +137,18 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
               class="form-control"
               id="password"
               name="password"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              class="form-control"
+              id="confirmPassword"
+              name="confirmPassword"
               required
             />
           </div>
@@ -278,6 +289,17 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
             />
           </div>
           <div class="mb-3">
+            <label for="editConfirmPassword" class="form-label"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              class="form-control"
+              id="editConfirmPassword"
+              name="confirmPassword"
+            />
+          </div>
+          <div class="mb-3">
             <label for="editRole" class="form-label">Role</label>
             <select class="form-select" id="editRole" name="role" required>
               <option value="">Select Role</option>
@@ -373,6 +395,22 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
 {% endblock %} {% block extra_js %}
 <script>
   $(function () {
+    // Format dates in the table
+    $(".date-joined").each(function () {
+      const dateStr = $(this).data("date");
+      const date = new Date(dateStr);
+      const manilaOptions = {
+        timeZone: "Asia/Manila",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      };
+      $(this).text(date.toLocaleString("en-US", manilaOptions));
+    });
+
     // Initialize DataTable without its built-in search box
     var table = $("#usersTable").DataTable({
       paging: true,
@@ -381,7 +419,7 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
       info: true,
       searching: false, // disable default search
       order: [], // disable initial sort
-      columnDefs: [{ orderable: false, targets: [0, 6] }],
+      columnDefs: [{ orderable: false, targets: [0, 5] }],
     });
 
     // Custom search input and button hooked to DataTables search
@@ -407,10 +445,11 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
       const toastEl = document.getElementById("notificationToast");
       const toastTitle = document.getElementById("toastTitle");
       const toastMessage = document.getElementById("toastMessage");
+      let countdown = 3; // 3 seconds countdown
 
       // Update toast content
       toastTitle.textContent = title;
-      toastMessage.textContent = message;
+      toastMessage.textContent = `${message} (${countdown}s)`;
 
       // Update toast style based on success/error
       if (isSuccess) {
@@ -423,19 +462,42 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
 
       // Show toast
       toast.show();
+
+      // Start countdown
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          toastMessage.textContent = `${message} (${countdown}s)`;
+        } else {
+          clearInterval(countdownInterval);
+          toast.hide();
+        }
+      }, 1000);
     }
 
     // Function to update table row
     function updateTableRow(userId, data) {
       const row = table.row($(`tr[data-user-id="${userId}"]`));
       if (row.length) {
+        // Format the date to Manila timezone
+        const dateJoined = new Date(data.date_joined);
+        const manilaOptions = {
+          timeZone: "Asia/Manila",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        };
+        const formattedDate = dateJoined.toLocaleString("en-US", manilaOptions);
+
         const newData = [
           `<input type="checkbox" />`,
           data.id,
           data.username,
           data.role,
-          data.date_joined,
-          `<span class="badge bg-success">Active</span>`,
+          formattedDate,
           `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
             <i class="bi bi-eye"></i>
           </button>
@@ -452,13 +514,25 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
 
     // Function to add new row to table
     function addTableRow(data) {
+      // Format the date to Manila timezone
+      const dateJoined = new Date(data.date_joined);
+      const manilaOptions = {
+        timeZone: "Asia/Manila",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      };
+      const formattedDate = dateJoined.toLocaleString("en-US", manilaOptions);
+
       const newRow = [
         `<input type="checkbox" />`,
         data.id,
         data.username,
         data.role,
-        data.date_joined,
-        `<span class="badge bg-success">Active</span>`,
+        formattedDate,
         `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
           <i class="bi bi-eye"></i>
         </button>
@@ -487,8 +561,48 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
         $("#viewUsername").text(data.username);
         $("#viewEmail").text(data.email);
         $("#viewRole").text(data.role);
-        $("#viewDateJoined").text(data.date_joined);
-        $("#viewLastLogin").text(data.last_login);
+
+        // Format the date to be more readable with correct timezone
+        const dateJoined = new Date(data.date_joined);
+        let lastLoginText = "Never";
+
+        // Only try to format last login if it exists and is valid
+        if (
+          data.last_login &&
+          data.last_login !== "None" &&
+          data.last_login !== "null"
+        ) {
+          const lastLogin = new Date(data.last_login);
+          if (!isNaN(lastLogin.getTime())) {
+            // Check if date is valid
+            const manilaOptions = {
+              timeZone: "Asia/Manila",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            };
+            lastLoginText = lastLogin.toLocaleString("en-US", manilaOptions);
+          }
+        }
+
+        // Format date joined
+        const manilaOptions = {
+          timeZone: "Asia/Manila",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        };
+
+        $("#viewDateJoined").text(
+          dateJoined.toLocaleString("en-US", manilaOptions)
+        );
+        $("#viewLastLogin").text(lastLoginText);
         $("#viewUserModal").modal("show");
       });
     });
@@ -510,6 +624,15 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
     $("#editUserForm").on("submit", function (e) {
       e.preventDefault();
       const userId = $("#editUserId").val();
+
+      // Check if passwords match when a new password is provided
+      const password = $("#editPassword").val();
+      const confirmPassword = $("#editConfirmPassword").val();
+
+      if (password && password !== confirmPassword) {
+        showNotification("Error", "Passwords do not match.", false);
+        return;
+      }
 
       $.ajax({
         url: `/hmsAdmin/accountsAdmin/edit-user/${userId}/`,
@@ -543,6 +666,30 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
     // Delete User - Using event delegation
     $(document).on("click", ".delete-user", function () {
       const userId = $(this).data("user-id");
+      const userRole = $(this).closest("tr").find("td:eq(3)").text(); // Get user role from table
+
+      // Check if this is an admin user
+      if (userRole === "admin") {
+        // Count total admin users
+        let adminCount = 0;
+        table.rows().every(function () {
+          const role = this.data()[3]; // Role is in the 4th column
+          if (role === "admin") {
+            adminCount++;
+          }
+        });
+
+        // If this is the last admin, prevent deletion
+        if (adminCount <= 1) {
+          showNotification(
+            "Error",
+            "Cannot delete the last admin user. At least one admin must remain in the system.",
+            false
+          );
+          return;
+        }
+      }
+
       $("#deleteUserId").val(userId);
       $("#deleteUserModal").modal("show");
     });
@@ -582,6 +729,15 @@ Users | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admi
     // Handle Add User Form Submit
     $("#addUserForm").on("submit", function (e) {
       e.preventDefault();
+
+      // Check if passwords match
+      const password = $("#password").val();
+      const confirmPassword = $("#confirmPassword").val();
+
+      if (password !== confirmPassword) {
+        showNotification("Error", "Passwords do not match.", false);
+        return;
+      }
 
       $.ajax({
         url: $(this).attr("action"),

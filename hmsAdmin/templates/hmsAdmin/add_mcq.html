@@ -1,0 +1,345 @@
+{% extends './base.html' %} {% load static %} {% block title %}Add Multiple
+Choice Scenario Based Test | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %}
+{%endblock %} {% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    border: 1.5px solid #4caf50;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.98rem;
+    font-weight: 500;
+  }
+  .top-actions span {
+    cursor: pointer;
+  }
+  .top-actions .add {
+    color: green;
+  }
+  .top-actions .remove {
+    color: red;
+  }
+  .top-actions .edit {
+    color: #333;
+  }
+  .activity-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .activity-box input[type="text"] {
+    flex: 2;
+    min-width: 0;
+    margin-bottom: 2px;
+  }
+  .activity-box .upload-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    margin-bottom: 0;
+  }
+  .upload-icon {
+    font-size: 1.2rem;
+    margin-right: 5px;
+  }
+  .add-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 0;
+    text-align: center;
+    font-size: 1.5rem;
+    color: #4caf50;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .save-btn {
+    float: right;
+    margin-top: 20px;
+  }
+  .checkbox {
+    margin-left: 5px;
+  }
+  .timer-btn {
+    margin-right: 6px;
+    margin-bottom: 6px;
+    padding: 2px 12px;
+    border: 1px solid #4caf50;
+    border-radius: 4px;
+    background: #fff;
+    color: #4caf50;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .timer-btn.selected,
+  .timer-btn:active {
+    background: #4caf50;
+    color: #fff;
+  }
+  .input-group-mcq {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .input-group-mcq input[type="text"] {
+    flex: 1;
+    min-width: 0;
+  }
+  .add-btns-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .add-btns-row .btn {
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 2px 0;
+    border-radius: 4px;
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    background: #fff;
+    transition: background 0.2s, color 0.2s;
+  }
+  .add-btns-row .btn.selected,
+  .add-btns-row .btn:active {
+    background: #4caf50;
+    color: #fff;
+  }
+  .choices-note {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 900px) {
+    .mcq-row {
+      flex-direction: column;
+    }
+    .mcq-left,
+    .mcq-right {
+      width: 100%;
+      min-width: 0;
+    }
+    .mcq-left {
+      margin-bottom: 15px;
+    }
+  }
+</style>
+
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Training Materials
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Multiple Choice<br />Scenario Based<br />Test
+      </h4>
+      <button class="btn btn-success mt-5">Training Simulation</button>
+    </div>
+    <!-- Right Panel: Activity Form -->
+    <div class="mcq-right">
+      <div class="top-actions">
+        <span class="add">+ Add</span>
+        <span class="remove">– Remove</span>
+        <span class="edit">✎ Edit</span>
+      </div>
+      <form method="post" enctype="multipart/form-data" id="mcqForm">
+        {% csrf_token %}
+        <div
+          class="activity-box"
+          style="flex-direction: column; align-items: stretch"
+        >
+          <input
+            type="text"
+            name="testTitle"
+            class="form-control mb-1"
+            placeholder="Test 1. Test Title"
+            required
+          />
+          <input
+            type="text"
+            name="testDesc"
+            class="form-control mb-2"
+            placeholder="Description"
+            required
+          />
+          <input
+            type="text"
+            name="scenario"
+            class="form-control mb-2"
+            placeholder="Scenario: Type scenario"
+            required
+          />
+          <input type="hidden" name="timer" id="timerInput" />
+          <div class="mb-2">
+            <label class="fw-bold me-2">Set timer:</label>
+            <button type="button" class="timer-btn" data-value="3mins.">
+              3mins.
+            </button>
+            <button type="button" class="timer-btn" data-value="5mins.">
+              5mins.
+            </button>
+            <button type="button" class="timer-btn" data-value="8mins.">
+              8mins.
+            </button>
+            <button type="button" class="timer-btn" data-value="10mins.">
+              10mins.
+            </button>
+            <button type="button" class="timer-btn" data-value="custom">
+              Set your own time.
+            </button>
+          </div>
+          <div class="mb-2">
+            <label class="fw-bold me-2">Input choices:</label>
+            <div class="input-group-mcq">
+              <input
+                type="text"
+                class="form-control"
+                name="choice1"
+                placeholder="Type text here"
+                maxlength="100"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice2"
+                placeholder="Type text here"
+                maxlength="100"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice3"
+                placeholder="Type text here"
+                maxlength="100"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice4"
+                placeholder="Type text here"
+                maxlength="100"
+                required
+              />
+            </div>
+          </div>
+          <div class="add-btns-row mb-1">
+            <label class="me-2"
+              ><input type="checkbox" name="action_block" /> Block</label
+            >
+            <label class="me-2"
+              ><input type="checkbox" name="action_reserve" /> Reserve</label
+            >
+            <label class="me-2"
+              ><input type="checkbox" name="action_cash_payment" /> Cash
+              payment</label
+            >
+            <label class="me-2"
+              ><input type="checkbox" name="action_customization" />
+              Customization</label
+            >
+          </div>
+          <div class="choices-note">All choices are limited to 4 only.</div>
+        </div>
+        <div id="addBox" class="add-box">+</div>
+        <div class="text-end mt-2">
+          <button type="submit" class="btn btn-outline-dark">
+            <i class="bi bi-save2 me-1"></i> Save changes
+          </button>
+        </div>
+      </form>
+      <div class="text-end mt-3">
+        <button class="btn btn-outline-success">
+          Add notification <span class="test-icon">▶</span>
+        </button>
+      </div>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const addBox = document.getElementById("addBox");
+          const form = document.getElementById("mcqForm");
+          const timerInput = document.getElementById("timerInput");
+          form.querySelectorAll(".timer-btn").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              form
+                .querySelectorAll(".timer-btn")
+                .forEach((b) => b.classList.remove("selected"));
+              btn.classList.add("selected");
+              timerInput.value = btn.getAttribute("data-value");
+              if (btn.getAttribute("data-value") === "custom") {
+                const custom = prompt("Enter custom time (e.g., 12mins.):");
+                if (custom) timerInput.value = custom;
+              }
+            });
+          });
+          addBox.addEventListener("click", function () {
+            const activityBox = form.querySelector(".activity-box");
+            const newBox = activityBox.cloneNode(true);
+            // Clear all input values in the cloned box
+            newBox
+              .querySelectorAll('input[type="text"]')
+              .forEach((input) => (input.value = ""));
+            newBox
+              .querySelectorAll('input[type="checkbox"]')
+              .forEach((input) => (input.checked = false));
+            newBox
+              .querySelectorAll(".timer-btn")
+              .forEach((btn) => btn.classList.remove("selected"));
+            newBox.querySelector('input[type="hidden"]').value = "";
+            form.insertBefore(newBox, addBox);
+          });
+        });
+      </script>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,8 +1,17 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Concierge
-Dashboard{% endblock %} {% block sidebar %} {% include './includes/concierge_sidebar.html' with active_page='tasks' %} {% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Concierge Dashboard{% endblock %}
+
+{% block sidebar %}
+{% include './includes/concierge_sidebar.html' with active_page='tasks' %}
+{% endblock %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'concierge/dashboard.css' %}" />
-{% endblock %} {% block extra_heads %}
+{% endblock %}
+
+{% block extra_heads %}
 <style>
   .service-grid {
     display: grid;
@@ -56,59 +65,61 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/concierge_sid
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 2rem;
-  
   }
 </style>
-{% endblock %} {% block content %}
+{% endblock %}
 
-  <h1 class="page-title" style="margin-left: 35px;">Concierge</h1>
+{% block content %}
+<h1 class="page-title" style="margin-left: 35px;">Concierge</h1>
 
-  <div class="service-grid">
-    <div class="service-card">
-      <img
-        src="{% static 'concierge/images/tour-icon.svg' %}"
-        alt="Tours"
-        class="service-icon"
-      />
-      <div
-        class="service-title"
-        onclick="window.location.href='{% url 'concierge:book_tours' %}'"
-      >
-        Book Tours
-      </div>
-    </div>
-
-    <div class="service-card">
-      <img
-        src="{% static 'concierge/images/reservation-icon.svg' %}"
-        alt="Reservations"
-        class="service-icon"
-      />
-      <div
-        class="service-title"
-        onclick="window.location.href='{% url 'concierge:book_reservations' %}'"
-      >
-        Book Reservations
-      </div>
+<div class="service-grid">
+  <div class="service-card">
+    <img
+      src="{% static 'concierge/images/tour-icon.svg' %}"
+      alt="Tours"
+      class="service-icon"
+    />
+    <div
+      class="service-title"
+      onclick="window.location.href='{% url 'concierge:book_tours' %}'"
+    >
+      Book Tours
     </div>
   </div>
 
-  <div class="notification-section">
-    <div class="list-group">
-      <a
-        href=""
-        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-      >
-        <div class="d-flex align-items-center">
-          <i class="fas fa-bell me-2"></i> Unread Notifications
-          <span class="badge bg-danger rounded-pill ms-2">3</span>
-        </div>
-      </a>
-      <a href="" class="list-group-item list-group-item-action">
-        <i class="fas fa-tasks text-primary me-2"></i>
-        5 pending bookings
-      </a>
+  <div class="service-card">
+    <img
+      src="{% static 'concierge/images/reservation-icon.svg' %}"
+      alt="Reservations"
+      class="service-icon"
+    />
+    <div
+      class="service-title"
+      onclick="window.location.href='{% url 'concierge:book_reservations' %}'"
+    >
+      Book Reservations
     </div>
   </div>
+</div>
 
-{% endblock %} {% block extra_js %} {% endblock %}
+<div class="notification-section">
+  <div class="list-group">
+    <a
+      href=""
+      class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+    >
+      <div class="d-flex align-items-center">
+        <i class="fas fa-bell me-2"></i> Unread Notifications
+        <span class="badge bg-danger rounded-pill ms-2">3</span>
+      </div>
+    </a>
+    <a href="" class="list-group-item list-group-item-action">
+      <i class="fas fa-tasks text-primary me-2"></i>
+      5 pending bookings
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

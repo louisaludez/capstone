@@ -1,0 +1,194 @@
+{% extends './base.html' %} {% load static %} {% block title %}Training
+Simulation | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} {% endblock %}
+{% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 18px 10px 10px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 18px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .sim-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+  }
+  .sim-instructions {
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 0.7rem;
+  }
+  .sim-scenario {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 12px;
+    background: #fff;
+    font-size: 1.05rem;
+    text-align: left;
+  }
+  .sim-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .sim-choice-row {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    background: #fff;
+    padding: 6px 12px;
+    font-size: 1.05rem;
+    transition: background 0.2s, border 0.2s;
+    cursor: pointer;
+  }
+  .sim-choice-row input[type="checkbox"] {
+    margin-right: 16px;
+    width: 22px;
+    height: 22px;
+    accent-color: #4caf50;
+    cursor: pointer;
+  }
+  .sim-choice-row.selected {
+    background: #e8f5e9;
+    border-color: #388e3c;
+  }
+  .sim-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    float: right;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #388e3c;
+  }
+  .sim-timer .timer-icon {
+    font-size: 2.2rem;
+    color: #388e3c;
+  }
+  .sim-next-btn {
+    float: right;
+    margin-top: 18px;
+    font-size: 1rem;
+    padding: 6px 18px;
+    border-radius: 6px;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    transition: background 0.2s;
+  }
+  .sim-next-btn:hover {
+    background: #388e3c;
+  }
+</style>
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Training Simulation
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Multiple Choice<br />Scenario Based<br />Test
+      </h4>
+      <a href="{% url 'mcq_page' %}" class="btn btn-success mt-5"
+        >Training Materials</a
+      >
+    </div>
+    <!-- Right Panel: Simulation -->
+    <div class="mcq-right">
+      <div class="sim-title">Test 1. {{ activity.title }}</div>
+      <div class="sim-instructions">
+        Instructions: Check the box of the right answer.
+      </div>
+      <div class="sim-scenario">
+        <b>Scenario:</b><br />
+        {{ activity.scenario }}
+      </div>
+      <div class="sim-choices">
+        <label class="sim-choice-row">
+          <input type="checkbox" name="choice" />
+          {{ activity.choice1 }}
+        </label>
+        <label class="sim-choice-row">
+          <input type="checkbox" name="choice" />
+          {{ activity.choice2 }}
+        </label>
+        <label class="sim-choice-row">
+          <input type="checkbox" name="choice" />
+          {{ activity.choice3 }}
+        </label>
+        <label class="sim-choice-row">
+          <input type="checkbox" name="choice" />
+          {{ activity.choice4 }}
+        </label>
+      </div>
+      <div class="sim-timer">
+        <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
+        {{ activity.timer|default:'5 mins' }}
+      </div>
+      <button class="sim-next-btn">
+        Proceed to next item <span class="test-icon">▶</span>
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  // Highlight selected choice
+  document
+    .querySelectorAll('.sim-choice-row input[type="checkbox"]')
+    .forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        document.querySelectorAll(".sim-choice-row").forEach(function (row) {
+          row.classList.remove("selected");
+        });
+        if (cb.checked) {
+          cb.closest(".sim-choice-row").classList.add("selected");
+        }
+        // Uncheck all other checkboxes
+        document
+          .querySelectorAll('.sim-choice-row input[type="checkbox"]')
+          .forEach(function (other) {
+            if (other !== cb) other.checked = false;
+          });
+      });
+    });
+</script>
+{% endblock %}

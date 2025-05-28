@@ -5,21 +5,29 @@
   aria-labelledby="checkInModalLabel"
   aria-hidden="true"
 >
-  <div class="modal-dialog" style="max-width: 700px">
+  <div class="modal-dialog" style="max-width: 1000px">
     <div
       class="modal-content"
       style="border-radius: 12px; border: 1.5px solid #bbb"
     >
       <div class="modal-body p-3">
         <h2 class="text-center mb-3" style="font-weight: 600">Check in</h2>
-        <form method="POST" action="{% url 'check_in' %}">
+        <form
+          method="POST"
+          action="{% url 'book_room' %}"
+          id="bookingForm"
+          onsubmit="return validateForm()"
+        >
           {% csrf_token %}
+          <input type="hidden" name="is_checkin" value="true" />
           <div class="row g-3">
-            <!-- Left Column: Guest & Booking Info -->
-            <div class="col-6">
+            <!-- Guest Information -->
+            <div class="col-4">
               <div class="mb-2">
                 <div style="font-weight: 600">Guest Information</div>
-                <label for="customer_name" class="form-label mb-1">Name</label>
+                <label for="customer_name" class="form-label mb-1"
+                  >Name *</label
+                >
                 <input
                   type="text"
                   class="form-control form-control-sm mb-1"
@@ -28,7 +36,7 @@
                   required
                 />
                 <label for="customer_address" class="form-label mb-1"
-                  >Address</label
+                  >Address *</label
                 >
                 <input
                   type="text"
@@ -38,95 +46,63 @@
                   required
                 />
                 <label for="customer_zipCode" class="form-label mb-1"
-                  >Zip Code</label
+                  >Zip Code *</label
                 >
                 <input
                   type="text"
                   class="form-control form-control-sm mb-1"
                   name="customer_zipCode"
                   id="customer_zipCode"
+                  required
                 />
                 <label for="customer_dateOfBirth" class="form-label mb-1"
-                  >Date of Birth</label
+                  >Date of Birth *</label
                 >
                 <input
                   type="date"
                   class="form-control form-control-sm mb-1"
                   name="customer_dateOfBirth"
                   id="customer_dateOfBirth"
+                  required
                 />
                 <label for="customer_email" class="form-label mb-1"
-                  >Email</label
+                  >Email *</label
                 >
                 <input
                   type="email"
                   class="form-control form-control-sm mb-2"
                   name="customer_email"
                   id="customer_email"
+                  required
                 />
               </div>
+            </div>
+            <!-- Booking Information -->
+            <div class="col-4">
               <div class="mb-2">
                 <div style="font-weight: 600">Booking Information</div>
-                <div class="row g-1">
-                  <div class="col-6">
-                    <label for="checkin_date" class="form-label mb-1"
-                      >Check-in Date</label
-                    >
-                    <input
-                      type="date"
-                      class="form-control form-control-sm mb-1"
-                      name="checkin_date"
-                      id="checkin_date"
-                    />
-                  </div>
-                  <div class="col-6">
-                    <label for="checkout_date" class="form-label mb-1"
-                      >Check-out Date</label
-                    >
-                    <input
-                      type="date"
-                      class="form-control form-control-sm mb-1"
-                      name="checkout_date"
-                      id="checkout_date"
-                    />
-                  </div>
-                </div>
-                <label for="room_type" class="form-label mb-1">Room Type</label>
-                <select
-                  class="form-select form-select-sm mb-1"
-                  name="room_type"
-                  id="room_type"
+                <label for="checkin_date" class="form-label mb-1"
+                  >Check-in Date *</label
                 >
-                  <option value="Single">Single</option>
-                  <option value="Double">Double</option>
-                  <option value="Suite">Suite</option>
-                </select>
-                <div class="row g-1">
-                  <div class="col-6">
-                    <label for="number_of_nights" class="form-label mb-1"
-                      >No. of Nights</label
-                    >
-                    <input
-                      type="number"
-                      class="form-control form-control-sm mb-1"
-                      name="number_of_nights"
-                      id="number_of_nights"
-                    />
-                  </div>
-                  <div class="col-6">
-                    <label for="number_of_guests" class="form-label mb-1"
-                      >No. of Guests</label
-                    >
-                    <input
-                      type="number"
-                      class="form-control form-control-sm mb-1"
-                      name="number_of_guests"
-                      id="number_of_guests"
-                    />
-                  </div>
-                </div>
+                <input
+                  type="date"
+                  class="form-control form-control-sm mb-1"
+                  name="checkin_date"
+                  id="checkin_date"
+                  required
+                />
+                <label for="checkout_date" class="form-label mb-1"
+                  >Check-out Date *</label
+                >
+                <input
+                  type="date"
+                  class="form-control form-control-sm mb-1"
+                  name="checkout_date"
+                  id="checkout_date"
+                  required
+                />
                 <label for="room_number" class="form-label mb-1"
-                  >Room No.</label
+                  >Room No. *</label
                 >
                 <select
                   class="form-select form-select-sm mb-1"
@@ -140,6 +116,17 @@
                   </option>
                   {% endfor %}
                 </select>
+                <label for="number_of_guests" class="form-label mb-1"
+                  >No. of Guests *</label
+                >
+                <input
+                  type="number"
+                  class="form-control form-control-sm mb-1"
+                  name="number_of_guests"
+                  id="number_of_guests"
+                  required
+                  min="1"
+                />
                 <label for="special_requests" class="form-label mb-1"
                   >Special Requests</label
                 >
@@ -151,67 +138,72 @@
                 ></textarea>
               </div>
             </div>
-            <!-- Right Column: Payment Info -->
-            <div class="col-6">
+            <!-- Payment Information -->
+            <div class="col-4">
               <div class="mb-2">
                 <div style="font-weight: 600">Payment Information</div>
                 <label for="payment_method" class="form-label mb-1"
-                  >Payment Method</label
+                  >Payment Method *</label
                 >
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
+                <select
+                  class="form-select form-select-sm mb-1"
                   name="payment_method"
                   id="payment_method"
-                />
-                <label for="credit_card_number" class="form-label mb-1"
-                  >Credit Card Number
-                  <span style="font-size: 0.9em; color: #888"
-                    >(if applicable)</span
-                  ></label
+                  required
                 >
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="credit_card_number"
-                  id="credit_card_number"
-                />
-                <div class="row g-1">
-                  <div class="col-6">
-                    <label for="credit_card_expiry" class="form-label mb-1"
-                      >Exp. Date</label
-                    >
-                    <input
-                      type="date"
-                      class="form-control form-control-sm mb-1"
-                      name="credit_card_expiry"
-                      id="credit_card_expiry"
-                    />
-                  </div>
-                  <div class="col-6">
-                    <label for="cvc_code" class="form-label mb-1"
-                      >CVC Code</label
-                    >
-                    <input
-                      type="text"
-                      class="form-control form-control-sm mb-1"
-                      name="cvc_code"
-                      id="cvc_code"
-                      maxlength="3"
-                    />
+                  <option value="">Select payment method</option>
+                  <option value="cash">Cash</option>
+                  <option value="credit_card">Credit Card</option>
+                  <option value="debit_card">Debit Card</option>
+                </select>
+                <div id="creditCardFields" style="display: none">
+                  <label for="credit_card_number" class="form-label mb-1"
+                    >Credit Card Number</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control form-control-sm mb-1"
+                    name="credit_card_number"
+                    id="credit_card_number"
+                  />
+                  <div class="row g-1">
+                    <div class="col-6">
+                      <label for="credit_card_expiry" class="form-label mb-1"
+                        >Exp. Date</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control form-control-sm mb-1"
+                        name="credit_card_expiry"
+                        id="credit_card_expiry"
+                      />
+                    </div>
+                    <div class="col-6">
+                      <label for="cvc_code" class="form-label mb-1"
+                        >CVC Code</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control form-control-sm mb-1"
+                        name="cvc_code"
+                        id="cvc_code"
+                        maxlength="3"
+                      />
+                    </div>
                   </div>
                 </div>
                 <label for="billing_address" class="form-label mb-1"
-                  >Billing Address</label
+                  >Billing Address *</label
                 >
                 <input
                   type="text"
                   class="form-control form-control-sm mb-1"
                   name="billing_address"
                   id="billing_address"
+                  required
                 />
                 <label for="total_balance" class="form-label mb-1"
-                  >Total balance</label
+                  >Total Balance *</label
                 >
                 <input
                   type="number"
@@ -219,8 +211,10 @@
                   class="form-control form-control-sm mb-2"
                   name="total_balance"
                   id="total_balance"
+                  required
+                  min="0"
                 />
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end mt-3">
                   <button type="submit" class="btn btn-success btn-sm px-4">
                     Book Room
                   </button>
@@ -233,3 +227,70 @@
     </div>
   </div>
 </div>
+
+<script>
+  function validateForm() {
+    // Get form values
+    const customerName = document.getElementById("customer_name").value;
+    const checkinDate = document.getElementById("checkin_date").value;
+    const checkoutDate = document.getElementById("checkout_date").value;
+    const roomNumber = document.getElementById("room_number").value;
+    const paymentMethod = document.getElementById("payment_method").value;
+    const totalBalance = document.getElementById("total_balance").value;
+
+    // Basic validation
+    if (
+      !customerName ||
+      !checkinDate ||
+      !checkoutDate ||
+      !roomNumber ||
+      !paymentMethod ||
+      !totalBalance
+    ) {
+      alert("Please fill in all required fields (marked with *)");
+      return false;
+    }
+
+    // Date validation
+    const today = new Date();
+    const checkin = new Date(checkinDate);
+    const checkout = new Date(checkoutDate);
+
+    if (checkin < today) {
+      alert("Check-in date cannot be in the past");
+      return false;
+    }
+
+    if (checkout <= checkin) {
+      alert("Check-out date must be after check-in date");
+      return false;
+    }
+
+    // Show confirmation
+    if (confirm("Are you sure you want to book this room?")) {
+      return true;
+    }
+    return false;
+  }
+
+  // Show/hide credit card fields based on payment method
+  document
+    .getElementById("payment_method")
+    .addEventListener("change", function (e) {
+      const creditCardFields = document.getElementById("creditCardFields");
+      if (e.target.value === "credit_card") {
+        creditCardFields.style.display = "block";
+      } else {
+        creditCardFields.style.display = "none";
+      }
+    });
+
+  // Add event listener for form submission
+  document
+    .getElementById("bookingForm")
+    .addEventListener("submit", function (e) {
+      if (!validateForm()) {
+        e.preventDefault();
+      }
+    });
+</script>

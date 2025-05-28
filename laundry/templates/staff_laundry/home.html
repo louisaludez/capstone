@@ -16,6 +16,10 @@
     <link href="{% static 'main.css' %}" rel="stylesheet" />
   </head>
   <body>
+    <!-- Add these hidden fields right after the opening body tag -->
+    <input type="hidden" id="customer_id" value="1">
+    <input type="hidden" id="room_id" value="1">
+    <input type="hidden" id="service_type" value="wash_fold">
     <div class="d-flex">
       <!-- Sidebar -->
       {% include '../includes/staff_sidebar.html' with active_page='home'%}
@@ -39,6 +43,31 @@
               <label>Change</label>
               <input type="text" class="form-control bg-light" />
             </div>
+            <div class="mb-3">
+              <label>Item Type</label>
+              <select class="form-control bg-light" id="itemTypeSelect">
+                <option value="shirts">Shirts</option>
+                <option value="poloshirts">Poloshirts</option>
+                <option value="tshirts">T-Shirts</option>
+                <option value="pants">Pants</option>
+                <option value="shorts">Shorts</option>
+                <option value="skirts">Skirts</option>
+                <option value="blouses">Blouses</option>
+                <option value="dresses">Dresses</option>
+                <option value="jackets">Jackets</option>
+                <option value="suits">Suits</option>
+                <option value="uniforms">Uniforms</option>
+                <option value="underwear">Underwear</option>
+                <option value="socks">Socks</option>
+                <option value="bedding">Bedding</option>
+                <option value="towels">Towels</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label>Quantity</label>
+              <input type="number" class="form-control bg-light" id="itemQuantity" min="1" value="1" />
+            </div>
 
             <div class="d-flex justify-content-between gap-2">
               <button class="btn btn-dark py-2 w-100">CANCEL</button>
@@ -56,7 +85,7 @@
           <div class="modal-body text-center p-5">
             <div class="mb-3">
               <img
-                src="images/success-icon.png"
+                src="{% static 'images/success-logo.png' %}"
                 alt="Success"
                 class="img-fluid"
                 style="max-width: 100px"
@@ -80,7 +109,7 @@
           <div class="modal-body p-4">
             <div class="text-center mb-3">
               <img
-                src="images/aces-logo.png"
+                src="{% static 'images/aces-logo.png'%}"
                 alt="ACES Logo"
                 style="width: 80px"
               />
@@ -214,20 +243,67 @@
           "#cashPaymentModal .btn-dark:nth-of-type(2)"
         );
         if (paymentNextBtn) {
-          paymentNextBtn.addEventListener("click", function () {
-            cashPaymentModal.hide();
+          paymentNextBtn.addEventListener("click", async function () {
+            try {
+              const cashTenderedInput = document.querySelector(
+                'input[class*="form-control"]:nth-of-type(1)'
+              );
+              const totalInput = document.querySelector(
+                'input[class*="form-control"]:nth-of-type(2)'
+              );
+              const changeInput = document.querySelector(
+                'input[class*="form-control"]:nth-of-type(3)'
+              );
 
-            setTimeout(() => {
-              transactionSuccessModal.show();
+              const orderData = {
+                customer_id: 1, // Replace with actual customer ID
+                room_id: 1, // Replace with actual room ID
+                service_type: 'wash_fold', // Default service type
+                item_type: document.getElementById('itemTypeSelect').value,
+                quantity: document.getElementById('itemQuantity').value,
+                total_amount: parseFloat(totalInput.value),
+                items: [{
+                  category: document.getElementById('itemTypeSelect').value,
+                  description: document.getElementById('itemTypeSelect').options[document.getElementById('itemTypeSelect').selectedIndex].text,
+                  quantity: document.getElementById('itemQuantity').value,
+                  price_per_item: parseFloat(totalInput.value) / parseInt(document.getElementById('itemQuantity').value)
+                }]
+              };
 
-              // After a delay, show receipt
-              setTimeout(() => {
-                transactionSuccessModal.hide();
+              const response = await fetch('/laundry/staff/create-order/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+              });
+
+              const result = await response.json();
+              
+              if (result.success) {
+                cashPaymentModal.hide();
                 setTimeout(() => {
-                  receiptModal.show();
+                  transactionSuccessModal.show();
+                  // Update success modal with order number
+                  document.querySelector('#transactionSuccessModal p').innerHTML = 
+                    `Transaction recorded successfully.<br />
+                     Reference no. ${result.order_number}`;
+
+                  // After a delay, show receipt
+                  setTimeout(() => {
+                    transactionSuccessModal.hide();
+                    setTimeout(() => {
+                      receiptModal.show();
+                    }, 500);
+                  }, 2000);
                 }, 500);
-              }, 2000);
-            }, 500);
+              } else {
+                alert('Error creating order: ' + result.message);
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              alert('Error creating order. Please try again.');
+            }
           });
         }
 

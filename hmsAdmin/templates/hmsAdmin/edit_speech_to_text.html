@@ -1,0 +1,159 @@
+{% extends './base.html' %} {% load static %} {% block title %}Edit
+Speech-to-text Activity | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} {% endblock %}
+{% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .activity-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .activity-box input[type="text"] {
+    flex: 2;
+    min-width: 0;
+    margin-bottom: 2px;
+  }
+  .activity-box .upload-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    margin-bottom: 0;
+  }
+  .upload-icon {
+    font-size: 1.2rem;
+    margin-right: 5px;
+  }
+  .save-btn {
+    float: right;
+    margin-top: 20px;
+  }
+  @media (max-width: 900px) {
+    .mcq-row {
+      flex-direction: column;
+    }
+    .mcq-left,
+    .mcq-right {
+      width: 100%;
+      min-width: 0;
+    }
+    .mcq-left {
+      margin-bottom: 15px;
+    }
+  }
+  input[type="file"] {
+    padding: 0.25rem;
+    height: 38px;
+    width: 100px;
+  }
+</style>
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Edit Speech-to-text Activity
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/SPTT2.png' %}" alt="Speech to Text Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Speech-to-text<br />Speed and Accuracy Test
+      </h4>
+      <button class="btn btn-success mt-5" disabled>Editing</button>
+    </div>
+    <!-- Right Panel: Activity Form -->
+    <div class="mcq-right">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="activity-box">
+          <input
+            type="text"
+            name="activityTitle1"
+            class="form-control mb-1"
+            placeholder="Activity title"
+            value="{{ activity.title }}"
+            required
+          />
+          <input
+            type="text"
+            name="activityDesc1"
+            class="form-control"
+            placeholder="Description"
+            value="{{ activity.description }}"
+            required
+          />
+          <label class="upload-label">
+            <span class="upload-icon">⤴</span>
+            <input
+              type="file"
+              name="audioFile1"
+              class="form-control"
+              accept="audio/*"
+            />
+            <small class="text-muted">Upload Audio File</small>
+          </label>
+          {% if activity.audio_file %}
+          <div class="ms-2">
+            <a href="{{ activity.audio_file.url }}" target="_blank"
+              >Current Audio</a
+            >
+          </div>
+          {% endif %}
+        </div>
+        <div class="text-end mt-2">
+          <button type="submit" class="btn btn-outline-dark">
+            <i class="bi bi-save2 me-1"></i> Save changes
+          </button>
+          <a
+            href="{% url 'speech_to_text_page' %}"
+            class="btn btn-secondary ms-2"
+            >Cancel</a
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

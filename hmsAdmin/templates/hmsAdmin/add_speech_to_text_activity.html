@@ -1,0 +1,192 @@
+{% extends './base.html' %} {% load static %} {% block title %}Add
+Speech-to-text Activity | ACES HMS{% endblock %} 
+{% block sidebar %}
+ {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} 
+ {% endblock %}
+{% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.98rem;
+    font-weight: 500;
+  }
+  .top-actions span {
+    cursor: pointer;
+  }
+  .top-actions .add {
+    color: green;
+  }
+  .top-actions .remove {
+    color: red;
+  }
+  .top-actions .edit {
+    color: #333;
+  }
+  .activity-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .activity-box input[type="text"] {
+    flex: 2;
+    min-width: 0;
+    margin-bottom: 2px;
+  }
+  .activity-box .upload-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    margin-bottom: 0;
+  }
+  .upload-icon {
+    font-size: 1.2rem;
+    margin-right: 5px;
+  }
+  .add-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 0;
+    text-align: center;
+    font-size: 1.5rem;
+    color: #4caf50;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .save-btn {
+    float: right;
+    margin-top: 20px;
+  }
+  .checkbox {
+    margin-left: 5px;
+  }
+  @media (max-width: 900px) {
+    .mcq-row {
+      flex-direction: column;
+    }
+    .mcq-left,
+    .mcq-right {
+      width: 100%;
+      min-width: 0;
+    }
+    .mcq-left {
+      margin-bottom: 15px;
+    }
+  }
+  input[type="file"] {
+    padding: 0.25rem;
+    height: 38px;
+    width: 100px; /* match Bootstrap input */
+  }
+  
+</style>
+
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Training Materials
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/SPTT2.png' %}" alt="Speech to Text Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Speech-to-text<br />Speed and Accuracy Test
+      </h4>
+      <button class="btn btn-success mt-5">Training Simulation</button>
+    </div>
+    <!-- Right Panel: Activity Form/List -->
+    <div class="mcq-right">
+      <div class="top-actions">
+        <span class="add">+ Add</span>
+        <span class="remove">– Remove</span>
+        <span class="edit">✎ Edit</span>
+      </div>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %} {% for i in "12"|make_list %}
+        <div class="activity-box">
+          <input
+            type="text"
+            name="activityTitle{{ i }}"
+            class="form-control mb-1"
+            placeholder="Activity title"
+            required
+          />
+          <input
+            type="text"
+            name="activityDesc{{ i }}"
+            class="form-control"
+            placeholder="Description"
+            required
+          />
+          <label class="upload-label">
+            <span class="upload-icon">⤴</span>
+            <input
+              type="file"
+              name="audioFile{{ i }}"
+              class="form-control"
+              accept="audio/*"
+              required
+            />
+            <small class="text-muted">Upload Audio File</small>
+          </label>
+          <input type="checkbox" class="form-check-input checkbox" />
+        </div>
+        {% endfor %}
+        <div class="add-box">+</div>
+        <div class="save-btn">
+          <button type="submit" class="btn btn-outline-dark">
+            <i class="bi bi-save2 me-1"></i> Save changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

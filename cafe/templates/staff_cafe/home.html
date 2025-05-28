@@ -5,18 +5,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ACES HMS - Cafe POS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
     <link rel="stylesheet" href="{% static 'main.css' %}" />
   </head>
   <body>
     <div class="d-flex">
       <!-- Sidebar -->
       {% include 'includes/staff_cafe_sidebar.html' with active_page='home' %}
-      <div class="container-fluid bg-light bg-main-content" style="
-    background-imgage: url('{% static 'images/bg.png' %}');
-    background-size: cover;
-  ">
+      <div
+        class="container-fluid bg-light bg-main-content"
+        style="
+          background-imgage: url('{% static 'images/bg.png' %}');
+          background-size: cover;
+        "
+      >
         <!-- Main Content -->
         <div class="col p-0">
           <div class="cafe-pos-container">
@@ -27,12 +36,24 @@
             <!-- Category Navigation -->
             <div class="category-nav mt-4">
               <div class="nav-tabs-container mx-4">
-                <button class="category-tab active" data-category="all">All <small>(39 items)</small></button>
-                <button class="category-tab" data-category="pasta">Pasta <small>(9 items)</small></button>
-                <button class="category-tab" data-category="pastry">Pastry <small>(10 items)</small></button>
-                <button class="category-tab" data-category="hot-drinks">Hot Drinks <small>(5 items)</small></button>
-                <button class="category-tab" data-category="cold-drinks">Cold Drinks <small>(9 items)</small></button>
-                <button class="category-tab" data-category="sandwiches">Sandwiches <small>(4 items)</small></button>
+                <button class="category-tab active" data-category="all">
+                  All <small>(39 items)</small>
+                </button>
+                <button class="category-tab" data-category="pasta">
+                  Pasta <small>(9 items)</small>
+                </button>
+                <button class="category-tab" data-category="pastry">
+                  Pastry <small>(10 items)</small>
+                </button>
+                <button class="category-tab" data-category="hot-drinks">
+                  Hot Drinks <small>(5 items)</small>
+                </button>
+                <button class="category-tab" data-category="cold-drinks">
+                  Cold Drinks <small>(9 items)</small>
+                </button>
+                <button class="category-tab" data-category="sandwiches">
+                  Sandwiches <small>(4 items)</small>
+                </button>
               </div>
             </div>
 
@@ -40,8 +61,14 @@
               <!-- Search Bar -->
               <div class="col-8">
                 <div class="search-container mx-4">
-                  <input type="text" class="form-control" placeholder="Search items" />
-                  <button class="search-btn"><i class="bi bi-search"></i></button>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search items"
+                  />
+                  <button class="search-btn">
+                    <i class="bi bi-search"></i>
+                  </button>
                 </div>
 
                 <!-- Menu Grid -->
@@ -52,19 +79,59 @@
 
               <!-- Order Panel -->
               <div class="col-4">
-                <div class="order-panel p-4">
+                <form id="orderForm" class="order-panel p-4">
+                  {% csrf_token %}
                   <div class="customer-info-container mb-4">
                     <div>
                       <span>Customer Name</span>
-                      <div>Order no. #00001</div>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="customerName"
+                        placeholder="Enter customer name"
+                        required
+                      />
                     </div>
-                    <button class="btn-edit"><i class="bi bi-pencil"></i></button>
                   </div>
 
                   <div class="order-type-buttons mb-4">
-                    <button class="btn btn-outline-secondary active">Room Service</button>
-                    <button class="btn btn-outline-secondary">Dine In</button>
-                    <button class="btn btn-outline-secondary">Takeout</button>
+                    <div
+                      class="btn-group w-100"
+                      role="group"
+                      aria-label="Order Type"
+                    >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="orderType"
+                        id="roomService"
+                        value="room"
+                        checked
+                      />
+                      <label class="btn btn-outline-secondary" for="roomService"
+                        >Room Service</label
+                      >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="orderType"
+                        id="dineIn"
+                        value="dine_in"
+                      />
+                      <label class="btn btn-outline-secondary" for="dineIn"
+                        >Dine In</label
+                      >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="orderType"
+                        id="takeout"
+                        value="takeout"
+                      />
+                      <label class="btn btn-outline-secondary" for="takeout"
+                        >Takeout</label
+                      >
+                    </div>
                   </div>
 
                   <div id="orderItems" class="order-items mb-4">
@@ -78,7 +145,14 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                       <span>Cash tendered</span>
-                      <span id="cashTendered">₱0.00</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="cashTendered"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                      />
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                       <span>Change</span>
@@ -91,12 +165,39 @@
                   </div>
 
                   <div class="payment-methods mb-4">
-                    <button class="btn btn-outline-primary w-100 mb-2">Charge to Room</button>
-                    <button class="btn btn-outline-primary w-100">Cash Payment</button>
+                    <div
+                      class="btn-group w-100"
+                      role="group"
+                      aria-label="Payment Method"
+                    >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="paymentMethod"
+                        id="chargeToRoom"
+                        value="room"
+                        checked
+                      />
+                      <label class="btn btn-outline-primary" for="chargeToRoom"
+                        >Charge to Room</label
+                      >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="paymentMethod"
+                        id="cashPayment"
+                        value="cash"
+                      />
+                      <label class="btn btn-outline-primary" for="cashPayment"
+                        >Cash Payment</label
+                      >
+                    </div>
                   </div>
 
-                  <button class="btn btn-success w-100">Place Order</button>
-                </div>
+                  <button type="submit" class="btn btn-success w-100">
+                    Place Order
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -105,112 +206,210 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener("DOMContentLoaded", function () {
         // Menu items data
         const menuItems = [
-          { name: 'Aglio e Olio', category: 'pasta', price: 220.0 },
-          { name: 'Spaghetti', category: 'pasta', price: 220.0 },
-          { name: 'Carbonara', category: 'pasta', price: 220.0 },
-          { name: 'Nutella Croffle', category: 'pastry', price: 220.0 },
-          { name: 'Hot Chocolate', category: 'hot-drinks', price: 220.0 },
-          { name: 'Spanish Latte', category: 'cold-drinks', price: 220.0 }
+          { name: "Aglio e Olio", category: "pasta", price: 220.0 },
+          { name: "Spaghetti", category: "pasta", price: 220.0 },
+          { name: "Carbonara", category: "pasta", price: 220.0 },
+          { name: "Nutella Croffle", category: "pastry", price: 220.0 },
+          { name: "Hot Chocolate", category: "hot-drinks", price: 220.0 },
+          { name: "Spanish Latte", category: "cold-drinks", price: 220.0 },
           // Add more menu items here
-        ]
-      
-        let cart = []
-        let activeCategory = 'all'
-      
+        ];
+
+        let cart = [];
+        let activeCategory = "all";
+
         // Initialize menu grid
         function renderMenu() {
-          const menuGrid = document.querySelector('.menu-grid')
-          menuGrid.innerHTML = ''
-      
+          const menuGrid = document.querySelector(".menu-grid");
+          menuGrid.innerHTML = "";
+
           menuItems.forEach((item) => {
-            if (activeCategory === 'all' || item.category === activeCategory) {
-              const menuItem = document.createElement('div')
-              menuItem.className = 'menu-item'
+            if (activeCategory === "all" || item.category === activeCategory) {
+              const menuItem = document.createElement("div");
+              menuItem.className = "menu-item";
               menuItem.innerHTML = `
                                                                     <div class="d-flex justify-content-between">
-                                                                        <span>${item.name}</span>
-                                                                        <span>₱${item.price.toFixed(2)}</span>
+                                                                        <span>${
+                                                                          item.name
+                                                                        }</span>
+                                                                        <span>₱${item.price.toFixed(
+                                                                          2
+                                                                        )}</span>
                                                                     </div>
-                                                                    <small class="text-muted">${item.category}</small>
-                                                                `
-              menuItem.addEventListener('click', () => addToCart(item))
-              menuGrid.appendChild(menuItem)
+                                                                    <small class="text-muted">${
+                                                                      item.category
+                                                                    }</small>
+                                                                `;
+              menuItem.addEventListener("click", () => addToCart(item));
+              menuGrid.appendChild(menuItem);
             }
-          })
+          });
         }
-      
+
         // Category tabs
-        document.querySelectorAll('.category-tab').forEach((tab) => {
-          tab.addEventListener('click', function () {
-            document.querySelectorAll('.category-tab').forEach((t) => t.classList.remove('active'))
-            this.classList.add('active')
-            activeCategory = this.dataset.category
-            renderMenu()
-          })
-        })
-      
+        document.querySelectorAll(".category-tab").forEach((tab) => {
+          tab.addEventListener("click", function () {
+            document
+              .querySelectorAll(".category-tab")
+              .forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            activeCategory = this.dataset.category;
+            renderMenu();
+          });
+        });
+
         // Search functionality
-        const searchInput = document.querySelector('.search-container input')
-        searchInput.addEventListener('input', function () {
-          const searchTerm = this.value.toLowerCase()
-          const items = document.querySelectorAll('.menu-item')
-      
+        const searchInput = document.querySelector(".search-container input");
+        searchInput.addEventListener("input", function () {
+          const searchTerm = this.value.toLowerCase();
+          const items = document.querySelectorAll(".menu-item");
+
           items.forEach((item) => {
-            const itemName = item.querySelector('span').textContent.toLowerCase()
+            const itemName = item
+              .querySelector("span")
+              .textContent.toLowerCase();
             if (itemName.includes(searchTerm)) {
-              item.style.display = 'block'
+              item.style.display = "block";
             } else {
-              item.style.display = 'none'
+              item.style.display = "none";
             }
-          })
-        })
-      
+          });
+        });
+
         // Cart management
         function addToCart(item) {
-          const existingItem = cart.find((i) => i.name === item.name)
+          const existingItem = cart.find((i) => i.name === item.name);
           if (existingItem) {
-            existingItem.quantity++
+            existingItem.quantity++;
           } else {
-            cart.push({ ...item, quantity: 1 })
+            cart.push({ ...item, quantity: 1 });
           }
-          updateOrderSummary()
+          updateOrderSummary();
         }
-      
+
         function updateOrderSummary() {
-          const orderItems = document.getElementById('orderItems')
-          orderItems.innerHTML = ''
-      
-          let subtotal = 0
-      
+          const orderItems = document.getElementById("orderItems");
+          orderItems.innerHTML = "";
+
+          let subtotal = 0;
+
           cart.forEach((item) => {
-            const itemElement = document.createElement('div')
-            itemElement.className = 'd-flex justify-content-between align-items-center mb-2'
+            const itemElement = document.createElement("div");
+            itemElement.className =
+              "d-flex justify-content-between align-items-center mb-2";
             itemElement.innerHTML = `
                                                                 <div>
-                                                                    <div>${item.name}</div>
-                                                                    <small class="text-muted">₱${item.price.toFixed(2)} x ${item.quantity}</small>
+                                                                    <div>${
+                                                                      item.name
+                                                                    }</div>
+                                                                    <small class="text-muted">₱${item.price.toFixed(
+                                                                      2
+                                                                    )} x ${
+              item.quantity
+            }</small>
                                                                 </div>
-                                                                <div>₱${(item.price * item.quantity).toFixed(2)}</div>
-                                                            `
-            orderItems.appendChild(itemElement)
-            subtotal += item.price * item.quantity
-          })
-      
-          document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`
-          document.getElementById('total').textContent = `₱${subtotal.toFixed(2)}`
+                                                                <div>₱${(
+                                                                  item.price *
+                                                                  item.quantity
+                                                                ).toFixed(
+                                                                  2
+                                                                )}</div>
+                                                            `;
+            orderItems.appendChild(itemElement);
+            subtotal += item.price * item.quantity;
+          });
+
+          document.getElementById(
+            "subtotal"
+          ).textContent = `₱${subtotal.toFixed(2)}`;
+          document.getElementById("total").textContent = `₱${subtotal.toFixed(
+            2
+          )}`;
         }
-      
+
         // Initialize the menu
-        renderMenu()
-      
+        renderMenu();
+
         // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function () {
-          window.location.href = 'index.html'
-        })
-      })
+        document
+          .getElementById("logoutBtn")
+          .addEventListener("click", function () {
+            window.location.href = "index.html";
+          });
+
+        // Form submission
+        document
+          .getElementById("orderForm")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+            if (cart.length === 0) {
+              alert("Please add items to the cart");
+              return;
+            }
+
+            const customerName = document
+              .getElementById("customerName")
+              .value.trim();
+            const orderType = document.querySelector(
+              'input[name="orderType"]:checked'
+            ).value;
+            const paymentMethod = document.querySelector(
+              'input[name="paymentMethod"]:checked'
+            ).value;
+            const cashTendered = document.getElementById("cashTendered").value;
+
+            if (!customerName) {
+              alert("Please enter the customer name.");
+              return;
+            }
+            if (!paymentMethod) {
+              alert("Please select a payment method.");
+              return;
+            }
+
+            const orderData = {
+              items: cart.map((item) => item.id),
+              quantities: cart.map((item) => item.quantity),
+              customer_name: customerName,
+              order_type: orderType,
+              payment_method: paymentMethod,
+              cash_tendered: cashTendered,
+              special_instructions: "",
+            };
+
+            fetch('{% url "place_order" %}', {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector(
+                  "[name=csrfmiddlewaretoken]"
+                ).value,
+              },
+              body: JSON.stringify(orderData),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  alert(
+                    `Order #${data.order_number} has been placed successfully!`
+                  );
+                  cart = [];
+                  updateOrderSummary();
+                  document.getElementById("customerName").value = "";
+                  document.getElementById("cashTendered").value = "";
+                } else {
+                  alert("Error: " + data.error);
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                alert("Error placing order: " + error);
+              });
+          });
+      });
     </script>
   </body>
 </html>

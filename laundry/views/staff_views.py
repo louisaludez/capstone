@@ -3,6 +3,12 @@ from globals import decorator
 from chat.models import Message
 from django.db import models
 from users.models import CustomUser
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from ..models import LaundryOrder, LaundryItem
+from staff.models import Room, Reservation
+from django.utils import timezone
+import json
 
 def get_related_roles(role):
     role_mappings = {
@@ -20,7 +26,7 @@ def get_related_roles(role):
     return role_mappings.get(role, [role])
 
 def staff_laundry_home(request):
-    return render(request,"staff_laundry/home.html")
+    return render(request, 'staff_laundry/home.html')
 
 def staff_laundry_messages(request):
     receiver_role = request.GET.get('receiver_role', 'Admin')  # Default to Admin for staff
@@ -65,4 +71,57 @@ def staff_laundry_messages(request):
 
 def staff_laundry_orders(request):
     return render(request,"staff_laundry/orders.html")
+
+@csrf_exempt
+def create_laundry_order(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Get or create reservation and room
+            reservation = Reservation.objects.get(id=data.get('customer_id'))
+            room = Room.objects.get(id=data.get('room_id'))
+            
+            # Create the laundry order
+            order = LaundryOrder.objects.create(
+                customer=reservation,
+                room=room,
+                service_type=data.get('service_type'),
+                item_type=data.get('item_type'),
+                quantity=data.get('quantity'),
+                weight=data.get('weight'),
+                special_instructions=data.get('special_instructions', ''),
+                payment_method='cash',
+                total_amount=data.get('total_amount'),
+                is_paid=True,
+                status='pending'
+            )
+            
+            # Create laundry items
+            for item in data.get('items', []):
+                LaundryItem.objects.create(
+                    order=order,
+                    category=item.get('category'),
+                    description=item.get('description'),
+                    quantity=item.get('quantity'),
+                    price_per_item=item.get('price_per_item'),
+                    special_instructions=item.get('special_instructions', '')
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'order_number': order.order_number,
+                'message': 'Laundry order created successfully'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+            
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    }, status=405)
 

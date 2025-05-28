@@ -17,10 +17,11 @@ def cleanup_obsolete_messages():
     ).delete()
 
 # Run cleanup
-cleanup_obsolete_messages()
+
 
 @csrf_exempt
 def send_message(request):
+    cleanup_obsolete_messages()
     print("send_message called")
     if request.method == 'POST':
         try:

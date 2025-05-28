@@ -1,0 +1,238 @@
+{% extends './base.html' %} {% load static %} {% block title %}Speech-to-text
+Speed and Accuracy Test | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} {% endblock %}
+{% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.98rem;
+    font-weight: 500;
+  }
+  .top-actions span {
+    cursor: pointer;
+  }
+  .top-actions .add {
+    color: green;
+  }
+  .top-actions .remove {
+    color: red;
+  }
+  .top-actions .edit {
+    color: #333;
+  }
+  .test-item {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+    min-height: 48px;
+  }
+  .test-item:hover {
+    background-color: #f4fdf6;
+  }
+  .test-item strong {
+    font-size: 1rem;
+  }
+  .test-item .text-muted {
+    font-size: 0.85rem;
+  }
+  .test-icon {
+    font-size: 1.2rem;
+    color: #4caf50;
+  }
+  .test-item.selected {
+    background-color: #c8f7c5 !important;
+    color: #145a1a !important;
+    border: 2px solid #43a047 !important;
+    box-shadow: 0 0 0 2px #43a04733;
+  }
+  .test-item.selected .test-icon {
+    color: #145a1a !important;
+  }
+  .test-item.selected strong,
+  .test-item.selected .text-muted {
+    color: #145a1a !important;
+  }
+  @media (max-width: 900px) {
+    .mcq-row {
+      flex-direction: column;
+    }
+    .mcq-left,
+    .mcq-right {
+      width: 100%;
+      min-width: 0;
+    }
+    .mcq-left {
+      margin-bottom: 15px;
+    }
+  }
+</style>
+
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Training Materials
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/SPTT2.png' %}" alt="Speech to Text Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Speech-to-text<br />Speed and Accuracy Test
+      </h4>
+      <button class="btn btn-success mt-5">Training Simulation</button>
+    </div>
+    <!-- Right Panel: Test List -->
+    <div class="mcq-right">
+      <div class="top-actions">
+        <span
+          class="add"
+          onclick="window.location.href='{% url 'add_speech_to_text_activity' %}'"
+          >+ Add</span
+        >
+        <span class="remove" id="removeSelected">– Remove</span>
+        <span class="edit" id="editSelected">✎ Edit</span>
+      </div>
+      {% for activity in activities %}
+      <div
+        class="test-item d-flex align-items-center"
+        data-activity-id="{{ activity.id }}"
+      >
+        <div class="flex-grow-1">
+          <strong>{{ activity.title }}</strong>
+          <div class="text-muted small">{{ activity.description }}</div>
+          {% if activity.audio_file %}
+          <a href="{{ activity.audio_file.url }}" target="_blank" class="small"
+            >Listen</a
+          >
+          {% endif %}
+        </div>
+        <div class="test-icon" style="cursor: pointer">▶</div>
+      </div>
+      {% empty %}
+      <div class="text-muted">No activities found.</div>
+      {% endfor %}
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          // Card selection logic (no checkbox)
+          document.querySelectorAll(".test-item").forEach(function (card) {
+            card.addEventListener("click", function (e) {
+              // If test-icon is clicked, don't toggle selection
+              if (e.target.classList.contains("test-icon")) return;
+              card.classList.toggle("selected");
+            });
+            // Test icon click: go to simulation page
+            card
+              .querySelector(".test-icon")
+              .addEventListener("click", function (e) {
+                e.stopPropagation();
+                const activityId = card.getAttribute("data-activity-id");
+                window.location.href = `/hmsAdmin/training/speech-to-text/simulate/${activityId}/`;
+              });
+          });
+
+          // Remove selected
+          document
+            .getElementById("removeSelected")
+            .addEventListener("click", function () {
+              const selected = Array.from(
+                document.querySelectorAll(".test-item.selected")
+              );
+              if (selected.length === 0) {
+                alert("Please select at least one activity to remove.");
+                return;
+              }
+              if (
+                !confirm(
+                  "Are you sure you want to delete the selected activity/activities?"
+                )
+              )
+                return;
+              selected.forEach(function (card) {
+                const activityId = card.getAttribute("data-activity-id");
+                fetch(
+                  `/hmsAdmin/training/speech-to-text/delete/${activityId}/`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "X-CSRFToken": "{{ csrf_token }}",
+                      "X-Requested-With": "XMLHttpRequest",
+                    },
+                  }
+                )
+                  .then((response) => response.json())
+                  .then((data) => {
+                    if (data.success) {
+                      card.remove();
+                    } else {
+                      alert("Failed to delete activity.");
+                    }
+                  });
+              });
+            });
+
+          // Edit selected
+          document
+            .getElementById("editSelected")
+            .addEventListener("click", function () {
+              const selected = Array.from(
+                document.querySelectorAll(".test-item.selected")
+              );
+              if (selected.length !== 1) {
+                alert("Please select exactly one activity to edit.");
+                return;
+              }
+              const activityId = selected[0].getAttribute("data-activity-id");
+              window.location.href = `/hmsAdmin/training/speech-to-text/edit/${activityId}/`;
+            });
+        });
+      </script>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends './base.html' %} {% load static %} {% block title %}Edit Multiple
+Choice Scenario Based Test | ACES HMS{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='training' %} {% endblock %} {% block content %}
+<style>
+  .mcq-compact-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0 0 0;
+  }
+  .mcq-row {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    min-height: 420px;
+  }
+  .mcq-left {
+    flex: 0 0 270px;
+    text-align: center;
+    padding: 40px 10px 40px 10px;
+    border: 1.5px solid #4caf50;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 350px;
+  }
+  .mcq-left img {
+    height: 55px;
+  }
+  .mcq-left h4 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    line-height: 1.3;
+  }
+  .mcq-left .btn {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    width: 90%;
+  }
+  .mcq-right {
+    flex: 1;
+    padding: 10px 0 0 0;
+  }
+  .activity-box {
+    border: 1.5px solid #4caf50;
+    border-radius: 5px;
+    padding: 7px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .activity-box input[type="text"] {
+    flex: 2;
+    min-width: 0;
+    margin-bottom: 2px;
+  }
+  .add-btns-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .add-btns-row .btn {
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 2px 0;
+    border-radius: 4px;
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    background: #fff;
+    transition: background 0.2s, color 0.2s;
+  }
+  .add-btns-row .btn.selected,
+  .add-btns-row .btn:active {
+    background: #4caf50;
+    color: #fff;
+  }
+  .choices-note {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+</style>
+<div class="mcq-compact-container">
+  <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">
+    Edit MCQ Activity
+  </h2>
+  <div class="mcq-row">
+    <!-- Left Panel: Icon and Title -->
+    <div class="mcq-left mt-5 p-5">
+      <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+      <h4 class="fw-bold mt-2 mb-5">
+        Multiple Choice<br />Scenario Based<br />Test
+      </h4>
+      <button class="btn btn-success mt-5" disabled>Editing</button>
+    </div>
+    <!-- Right Panel: Activity Form -->
+    <div class="mcq-right">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="activity-box">
+          <input
+            type="text"
+            name="testTitle"
+            class="form-control mb-1"
+            placeholder="Test 1. Test Title"
+            value="{{ activity.title }}"
+            required
+          />
+          <input
+            type="text"
+            name="testDesc"
+            class="form-control mb-2"
+            placeholder="Description"
+            value="{{ activity.description }}"
+            required
+          />
+          <input
+            type="text"
+            name="scenario"
+            class="form-control mb-2"
+            placeholder="Scenario: Type scenario"
+            value="{{ activity.scenario }}"
+            required
+          />
+          <input
+            type="hidden"
+            name="timer"
+            id="timerInput"
+            value="{{ activity.timer }}"
+          />
+          <div class="mb-2">
+            <label class="fw-bold me-2">Set timer:</label>
+            <button
+              type="button"
+              class="timer-btn{% if activity.timer == '3mins.' %} selected{% endif %} btn btn-outline-success"
+              data-value="3mins."
+            >
+              3mins.
+            </button>
+            <button
+              type="button"
+              class="timer-btn{% if activity.timer == '5mins.' %} selected{% endif %} btn btn-outline-success"
+              data-value="5mins."
+            >
+              5mins.
+            </button>
+            <button
+              type="button"
+              class="timer-btn{% if activity.timer == '8mins.' %} selected{% endif %} btn btn-outline-success"
+              data-value="8mins."
+            >
+              8mins.
+            </button>
+            <button
+              type="button"
+              class="timer-btn{% if activity.timer == '10mins.' %} selected{% endif %} btn btn-outline-success"
+              data-value="10mins."
+            >
+              10mins.
+            </button>
+            <button
+              type="button"
+              class="timer-btn{% if activity.timer not in '3mins. 5mins. 8mins. 10mins.' %} selected{% endif %} btn btn-outline-success"
+              data-value="custom"
+            >
+              Set your own time.
+            </button>
+          </div>
+          <div class="mb-2">
+            <label class="fw-bold me-2">Input choices:</label>
+            <div class="input-group-mcq">
+              <input
+                type="text"
+                class="form-control"
+                name="choice1"
+                placeholder="Type text here"
+                maxlength="100"
+                value="{{ activity.choice1 }}"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice2"
+                placeholder="Type text here"
+                maxlength="100"
+                value="{{ activity.choice2 }}"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice3"
+                placeholder="Type text here"
+                maxlength="100"
+                value="{{ activity.choice3 }}"
+                required
+              />
+              <input
+                type="text"
+                class="form-control"
+                name="choice4"
+                placeholder="Type text here"
+                maxlength="100"
+                value="{{ activity.choice4 }}"
+                required
+              />
+            </div>
+          </div>
+          <div class="add-btns-row mb-1">
+            <label class="me-2"
+              ><input
+                type="checkbox"
+                name="action_block"
+                {%
+                if
+                activity.action_block
+                %}checked{%
+                endif
+                %}
+              />
+              Block</label
+            >
+            <label class="me-2"
+              ><input
+                type="checkbox"
+                name="action_reserve"
+                {%
+                if
+                activity.action_reserve
+                %}checked{%
+                endif
+                %}
+              />
+              Reserve</label
+            >
+            <label class="me-2"
+              ><input
+                type="checkbox"
+                name="action_cash_payment"
+                {%
+                if
+                activity.action_cash_payment
+                %}checked{%
+                endif
+                %}
+              />
+              Cash payment</label
+            >
+            <label class="me-2"
+              ><input
+                type="checkbox"
+                name="action_customization"
+                {%
+                if
+                activity.action_customization
+                %}checked{%
+                endif
+                %}
+              />
+              Customization</label
+            >
+          </div>
+          <div class="choices-note">All choices are limited to 4 only.</div>
+        </div>
+        <div class="text-end mt-2">
+          <button type="submit" class="btn btn-outline-dark">
+            <i class="bi bi-save2 me-1"></i> Save changes
+          </button>
+          <a href="{% url 'mcq_page' %}" class="btn btn-secondary ms-2"
+            >Cancel</a
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const timerInput = document.getElementById("timerInput");
+    document.querySelectorAll(".timer-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        document
+          .querySelectorAll(".timer-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        timerInput.value = btn.getAttribute("data-value");
+        if (btn.getAttribute("data-value") === "custom") {
+          const custom = prompt("Enter custom time (e.g., 12mins.):");
+          if (custom) timerInput.value = custom;
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

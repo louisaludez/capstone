@@ -1,125 +1,99 @@
 from django.db import models
-from staff.models import Room
-from staff.models import Reservation
+from staff.models import Room, Reservation
+from django.utils import timezone
+
 class LaundryOrder(models.Model):
-    PAYMENT_METHODS = [
-        ('CASH', 'Pay Cash'),
-        ('ROOM', 'Charge to Room'),
+    PAYMENT_METHOD_CHOICES = [
+        ('cash', 'Cash'),
+        ('room', 'Charge to Room'),
+        ('credit_card', 'Credit Card'),
     ]
 
-    # If you already have a Customer or Reservation model you want to link to,
-    # swap these out for ForeignKey fields.
-    customer_name    = models.CharField(max_length=100)
-    room             = models.ForeignKey(
-                         Room,
-                         on_delete=models.CASCADE,
-                         related_name='laundry_orders'
-                       )
-
-    service_type     = models.CharField(
-                         max_length=50,
-                         help_text="e.g. 'Wash & Fold', 'Dry Cleaning'"
-                       )
-    # Two mutually exclusive metrics—either hours or kilograms:
-    hours            = models.DecimalField(
-                         max_digits=5, decimal_places=2,
-                         blank=True, null=True,
-                         help_text="If billed by the hour"
-                       )
-    weight_kg        = models.DecimalField(
-                         max_digits=6, decimal_places=2,
-                         blank=True, null=True,
-                         help_text="If billed by weight (kg)"
-                       )
-
-    item_type        = models.CharField(
-                         max_length=50,
-                         help_text="e.g. 'Shirts', 'Bedsheets', 'Socks'"
-                       )
-    quantity         = models.PositiveIntegerField(
-                         help_text="Number of items"
-                       )
-
-    created_at       = models.DateTimeField(auto_now_add=True)
-    notes            = models.TextField(
-                         blank=True,
-                         help_text="Add-ons, special requests, etc."
-                       )
-
-    payment_method   = models.CharField(
-                         max_length=10,
-                         choices=PAYMENT_METHODS,
-                         default='CASH'
-                       )
-
-    def __str__(self):
-        return (
-            f"Laundry #{self.pk} – {self.customer_name} "
-            f"(Room {self.room}) on {self.created_at:%Y-%m-%d %H:%M}"
-        )
-
-from datetime import date
-from django.db import models, transaction
-
-class Order(models.Model):
-    # ——— Receipt Number ———
-    receipt_no = models.CharField(
-        max_length=20,
-        unique=True,
-        editable=False,
-        help_text="Auto-generated as YYYYMMDD-#####"
-    )
-
-   
-    customer = models.ForeignKey(
-        Reservation,          
-        on_delete=models.CASCADE,
-        related_name='orders'
-    )
-
-    # ——— Service Type ———
-    SERVICE_CHOICES = [
-        ('WASH_FOLD',   'Wash and Fold'),
-        ('DRY_CLEAN',   'Dry Cleaning'),
-        ('IRON_ONLY',   'Iron Only'),
-        # …add more as needed
+    SERVICE_TYPE_CHOICES = [
+        ('wash_fold', 'Wash and Fold'),
+        ('dry_clean', 'Dry Cleaning'),
+        ('iron', 'Iron Only'),
+        ('express', 'Express Service'),
     ]
-    service_type = models.CharField(
-        max_length=20,
-        choices=SERVICE_CHOICES
-    )
 
-    # ——— Timestamps & Status ———
-    created_at = models.DateTimeField(auto_now_add=True)
     STATUS_CHOICES = [
-        ('PENDING',     'Pending'),
-        ('IN_PROGRESS', 'In Progress'),
-        ('FINISHED',    'Finished'),
-        ('CANCELLED',   'Cancelled'),
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('ready', 'Ready for Pickup'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
     ]
-    status = models.CharField(
-        max_length=12,
-        choices=STATUS_CHOICES,
-        default='PENDING'
-    )
+
+    # Order Information
+    order_number = models.CharField(max_length=20, unique=True, editable=False)
+    customer = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='laundry_orders')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='laundry_orders')
+    service_type = models.CharField(max_length=20, choices=SERVICE_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Item Details
+    item_type = models.CharField(max_length=50)
+    quantity = models.PositiveIntegerField()
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    special_instructions = models.TextField(blank=True)
+
+    # Payment Information
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_paid = models.BooleanField(default=False)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['receipt_no']),
-            models.Index(fields=['status']),
-        ]
 
     def save(self, *args, **kwargs):
-        creating = self.pk is None
-        # First save to get a PK and created_at timestamp
+        if not self.order_number:
+            # Generate order number: LAU-YYYYMMDD-XXXX
+            date_prefix = timezone.now().strftime('%Y%m%d')
+            last_order = LaundryOrder.objects.filter(
+                order_number__startswith=f'LAU-{date_prefix}'
+            ).order_by('-order_number').first()
+            
+            if last_order:
+                last_number = int(last_order.order_number.split('-')[-1])
+                new_number = last_number + 1
+            else:
+                new_number = 1
+                
+            self.order_number = f'LAU-{date_prefix}-{new_number:04d}'
+        
+        if self.status == 'delivered' and not self.completed_at:
+            self.completed_at = timezone.now()
+            
         super().save(*args, **kwargs)
-        if creating and not self.receipt_no:
-            # Build date prefix (YYYYMMDD) + zero-padded PK
-            date_prefix = self.created_at.date().strftime("%Y%m%d")
-            self.receipt_no = f"{date_prefix}-{self.pk:05d}"
-            # Update only the receipt_no field to avoid recursion
-            super().save(update_fields=['receipt_no'])
 
     def __str__(self):
-        return f"{self.receipt_no} – {self.customer} ({self.get_status_display()})"
+        return f"{self.order_number} - {self.customer.customer_name} - {self.get_service_type_display()}"
+
+class LaundryItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('shirts', 'Shirts'),
+        ('pants', 'Pants'),
+        ('dresses', 'Dresses'),
+        ('suits', 'Suits'),
+        ('bedding', 'Bedding'),
+        ('towels', 'Towels'),
+        ('other', 'Other'),
+    ]
+
+    order = models.ForeignKey(LaundryOrder, on_delete=models.CASCADE, related_name='items')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    description = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+    price_per_item = models.DecimalField(max_digits=8, decimal_places=2)
+    special_instructions = models.TextField(blank=True)
+
+    def subtotal(self):
+        return self.quantity * self.price_per_item
+
+    def __str__(self):
+        return f"{self.quantity}x {self.get_category_display()} - {self.description}"
