@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Activity Home
+{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+{% endblock %}
+{% block extra_head %}
+  <style>
+    .parent {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 14px;
+    }
+    
+    .parent > div {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 15px 0;
+      text-align: center;
+      font-weight: bold;
+      min-width: 0;
+      min-height: 60px;
+      box-sizing: border-box;
+      border-color: green;
+      border-style: solid;
+      border-width: 2px;
+      height: 170px;
+      width: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+      word-wrap: break-word;
+      margin-bottom: 20px;
+    }
+    .parent > div img {
+      width: 90%;
+      height: 70px;
+      margin-bottom: 10px;
+      align-self: center;
+    }
+    span {
+      color: #216216;
+      margin-top: 10px;
+    }
+    #select_activity {
+      margin-bottom: 35px;
+      margin-top: 60px;
+      margin-left: 20px;
+      font-weight: bold;
+      font-size: 40px;
+    }
+    .row {
+      margin-left: 15px;
+    }
+    .div6 {
+      grid-column-start: 1;
+      grid-row-start: 2;
+    }
+    
+    .div7 {
+      grid-column-start: 2;
+      grid-row-start: 2;
+    }
+    
+    @media (max-width: 900px) {
+      .parent {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+      }
+      .div6,
+      .div7 {
+        grid-column-start: auto;
+        grid-row-start: auto;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .parent {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+      }
+      .parent > div {
+        min-height: 40px;
+        padding: 10px;
+      }
+    }
+  </style>
+{% endblock %}
+{% block sidebar %}
+  {% include 'activity/sidebar.html' with active_page='home' %}
+{% endblock %}
+{% block content %}
+  <h2 id="select_activity">Select Activity</h2>
+  <div class="row">
+    <div class="parent">
+      <div class="div1">
+        <img src="{% static 'images/frontoffice.png' %}" alt="front office logo" />
+        <span>Front Office</span>
+      </div>
+      <div class="div2">
+        <img src="{% static 'images/guestbooking.png' %}" alt="guest booking logo" />
+        <span>Guest Booking</span>
+      </div>
+      <div class="div3">
+        <img src="{% static 'images/cafe.png' %}" alt="cafe logo" />
+        <span>Cafe</span>
+      </div>
+      <div class="div4">
+        <img src="{% static 'images/housekeeping.png' %}" alt="housekeeping logo" />
+        <span>Housekeeping</span>
+      </div>
+      <div class="div5">
+        <img src="{% static 'images/laundry.png' %}" alt="laundry logo" />
+        <span>Laundry</span>
+      </div>
+      <div class="div6">
+        <img src="{% static 'images/voice.png' %}" alt="ef" />
+        <span>Speech-to-text Speed and Accuracy Test</span>
+      </div>
+      <div class="div7">
+        <img src="{% static 'images/abc.png' %}" alt="ef" />
+        <span>Multiple Choise Scenario Based Test</span>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+
+{% endblock %}

@@ -1,0 +1,15 @@
+{% load static %}
+<div class="sidebar bg-gradient text-white" style="min-width: 17.63%; max-width: 17.63%;">
+  <div class="text-center p-3">
+    <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" />
+  </div>
+  <div class="sidebar-menu mt-4 mb-5">
+    <a href="{% url 'activity_home' %}" class="{% if active_page == 'home' %}active{% endif %}"><i class="bi bi-clipboard-check me-2"></i>Activity</a>
+  </div>
+  <div class="mt-5">
+    <p class="small mb-1 mt-5 text-center mx-auto" style="font-size: 0.8rem">You are logged in as {{ user.username }}</p>
+    <div class="d-flex justify-content-center">
+      <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill text-center">Sign out</a>
+    </div>
+  </div>
+</div>

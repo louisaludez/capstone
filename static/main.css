@@ -1,6 +1,13 @@
 /* General Styles */
+@font-face {
+    font-family: 'Open Sauce Sans Bold';
+    src: url('fonts/open-sauce.sans-bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+
+}
 body {
-    min-height: 100vh;
+   
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
@@ -18,8 +25,11 @@ body {
 }
 
 .logo {
-    max-width: 100px;
-    height: auto;
+    width: 75%;
+    min-width: 60%;
+    margin-top: 45px;
+    height: 65px;
+   
 }
 
 .brand-text {

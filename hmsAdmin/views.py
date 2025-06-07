@@ -215,7 +215,7 @@ def occupancy_forecast(request):
     
     # Fit SARIMA model
     model = SARIMAX(df['occupancy_rate'], order=(1,1,1), seasonal_order=(1,1,1,12))
-    results = model.fit()
+    results = model.fit()   
 
     # --- Accuracy metrics (in-sample) ---
     y_true = df['occupancy_rate']
