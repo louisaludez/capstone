@@ -4,12 +4,13 @@
     <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" />
   </div>
   <div class="sidebar-menu mt-4 mb-5">
-    <a href="{% url 'activity_home' %}" class="{% if active_page == 'home' %}active{% endif %}"><i class="bi bi-clipboard-check me-2"></i>Activity</a>
+    <a href="{% url 'activity_home' %}" class="{% if active_page == 'home' %}active{% endif %}">Activity</a>
   </div>
-  <div class="mt-5">
-    <p class="small mb-1 mt-5 text-center mx-auto" style="font-size: 0.8rem">You are logged in as {{ user.username }}</p>
-    <div class="d-flex justify-content-center">
-      <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill text-center">Sign out</a>
-    </div>
+  <div class="mt-auto p-3 d-flex flex-column align-items-center">
+    <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold; ">
+      <em>You are logged in as <span style="text-decoration: underline; color:white">{{ user.username }}</span></em>
+    </p>
+
+    <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill"><em>Sign out</em></a>
   </div>
 </div>

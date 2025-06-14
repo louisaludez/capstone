@@ -1,7 +1,7 @@
 /* General Styles */
 @font-face {
     font-family: 'Open Sauce Sans Bold';
-    src: url('./fonts/open-sauce.sans-bold.ttf') format('truetype');
+    src: url('fonts/open-sauce.sans-bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
 
@@ -49,16 +49,24 @@ body {
 }
 
 .sidebar-menu a {
-    display: block;
-    padding: 15px 20px;
-    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
     text-decoration: none;
+    background-color: white;
     transition: background-color 0.3s;
+    width: 80%;
+    margin-bottom: 10px;
+    margin-left: 23px;
+    border-radius: 10px;
+    height: 45px;
 }
+
 
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
-    background-color: #2d5a3f;
+    background-color: #7eb455;
 }
 
 .room-card {
