@@ -26,7 +26,7 @@ def get_related_roles(role):
     return role_mappings.get(role, [role])
 
 def staff_laundry_home(request):
-    return render(request, 'staff_laundry/home.html')
+    return render(request, 'staff_laundry/dd.html')
 
 def staff_laundry_messages(request):
     receiver_role = request.GET.get('receiver_role', 'Admin')  # Default to Admin for staff

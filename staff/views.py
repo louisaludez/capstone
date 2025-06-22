@@ -53,7 +53,7 @@ def home(request):
     for room in rooms:
         room.status = room_statuses[room.id]
 
-    return render(request, "staff/dd.html", {
+    return render(request, "staff/home.html", {
         'rooms': rooms,
         'available_rooms_count': available_rooms,
         'occupied_rooms_count': occupied_rooms,

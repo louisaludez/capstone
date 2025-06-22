@@ -718,3 +718,15 @@ input, select, textarea {
     width: 30px ;
     height: 30px;
 }
+
+
+.my-confirm-btn-booking, .my-deny-btn-booking, .my-confirm-btn-walkin{
+   background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
+  
+}
+.my-title-booking, .my-text-booking {
+    color: #1a2d1e !important;
+}
+#walkin input, #walkin select{
+    background-color: #dddddd !important;
+}
