@@ -1,7 +1,7 @@
 {% load static %}
-<div id="checkin" class="modal">
+<div id="checkin" class="modal" data-logo-url="{% static 'images/new HMS-B.png' %}">
   <div class="modal-content">
-    <span class="close">&times;</span>
+    <span class="close" id="close-checkin-modal">&times;</span>
     <h1>Check-in</h1>
 
     <div class="container">
@@ -31,16 +31,17 @@
               <input type="email" id="guest-email" name="guest-email" class="form-control" />
             </div>
           </div>
+
           <div class="booking">
             <h2>Booking Information</h2>
             <div class="inline-fields">
               <div class="stacked-date-field">
                 <label for="check-in" class="form-label">Check-in:</label>
-                <input type="date" id="check-in" name="check-in" class="form-control" placeholder="Select check-in date" />
+                <input type="date" id="check-in" name="check-in" class="form-control" />
               </div>
               <div class="stacked-date-field">
                 <label for="check-out" class="form-label">Check-out:</label>
-                <input type="date" id="check-out" name="check-out" placeholder="Select check-out date" class="form-control" />
+                <input type="date" id="check-out" name="check-out" class="form-control" />
               </div>
             </div>
             <div>
@@ -78,6 +79,7 @@
             </div>
           </div>
         </div>
+
         <div class="payment">
           <h2 class="mb-2">Payment Information</h2>
           <div class="method">
@@ -90,7 +92,7 @@
           </div>
           <div class="card-fields number" hidden>
             <label for="card-number" class="form-label">Card Number:</label>
-            <input type="text" id="card-number" name="card-number" placeholder="Enter card number" class="form-control" />
+            <input type="text" id="card-number" name="card-number" class="form-control" />
           </div>
           <div class="card-fields" hidden>
             <label for="exp-date" class="form-label">Exp. Date</label>
@@ -98,18 +100,18 @@
           </div>
           <div class="card-fields" hidden>
             <label for="cvv" class="form-label">CVV:</label>
-            <input type="text" id="cvv" name="cvv" placeholder="Enter CVV" class="form-control" />
+            <input type="text" id="cvv" name="cvv" class="form-control" />
           </div>
           <div class="billing">
             <label for="billing-address" class="form-label">Billing Address:</label>
-            <input type="text" id="billing-address" name="billing-address" placeholder="Enter billing address" class="form-control" />
+            <input type="text" id="billing-address" name="billing-address" class="form-control" />
           </div>
           <div class="totalBal">
             <label for="total-balance" class="form-label">Total Balance:</label>
-            <input type="text" id="total-balance" name="total-balance" placeholder="Enter total balance" class="form-control" />
+            <input type="text" id="total-balance" name="total-balance" class="form-control" />
           </div>
           <div class="bookRoom">
-            <button type="submit" class="btn btn-primary">Book Room</button>
+            <button type="submit" class="btn btn-primary" id="checkin-room">Check-in</button>
           </div>
           <div class="time">
             <div>
@@ -117,7 +119,7 @@
               <span>Time Remaining</span>
             </div>
             <div>
-              <img src="{% static 'images/clock-timer.png' %}" alt="" />
+              <img src="{% static 'images/clock-timer.png' %}" alt="Timer" />
             </div>
           </div>
         </div>

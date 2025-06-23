@@ -53,6 +53,9 @@ def home(request):
     for room in rooms:
         room.status = room_statuses[room.id]
 
+    # Get available rooms for the check-in modal
+    available_rooms_list = Room.objects.filter(status='available')
+
     return render(request, "staff/home.html", {
         'rooms': rooms,
         'available_rooms_count': available_rooms,
@@ -60,7 +63,8 @@ def home(request):
         'under_maintenance_rooms_count': under_maintenance_rooms,
         'housekeeping_rooms_count': housekeeping_rooms,
         'room_count': room_count,
-        'selected_date': selected_date.strftime('%Y-%m-%d')
+        'selected_date': selected_date.strftime('%Y-%m-%d'),
+        'available_rooms': available_rooms_list
     })
 def message(request):
     

@@ -1,7 +1,7 @@
 {% load static %}
-<div id="walkin" class="modal">
+<div id="walkin" class="modal" data-logo-url="{% static 'images/new HMS-B.png' %}">
   <div class="modal-content">
-    <span class="close">&times;</span>
+    <span class="close" id="close-walkin-modal">&times;</span>
     <h1>Walk-in</h1>
 
     <div class="container">
@@ -11,23 +11,23 @@
           <div class="guest">
             <h2 class="mb-2">Guest Information</h2>
             <div class="name">
-              <label for="guest-name" class="form-label">Name:</label>
+              <label for="guest-name" class="form-label">Name</label>
               <input type="text" id="guest-name" name="guest-name" class="form-control" />
             </div>
             <div class="address">
-              <label for="guest-address" class="form-label">Address:</label>
+              <label for="guest-address" class="form-label">Address</label>
               <input type="text" id="guest-address" name="guest-address" class="form-control" />
             </div>
             <div class="mobile">
-              <label for="guest-mobile" class="form-label">Mobile:</label>
+              <label for="guest-mobile" class="form-label">Mobile No.</label>
               <input type="text" id="guest-mobile" name="guest-mobile" class="form-control" />
             </div>
             <div class="birth">
-              <label for="guest-birth" class="form-label">Date of Birth:</label>
+              <label for="guest-birth" class="form-label">Date of Birth</label>
               <input type="date" id="guest-birth" name="guest-birth" class="form-control" />
             </div>
             <div class="email">
-              <label for="guest-email" class="form-label">Email:</label>
+              <label for="guest-email" class="form-label">Email</label>
               <input type="email" id="guest-email" name="guest-email" class="form-control" />
             </div>
           </div>

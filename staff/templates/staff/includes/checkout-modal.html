@@ -1,265 +1,129 @@
-<div
-  class="modal fade"
-  id="checkOutModal"
-  tabindex="-1"
-  aria-labelledby="checkOutModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog" style="max-width: 1000px">
-    <div
-      class="modal-content"
-      style="border-radius: 12px; border: 1.5px solid #bbb"
-    >
-      <div class="modal-body p-3">
-        <h2 class="text-center mb-3" style="font-weight: 600">Check Out</h2>
-        <form method="POST" action="" id="checkoutForm">
-          {% csrf_token %}
-          <div class="row g-3">
-            <!-- Guest Information (read-only) -->
-            <div class="col-4">
-              <div class="mb-2">
-                <div style="font-weight: 600">Guest Information</div>
-                <label class="form-label mb-1">Name</label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="customer_name"
-                  id="customer_name"
-                  value="{{ reservation.customer_name }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Address</label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="customer_address"
-                  id="customer_address"
-                  value="{{ reservation.customer_address }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Zip Code</label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="customer_zipCode"
-                  id="customer_zipCode"
-                  value="{{ reservation.customer_zipCode }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Date of Birth</label>
-                <input
-                  type="date"
-                  class="form-control form-control-sm mb-1"
-                  name="customer_dateOfBirth"
-                  id="customer_dateOfBirth"
-                  value="{{ reservation.customer_dateOfBirth }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Email</label>
-                <input
-                  type="email"
-                  class="form-control form-control-sm mb-2"
-                  name="customer_email"
-                  id="customer_email"
-                  value="{{ reservation.customer_email }}"
-                  readonly
-                />
-              </div>
+{% load static %}
+<div id="checkout" class="modal" data-logo-url="{% static 'images/new HMS-B.png' %}">
+  <div class="modal-content">
+    <span class="close" id="close-checkout-modal">&times;</span>
+    <h1>Check-out</h1>
+
+    <div class="container">
+      <!-- Guest and Booking Info -->
+      <div class="section">
+        <div class="left-column">
+          <div class="guest">
+            <h2 class="mb-2">Guest and Stay Information</h2>
+            <div class="name">
+              <label for="guest-name" class="form-label">Name</label>
+              <input type="text" id="guest-name" name="guest-name" class="form-control" />
             </div>
-            <!-- Booking Information (read-only) -->
-            <div class="col-4">
-              <div class="mb-2">
-                <div style="font-weight: 600">Booking Information</div>
-                <label class="form-label mb-1">Check-in Date</label>
-                <input
-                  type="date"
-                  class="form-control form-control-sm mb-1"
-                  name="checkin_date"
-                  id="checkin_date"
-                  value="{{ reservation.checkin_date }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Check-out Date</label>
-                <input
-                  type="date"
-                  class="form-control form-control-sm mb-1"
-                  name="checkout_date"
-                  id="checkout_date"
-                  value="{{ reservation.checkout_date }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Room No.</label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="room_number"
-                  id="room_number"
-                  value="{{ reservation.room_number }}"
-                  readonly
-                />
-                <label class="form-label mb-1">No. of Guests</label>
-                <input
-                  type="number"
-                  class="form-control form-control-sm mb-1"
-                  name="number_of_guests"
-                  id="number_of_guests"
-                  value="{{ reservation.number_of_guests }}"
-                  readonly
-                />
-                <label class="form-label mb-1">Special Requests</label>
-                <textarea
-                  class="form-control form-control-sm mb-1"
-                  name="special_requests"
-                  id="special_requests"
-                  rows="2"
-                  readonly
-                >
-{{ reservation.special_requests }}</textarea
-                >
-              </div>
+            <div class="address">
+              <label for="guest-address" class="form-label">Address</label>
+              <input type="text" id="guest-address" name="guest-address" class="form-control" />
             </div>
-            <!-- Payment Information (editable for final payment) -->
-            <div class="col-4">
-              <div class="mb-2">
-                <div style="font-weight: 600">Final Payment</div>
-                <label for="final_payment_method" class="form-label mb-1"
-                  >Payment Method *</label
-                >
-                <select
-                  class="form-select form-select-sm mb-1"
-                  name="final_payment_method"
-                  id="final_payment_method"
-                  required
-                >
-                  <option value="">Select payment method</option>
-                  <option value="cash">Cash</option>
-                  <option value="credit_card">Credit Card</option>
-                  <option value="debit_card">Debit Card</option>
-                </select>
-                <div id="finalCreditCardFields" style="display: none">
-                  <label for="final_credit_card_number" class="form-label mb-1"
-                    >Credit Card Number</label
-                  >
-                  <input
-                    type="text"
-                    class="form-control form-control-sm mb-1"
-                    name="final_credit_card_number"
-                    id="final_credit_card_number"
-                  />
-                  <div class="row g-1">
-                    <div class="col-6">
-                      <label
-                        for="final_credit_card_expiry"
-                        class="form-label mb-1"
-                        >Exp. Date</label
-                      >
-                      <input
-                        type="date"
-                        class="form-control form-control-sm mb-1"
-                        name="final_credit_card_expiry"
-                        id="final_credit_card_expiry"
-                      />
-                    </div>
-                    <div class="col-6">
-                      <label for="final_cvc_code" class="form-label mb-1"
-                        >CVC Code</label
-                      >
-                      <input
-                        type="text"
-                        class="form-control form-control-sm mb-1"
-                        name="final_cvc_code"
-                        id="final_cvc_code"
-                        maxlength="3"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <label for="final_billing_address" class="form-label mb-1"
-                  >Billing Address *</label
-                >
-                <input
-                  type="text"
-                  class="form-control form-control-sm mb-1"
-                  name="final_billing_address"
-                  id="final_billing_address"
-                  required
-                />
-                <label for="final_total_balance" class="form-label mb-1"
-                  >Final Total Balance *</label
-                >
-                <input
-                  type="number"
-                  step="0.01"
-                  class="form-control form-control-sm mb-2"
-                  name="final_total_balance"
-                  id="final_total_balance"
-                  required
-                  min="0"
-                />
-                <div class="d-flex justify-content-end mt-3">
-                  <button type="submit" class="btn btn-danger btn-sm px-4">
-                    Confirm Check Out
-                  </button>
-                </div>
-              </div>
+            <div class="mobile">
+              <label for="guest-mobile" class="form-label">Mobile:</label>
+              <input type="text" id="guest-mobile" name="guest-mobile" class="form-control" />
+            </div>
+            <div class="birth">
+              <label for="guest-birth" class="form-label">Date of Birth:</label>
+              <input type="date" id="guest-birth" name="guest-birth" class="form-control" />
+            </div>
+            <div class="email">
+              <label for="guest-email" class="form-label">Email:</label>
+              <input type="email" id="guest-email" name="guest-email" class="form-control" />
             </div>
           </div>
-        </form>
+
+          <div class="booking">
+            <h2>Booking Information</h2>
+            <div class="inline-fields">
+              <div class="stacked-date-field">
+                <label for="check-in" class="form-label">Check-in:</label>
+                <input type="date" id="check-in" name="check-in" class="form-control" placeholder="Select check-in date" />
+              </div>
+              <div class="stacked-date-field">
+                <label for="check-out" class="form-label">Check-out:</label>
+                <input type="date" id="check-out" name="check-out" placeholder="Select check-out date" class="form-control" />
+              </div>
+            </div>
+            <div>
+              <label for="room-type" class="form-label">Room Type:</label>
+              <select id="room-type" name="room-type" class="form-select">
+                <option value="" disabled selected>Select room type</option>
+                <option value="single">Single</option>
+                <option value="double">Double</option>
+                <option value="suite">Suite</option>
+              </select>
+            </div>
+            <div class="inline-fields">
+              <div>
+                <label for="total-guest" class="form-label">Total Guests:</label>
+                <input type="number" id="total-guest" name="total-guest" class="form-control" />
+              </div>
+              <div>
+                <label for="adults" class="form-label">No. of Adults</label>
+                <input type="number" name="adults" id="adults" class="form-control" />
+              </div>
+            </div>
+            <div class="inline-fields">
+              <div>
+                <label for="NoOfChildren">No. of Children</label>
+                <input type="number" name="NoOfChildren" id="NoOfChildren" class="form-control" />
+              </div>
+              <div>
+                <label for="addOns">Add-ons</label>
+                <input type="text" name="addOns" id="addOns" class="form-control" />
+              </div>
+            </div>
+            <div>
+              <label for="children" class="form-label">Children below 7 years Old:</label>
+              <input type="number" id="children" name="children" class="form-control" />
+            </div>
+          </div>
+        </div>
+
+        <div class="payment">
+          <h2 class="mb-2">Payment Information</h2>
+          <div class="method">
+            <label for="payment-method" class="form-label">Payment Method</label>
+            <select id="payment-method" name="payment-method" class="form-select">
+              <option value="" disabled selected>Select payment method</option>
+              <option value="credit-card">Card Payment</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+          <div class="card-fields number" hidden>
+            <label for="card-number" class="form-label">Card Number:</label>
+            <input type="text" id="card-number" name="card-number" placeholder="Enter card number" class="form-control" />
+          </div>
+          <div class="card-fields" hidden>
+            <label for="exp-date" class="form-label">Exp. Date</label>
+            <input type="month" id="exp-date" name="exp-date" class="form-control" />
+          </div>
+          <div class="card-fields" hidden>
+            <label for="cvv" class="form-label">CVV:</label>
+            <input type="text" id="cvv" name="cvv" placeholder="Enter CVV" class="form-control" />
+          </div>
+          <div class="billing">
+            <label for="billing-address" class="form-label">Billing Address:</label>
+            <input type="text" id="billing-address" name="billing-address" placeholder="Enter billing address" class="form-control" />
+          </div>
+          <div class="totalBal">
+            <label for="total-balance" class="form-label">Total Balance:</label>
+            <input type="text" id="total-balance" name="total-balance" placeholder="Enter total balance" class="form-control" />
+          </div>
+          <div class="bookRoom">
+            <button type="submit" class="btn btn-primary" id="checkout-room">Check-out</button>
+          </div>
+          <div class="time">
+            <div>
+              <span id="checkout-timer" style="align-self: flex-end">5:00</span>
+              <span>Time Remaining</span>
+            </div>
+            <div>
+              <img src="{% static 'images/clock-timer.png' %}" alt="" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<script>
-  // Show/hide credit card fields for final payment
-  document.addEventListener("DOMContentLoaded", function () {
-    var finalPaymentMethod = document.getElementById("final_payment_method");
-    if (finalPaymentMethod) {
-      finalPaymentMethod.addEventListener("change", function (e) {
-        const finalCreditCardFields = document.getElementById(
-          "finalCreditCardFields"
-        );
-        if (e.target.value === "credit_card") {
-          finalCreditCardFields.style.display = "block";
-        } else {
-          finalCreditCardFields.style.display = "none";
-        }
-      });
-    }
-
-    // Set form action and pre-fill modal fields when opening checkout modal
-    var checkOutModal = document.getElementById("checkOutModal");
-    if (checkOutModal) {
-      checkOutModal.addEventListener("show.bs.modal", function (event) {
-        var button = event.relatedTarget;
-        if (!button) return;
-        var reservationId = button.getAttribute("data-reservation-id");
-        var form = checkOutModal.querySelector("form");
-        if (reservationId && form) {
-          form.action = "/staff/checkout/" + reservationId + "/";
-        }
-        // Pre-fill fields
-        checkOutModal.querySelector("#customer_name").value =
-          button.getAttribute("data-customer-name") || "";
-        checkOutModal.querySelector("#customer_address").value =
-          button.getAttribute("data-customer-address") || "";
-        checkOutModal.querySelector("#customer_zipCode").value =
-          button.getAttribute("data-customer-zipcode") || "";
-        checkOutModal.querySelector("#customer_dateOfBirth").value =
-          button.getAttribute("data-customer-dateofbirth") || "";
-        checkOutModal.querySelector("#customer_email").value =
-          button.getAttribute("data-customer-email") || "";
-        checkOutModal.querySelector("#checkin_date").value =
-          button.getAttribute("data-checkin-date") || "";
-        checkOutModal.querySelector("#checkout_date").value =
-          button.getAttribute("data-checkout-date") || "";
-        checkOutModal.querySelector("#room_number").value =
-          button.getAttribute("data-room-number") || "";
-        checkOutModal.querySelector("#number_of_guests").value =
-          button.getAttribute("data-number-of-guests") || "";
-        checkOutModal.querySelector("#special_requests").value =
-          button.getAttribute("data-special-requests") || "";
-      });
-    }
-  });
-</script>
+</div>```
