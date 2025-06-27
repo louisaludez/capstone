@@ -20,7 +20,15 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'main.css' %}" />
-
+    <style>
+      @font-face {
+        font-family: 'Open Sause Sans';
+        src: url('/static/open-sauce.sans-bold.ttf') format('truetype');
+      }
+      body {
+        font-family: 'Open Sause Sans', sans-serif;
+      }
+    </style>
     {% block extra_head %}
 
     {% endblock %}

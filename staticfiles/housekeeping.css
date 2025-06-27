@@ -1,0 +1,17 @@
+.room-parent{
+    display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        gap: 8px;
+}
+.div14 {
+    grid-column: span 2 / span 2;
+}
+.room-parent div{
+    background-color: green;
+    display: flex ;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    border-radius: 10px;
+}

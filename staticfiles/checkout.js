@@ -1,6 +1,6 @@
-function updateCheckinCardFields() {
-  const paymentMethod = document.querySelector("#checkin #payment-method");
-  const cardFields = document.querySelectorAll("#checkin .card-fields");
+function updateCheckoutCardFields() {
+  const paymentMethod = document.querySelector("#checkout #payment-method");
+  const cardFields = document.querySelectorAll("#checkout .card-fields");
   if (paymentMethod.value === "credit-card") {
     cardFields.forEach((field) => {
       field.hidden = false;
@@ -12,46 +12,46 @@ function updateCheckinCardFields() {
   }
 }
 
-const logoURLCheckin = document.getElementById("checkin").dataset.logoUrl;
-var checkinModal = document.getElementById("checkin");
-var checkinBtn = document.getElementById("check-in-modal-btn");
-var checkinClose = document.getElementById("close-checkin-modal");
-let checkinTimerInterval = null;
+const logoURLCheckout = document.getElementById("checkout").dataset.logoUrl;
+var checkoutModal = document.getElementById("checkout");
+var checkoutBtn = document.getElementById("check-out-modal-btn");
+var checkoutClose = document.getElementById("close-checkout-modal");
+let checkoutTimerInterval = null;
 
-checkinBtn.onclick = function () {
+checkoutBtn.onclick = function () {
   var fiveMinutes = 5 * 60,
-    display = document.getElementById("checkin-timer");
-  checkinModal.style.display = "block";
+    display = document.getElementById("checkout-timer");
+  checkoutModal.style.display = "block";
 
-  startCheckinTimer(fiveMinutes, display);
-  updateCheckinCardFields();
+  startCheckoutTimer(fiveMinutes, display);
+  updateCheckoutCardFields();
 };
 
-checkinClose.onclick = function () {
-  checkinModal.style.display = "none";
-  clearInterval(checkinTimerInterval);
-  checkinTimerInterval = null;
+checkoutClose.onclick = function () {
+  checkoutModal.style.display = "none";
+  clearInterval(checkoutTimerInterval);
+  checkoutTimerInterval = null;
 };
 
 window.onclick = function (event) {
-  if (event.target === checkinModal) {
-    checkinModal.style.display = "none";
-    clearInterval(checkinTimerInterval);
-    checkinTimerInterval = null;
+  if (event.target === checkoutModal) {
+    checkoutModal.style.display = "none";
+    clearInterval(checkoutTimerInterval);
+    checkoutTimerInterval = null;
   }
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-  const paymentMethod = document.querySelector("#checkin #payment-method");
-  updateCheckinCardFields();
-  paymentMethod.addEventListener("change", updateCheckinCardFields);
+  const paymentMethod = document.querySelector("#checkout #payment-method");
+  updateCheckoutCardFields();
+  paymentMethod.addEventListener("change", updateCheckoutCardFields);
 });
 
-function startCheckinTimer(duration, display) {
+function startCheckoutTimer(duration, display) {
   var timer = duration,
     minutes,
     seconds;
-  checkinTimerInterval = setInterval(function () {
+  checkoutTimerInterval = setInterval(function () {
     minutes = parseInt(timer / 60, 10);
     seconds = parseInt(timer % 60, 10);
     minutes = minutes < 10 ? minutes : minutes;
@@ -61,18 +61,18 @@ function startCheckinTimer(duration, display) {
 
     if (--timer < 0) {
       timer = duration;
-      clearInterval(checkinTimerInterval);
-      checkinTimerInterval = null;
-      checkinModal.style.display = "none";
+      clearInterval(checkoutTimerInterval);
+      checkoutTimerInterval = null;
+      checkoutModal.style.display = "none";
       Swal.fire({
         title: `<h1 style="color:red;">Activity Failed</h1>`,
-        text: "Please complete the check-in process.",
+        text: "Please complete the check-out process.",
         showCloseButton: true,
         confirmButtonText: `<i class="fa fa-thumbs-up"></i> Close`,
         html: "<p>Time Remaining : 0:00 Minutes<br>Time Consumed : 5:00 Minutes</p>",
         icon: "error",
         customClass: {
-          confirmButton: "my-confirm-btn-checkin",
+          confirmButton: "my-confirm-btn-checkout",
         },
       });
     }
@@ -80,22 +80,22 @@ function startCheckinTimer(duration, display) {
 }
 
 document
-  .getElementById("checkin-room")
+  .getElementById("checkout-room")
   .addEventListener("click", function (event) {
     event.preventDefault();
-    clearInterval(checkinTimerInterval);
-    checkinTimerInterval = null;
-    checkinModal.style.display = "none";
+    clearInterval(checkoutTimerInterval);
+    checkoutTimerInterval = null;
+    checkoutModal.style.display = "none";
     Swal.fire({
-      title: "Room Successfully Checked In!",
-      text: "Your check-in has been completed.",
+      title: "Room Successfully Checked Out!",
+      text: "Your check-out has been completed.",
       html: '<p style="color:#1a2d1e">Guest: Juan Dela Cruz<br>Room no. 01<br>Reference no. 00001</p>',
       icon: "success",
       customClass: {
-        confirmButton: "my-confirm-btn-checkin",
-        denyButton: "my-deny-btn-checkin",
-        title: "my-title-checkin",
-        text: "my-text-checkin",
+        confirmButton: "my-confirm-btn-checkout",
+        denyButton: "my-deny-btn-checkout",
+        title: "my-title-checkout",
+        text: "my-text-checkout",
       },
       showDenyButton: true,
       confirmButtonText: "View Receipt",
@@ -107,7 +107,7 @@ document
           showCloseButton: true,
           html: `
             <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
-              <img src="${logoURLCheckin}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
+              <img src="${logoURLCheckout}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
               <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
               <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
               <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
@@ -166,8 +166,8 @@ document
           html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
           icon: "success",
           customClass: {
-            confirmButton: "my-confirm-btn-checkin",
-            title: "my-title-checkin",
+            confirmButton: "my-confirm-btn-checkout",
+            title: "my-title-checkout",
           },
           confirmButtonText: "Close",
         });

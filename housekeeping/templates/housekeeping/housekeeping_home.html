@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  HMS Housekeeping
+{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'housekeeping.css' %}" />
+{% endblock %}
+{% block sidebar %}
+  {% include './includes/housekeeping_sidebar.html' with active_page='home' %}
+{% endblock %}
+{% block content %}
+  <div class="main">
+    <h1>Room Service | Housekeeping</h1>
+    <div class="room-parent" style="margin-bottom: 0;">
+      <div class="div1 vacant">R1</div>
+      <div class="div2 prog">R2</div>
+      <div class="div3 pending">R3</div>
+      <div class="div4 vacant">R4</div>
+      <div class="div5 pending">R5</div>
+      <div class="div6 prog">R6</div>
+      <div class="div7 vacant">R7</div>
+      <div class="div8 prog">R8</div>
+      <div class="div9 prog">R9</div>
+      <div class="div10 prog">R10</div>
+      <div class="div11 vacant">R11</div>
+      <div class="div12 vacant">R12</div>
+      <div class="div13">
+        <div>
+          <div class="box vacant"></div>
+          <span>No Requests</span>
+        </div>
+        <div>
+          <div class="box prog"></div>
+          <span>In progress</span>
+        </div>
+      </div>
+      <div class="div14">
+        <div class="box pending"></div>
+        <span>Pending Requests</span>
+      </div>
+    </div>
+    <div style="max-width: 900px; background: #fff; border-radius: 8px;  margin-top: -130px;">
+      <table class="table align-middle housekeeping-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="background-color: #f2f2f2;">
+              <input type="checkbox" />
+            </th>
+            <th style="background-color: #f2f2f2;">Room no.</th>
+            <th style="background-color: #f2f2f2;">Customer</th>
+            <th style="background-color: #f2f2f2;">Service Type</th>
+            <th style="background-color: #f2f2f2;">Date and Time</th>
+            <th style="background-color: #f2f2f2;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <input type="checkbox" />
+            </td>
+            <td>12</td>
+            <td>Juan Dela Cruz</td>
+            <td>Clean room</td>
+            <td>
+              11:11<br />13/04/2025
+            </td>
+            <td>
+              <span style="font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; background-color: #ffeb99; color: #856404;">Pending</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="checkbox" />
+            </td>
+            <td>5</td>
+            <td>John Loui Saludez</td>
+            <td>Change Sheets</td>
+            <td>
+              11:11<br />13/04/2025
+            </td>
+            <td>
+              <span style="font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; background-color: #d4edda; color: #155724;">Finished</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="checkbox" />
+            </td>
+            <td>3</td>
+            <td>Clarissa Sotto</td>
+            <td>Hygiene Product Refill</td>
+            <td>
+              11:11<br />13/04/2025
+            </td>
+            <td>
+              <span style="font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; background-color: #d4edda; color: #155724;">Finished</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+
+{% endblock %}

@@ -429,7 +429,7 @@ h1 {
 }
 
 .payment {
-    flex: none;
+    flex: 1;
     width: 260px;
     min-width: 260px;
     max-width: 260px;
@@ -649,7 +649,7 @@ h1 {
     padding: 4px 10px !important;
 }
 
-/* Add this general rule for robustness */
+
 input, select, textarea {
     box-sizing: border-box;
 }
@@ -686,9 +686,6 @@ input, select, textarea {
     width: auto;
 }
 
-.flatpickr-calendar {
-    /* You might need further adjustments here if the calendar itself is too wide */
-}
 
 .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months,
 .flatpickr-calendar .flatpickr-current-month .numInputWrapper {
@@ -705,6 +702,12 @@ input, select, textarea {
     margin-top: 20px;
     width: 100%;
 }
+#check-in-btn{
+    display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+        width: 100%;
+}
 .time{
     display: flex;
     margin-top: 70px;
@@ -720,13 +723,13 @@ input, select, textarea {
 }
 
 
-.my-confirm-btn-booking, .my-deny-btn-booking, .my-confirm-btn-walkin{
+.my-confirm-btn-booking, .my-deny-btn-booking, .my-confirm-btn-walkin, .my-confirm-btn-checkin, .my-deny-btn-checkin, .my-deny-btn-checkout,.my-confirm-btn-checkout{
    background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
   
 }
 .my-title-booking, .my-text-booking {
     color: #1a2d1e !important;
 }
-#walkin input, #walkin select{
+#walkin input, #walkin select, #checkin input, #checkin select, #checkout input, #checkout select {
     background-color: #dddddd !important;
 }

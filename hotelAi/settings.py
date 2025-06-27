@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'concierge',
     'room_service',
-    'activity'
+    'activity',
+    'housekeeping'
 ]
 
 

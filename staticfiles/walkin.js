@@ -13,8 +13,8 @@ function updateCardFields() {
 }
 const logoURL = document.getElementById("walkin").dataset.logoUrl;
 var modal = document.getElementById("walkin");
-var btn = document.getElementById("walkinBTN");
-var span = document.getElementsByClassName("close")[0];
+var btn = document.getElementById("walkin-modal-btn");
+var span = document.getElementById("close-walkin-modal");
 let walkInTimerInterval = null;
 
 btn.onclick = function () {
@@ -27,6 +27,8 @@ btn.onclick = function () {
 };
 span.onclick = function () {
   modal.style.display = "none";
+  clearInterval(walkInTimerInterval); // Clear the timer when modal is closed
+  walkInTimerInterval = null; // Reset the interval variable
 };
 window.onclick = function (event) {
   if (event.target === modal) {
@@ -73,7 +75,7 @@ function startWalkInTimer(duration, display) {
         },
       });
     }
-  }, 100);
+  }, 1000);
 }
 
 document

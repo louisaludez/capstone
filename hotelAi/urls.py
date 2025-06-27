@@ -34,6 +34,7 @@ urlpatterns = [
     path('room-service/', include('room_service.urls')),
     path('concierge/', include('concierge.urls')),
     path('activity/', include('activity.urls')),
+    path('housekeeping/', include('housekeeping.urls')),
     
     
 ]
