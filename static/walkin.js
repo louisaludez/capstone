@@ -1,112 +1,114 @@
-function updateCardFields() {
-  const paymentMethod = document.getElementById("payment-method");
-  const cardFields = document.querySelectorAll(".card-fields");
-  if (paymentMethod.value === "credit-card") {
-    cardFields.forEach((field) => {
-      field.hidden = false; // Show the field
-    });
-  } else {
-    cardFields.forEach((field) => {
-      field.hidden = true; // Hide the field
-    });
+$(document).ready(function () {
+  console.log("walkin.js loaded");
+  function updateCardFields() {
+    const paymentMethod = document.getElementById("payment-method");
+    const cardFields = document.querySelectorAll(".card-fields");
+    if (paymentMethod.value === "credit-card") {
+      cardFields.forEach((field) => {
+        field.hidden = false; // Show the field
+      });
+    } else {
+      cardFields.forEach((field) => {
+        field.hidden = true; // Hide the field
+      });
+    }
   }
-}
-const logoURL = document.getElementById("walkin").dataset.logoUrl;
-var modal = document.getElementById("walkin");
-var btn = document.getElementById("walkin-modal-btn");
-var span = document.getElementById("close-walkin-modal");
-let walkInTimerInterval = null;
+  const logoURL = document.getElementById("walkin").dataset.logoUrl;
+  var modal = document.getElementById("walkin");
+  var btn = document.getElementById("walkin-modal-btn");
+  var span = document.getElementById("close-walkin-modal");
+  let walkInTimerInterval = null;
 
-btn.onclick = function () {
-  var fivemunutes = 5 * 60,
-    display = document.getElementById("walkin-timer"); // 5 minutes in seconds
-  modal.style.display = "block";
+  btn.onclick = function () {
+    var fivemunutes = 5 * 60,
+      display = document.getElementById("walkin-timer"); // 5 minutes in seconds
+    modal.style.display = "block";
 
-  startWalkInTimer(fivemunutes, display); // Start the timer when the modal opens
-  updateCardFields();
-};
-span.onclick = function () {
-  modal.style.display = "none";
-  clearInterval(walkInTimerInterval); // Clear the timer when modal is closed
-  walkInTimerInterval = null; // Reset the interval variable
-};
-window.onclick = function (event) {
-  if (event.target === modal) {
+    startWalkInTimer(fivemunutes, display); // Start the timer when the modal opens
+    updateCardFields();
+  };
+  span.onclick = function () {
     modal.style.display = "none";
     clearInterval(walkInTimerInterval); // Clear the timer when modal is closed
     walkInTimerInterval = null; // Reset the interval variable
-  }
-};
+  };
+  window.onclick = function (event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
+      clearInterval(walkInTimerInterval); // Clear the timer when modal is closed
+      walkInTimerInterval = null; // Reset the interval variable
+    }
+  };
 
-document.addEventListener("DOMContentLoaded", function () {
-  const paymentMethod = document.getElementById("payment-method");
-  updateCardFields();
-  paymentMethod.addEventListener("change", updateCardFields);
-});
+  document.addEventListener("DOMContentLoaded", function () {
+    const paymentMethod = document.getElementById("payment-method");
+    updateCardFields();
+    paymentMethod.addEventListener("change", updateCardFields);
+  });
 
-function startWalkInTimer(duration, display) {
-  var timer = duration,
-    minutes,
-    seconds;
-  walkInTimerInterval = setInterval(function () {
-    minutes = parseInt(timer / 60, 10);
-    seconds = parseInt(timer % 60, 10);
-    minutes = minutes < 10 ? minutes : minutes;
-    seconds = seconds < 10 ? "0" + seconds : seconds;
+  function startWalkInTimer(duration, display) {
+    var timer = duration,
+      minutes,
+      seconds;
+    walkInTimerInterval = setInterval(function () {
+      minutes = parseInt(timer / 60, 10);
+      seconds = parseInt(timer % 60, 10);
+      minutes = minutes < 10 ? minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
 
-    display.textContent = minutes + ":" + seconds;
-    console.log(display.textContent);
-    if (--timer < 0) {
-      timer = duration;
-      clearInterval(walkInTimerInterval);
-      walkInTimerInterval = null;
-      modal.style.display = "none"; // Close the modal when time is up
-      Swal.fire({
-        title: `<h1 style="color:red;">Activity Failed</h1>`,
-        text: "Please complete the walk-in process.",
-        showCloseButton: true,
-        confirmButtonText: `
+      display.textContent = minutes + ":" + seconds;
+      console.log(display.textContent);
+      if (--timer < 0) {
+        timer = duration;
+        clearInterval(walkInTimerInterval);
+        walkInTimerInterval = null;
+        modal.style.display = "none"; // Close the modal when time is up
+        Swal.fire({
+          title: `<h1 style="color:red;">Activity Failed</h1>`,
+          text: "Please complete the walk-in process.",
+          showCloseButton: true,
+          confirmButtonText: `
                                                                                                                                                                                                                                               <i class="fa fa-thumbs-up"></i> Close
                                                                                                                                                                                                                                             `,
-        html: "<p>Time Remaining : 0:00 Minutes<br>Time Consumed : 5:00 Minutes</p>",
-        icon: "error",
+          html: "<p>Time Remaining : 0:00 Minutes<br>Time Consumed : 5:00 Minutes</p>",
+          icon: "error",
+          customClass: {
+            confirmButton: "my-confirm-btn-walkin",
+          },
+        });
+      }
+    }, 1000);
+  }
+
+  document
+    .getElementById("book-room")
+    .addEventListener("click", function (event) {
+      event.preventDefault(); // Prevent default form submission
+      clearInterval(walkInTimerInterval);
+      walkInTimerInterval = null;
+      modal.style.display = "none";
+      Swal.fire({
+        title: "Room  Successfully Booked!",
+        text: "Your room has been booked.",
+        html: '<p style="color:#1a2d1e">Transaction recorded! <i>Guest Name: Juan Dela Cruz</i><br>Room no. 01<br>Reference no. 00001</p>',
+        icon: "success",
         customClass: {
-          confirmButton: "my-confirm-btn-walkin",
+          confirmButton: "my-confirm-btn-booking",
+          denyButton: "my-deny-btn-booking",
+          title: "my-title-booking",
+          text: "my-text-booking",
         },
-      });
-    }
-  }, 1000);
-}
+        denyButtonColor: "green",
+        showDenyButton: true,
 
-document
-  .getElementById("book-room")
-  .addEventListener("click", function (event) {
-    event.preventDefault(); // Prevent default form submission
-    clearInterval(walkInTimerInterval);
-    walkInTimerInterval = null;
-    modal.style.display = "none";
-    Swal.fire({
-      title: "Room  Successfully Booked!",
-      text: "Your room has been booked.",
-      html: '<p style="color:#1a2d1e">Transaction recorded! <i>Guest Name: Juan Dela Cruz</i><br>Room no. 01<br>Reference no. 00001</p>',
-      icon: "success",
-      customClass: {
-        confirmButton: "my-confirm-btn-booking",
-        denyButton: "my-deny-btn-booking",
-        title: "my-title-booking",
-        text: "my-text-booking",
-      },
-      denyButtonColor: "green",
-      showDenyButton: true,
-
-      confirmButtonText: "View Receipt",
-      denyButtonText: "Activity Results",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "",
-          showCloseButton: true,
-          html: `
+        confirmButtonText: "View Receipt",
+        denyButtonText: "Activity Results",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: "",
+            showCloseButton: true,
+            html: `
                                 <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
                                 
                                 <img src="${logoURL}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
@@ -155,24 +157,25 @@ document
                                   <hr style="border: 1px dashed #333; margin: 10px 0;">
                                 </div>
                               `,
-          showConfirmButton: true,
-          confirmButtonText: "Print Receipt",
-          confirmButtonColor: "#1a2d1e",
-          width: 360,
-          padding: "1.5em",
-          backdrop: false,
-        });
-      } else if (result.isDenied) {
-        Swal.fire({
-          title: "<strong>Finished activity on <br>time!</strong>",
-          html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
-          icon: "success",
-          customClass: {
-            confirmButton: "my-confirm-btn-booking",
-            title: "my-title-booking",
-          },
-          confirmButtonText: "Close",
-        });
-      }
+            showConfirmButton: true,
+            confirmButtonText: "Print Receipt",
+            confirmButtonColor: "#1a2d1e",
+            width: 360,
+            padding: "1.5em",
+            backdrop: false,
+          });
+        } else if (result.isDenied) {
+          Swal.fire({
+            title: "<strong>Finished activity on <br>time!</strong>",
+            html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
+            icon: "success",
+            customClass: {
+              confirmButton: "my-confirm-btn-booking",
+              title: "my-title-booking",
+            },
+            confirmButtonText: "Close",
+          });
+        }
+      });
     });
-  });
+});

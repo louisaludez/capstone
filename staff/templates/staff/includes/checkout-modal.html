@@ -12,7 +12,12 @@
             <h2 class="mb-2">Guest and Stay Information</h2>
             <div class="name">
               <label for="guest-name" class="form-label">Name</label>
-              <input type="text" id="guest-name" name="guest-name" class="form-control" />
+              <select name="guest-name" id="guest-name" class="form-control guests-name-checkout">
+                <option value="" disabled selected>Select guest</option>
+                {% for guests in guest %}
+                  <option value="{{ guests.id }}">{{ guests.name }}</option>
+                {% endfor %}
+              </select>
             </div>
             <div class="address">
               <label for="guest-address" class="form-label">Address</label>
