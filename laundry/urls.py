@@ -1,10 +1,11 @@
 from django.urls import path
-from .views.staff_views import staff_laundry_home, staff_laundry_messages, staff_laundry_orders, create_laundry_order
+from .views.staff_views import *
 from .views.supervisor_views import supervisor_laundry_home, supervisor_laundry_messages, supervisor_laundry_reports, send_message_view
 
 
 urlpatterns = [
     path('staff/', staff_laundry_home, name='staff_laundry_home'),
+    path('staff/<int:guest_id>',getGuest, name='get_guest'),
     path('staff/messages', staff_laundry_messages, name='staff_laundry_messages'),
     path('staff/orders', staff_laundry_orders, name='staff_laundry_orders'),
     path('staff/create-order/', create_laundry_order, name='create_laundry_order'),

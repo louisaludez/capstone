@@ -12,6 +12,11 @@ class Guest(models.Model):
         return self.name
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Checked-in', 'Checked-in'),
+        ('Cancelled', 'Cancelled'),
+    ]
     guest = models.ForeignKey(Guest, on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
     check_in_date = models.DateField()
@@ -20,7 +25,7 @@ class Booking(models.Model):
     total_of_guests = models.PositiveIntegerField()
     num_of_adults = models.PositiveIntegerField()
     num_of_children = models.PositiveIntegerField(default=0)
-
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
         return f"Booking for {self.guest.name} from {self.check_in_date} to {self.check_out_date}"

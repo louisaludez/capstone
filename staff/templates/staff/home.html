@@ -120,9 +120,11 @@
       monthSelectorType: 'static' // Ensure month/year are always visible
     })
   </script>
-
-  <script src="{% static 'walkin.js' %}"></script>
-  <script src="{% static 'checkin.js' %}"></script>
-  <script src="{% static 'checkout.js' %}"></script>
-  <script src="{% static 'view-reservations.js' %}"></script>
+  <script>
+    const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
+  </script>
+  <script src="{% static 'walkin.js' %}?v=1.0"></script>
+  <script src="{% static 'checkin.js' %}?v=1.0"></script>
+  <script src="{% static 'checkout.js' %}?v=1.0"></script>
+  <script src="{% static 'view-reservations.js' %}?v=1.0"></script>
 {% endblock %}

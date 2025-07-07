@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
-
+from staff.models import Guest , Booking
 # Helper to map general and specific roles
 def get_related_roles(role):
     role_mappings = {
@@ -23,9 +23,12 @@ def get_related_roles(role):
             return specific_roles
     return role_mappings.get(role, [role])
 
-@decorator.role_required('staff_laundry')
+
 def staff_laundry_home(request):
-    return render(request, 'staff_laundry/dd.html')
+    guests = Guest.objects.all()
+    return render(request, 'staff_laundry/dd.html',{
+        'guests': guests,                                     
+    })
 
 @decorator.role_required('staff_laundry')
 def staff_laundry_messages(request):
@@ -96,3 +99,13 @@ def create_laundry_order(request):
         'success': False,
         'message': 'Invalid request method'
     }, status=405)
+def getGuest(request, guest_id):
+    if request.method == 'GET':
+        print(f"Fetching guest with ID: {guest_id}")
+        try:
+            latest_booking = Booking.objects.filter(guest_id=guest_id).latest('booking_date')
+            print(f"Latest booking found: {latest_booking.room}")
+            return JsonResponse(latest_booking.room,safe=False)
+           
+        except Guest.DoesNotExist:
+            return JsonResponse({'error': 'Guest not found'}, status=404)

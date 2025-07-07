@@ -179,7 +179,22 @@ $(document).ready(function () {
     });
 
   $(".guests-name-checkout").on("change", function () {
-    console.log("changed");
-    console.log("guest id:", $(this).val());
+    console.log("Guest name changed");
+    console.log($(this).val());
+    var guest_id = $(this).val();
+    $.ajax({
+      url: `/staff/get-guest/${guest_id}/`,
+      type: "GET",
+      success: function (response) {
+        console.log("Gusest data received:", response);
+        console.log("Guest Email:", response.email);
+        $(".guest-address-checkout").val(response.address);
+        $(".guest-email-checkout").val(response.email);
+        $(".guest-birth-checkout").val(response.date_of_birth);
+      },
+      error: function (message) {
+        console.error("Error fetching guest data:", message);
+      },
+    });
   });
 });

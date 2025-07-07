@@ -1,19 +1,19 @@
 $(document).ready(function () {
   console.log("checkin.js loaded");
-  function updateCheckinCardFields() {
-    const paymentMethod = document.querySelector("#checkin #payment-method");
-    const cardFields = document.querySelectorAll("#checkin .card-fields");
-    if (paymentMethod.value === "credit-card") {
-      cardFields.forEach((field) => {
-        field.hidden = false;
-      });
+  $(".payment-method-checkin").on("change", function () {
+    const paymentMethod = $(this).val();
+    const cardFields = $(".card-fields-checkin");
+    if (paymentMethod === "credit-card") {
+      console.log("Credit card selected");
+      $(".card-fields.number").removeAttr("hidden");
+      $(".card-fields").removeAttr("hidden");
     } else {
-      cardFields.forEach((field) => {
-        field.hidden = true;
-      });
+      console.log("Non-credit card selected");
+      $(".card-fields.number").attr("hidden", true);
+      $(".card-fields").attr("hidden", true);
+      cardFields.hide(); // Hide the card fields
     }
-  }
-
+  });
   const logoURLCheckin = document.getElementById("checkin").dataset.logoUrl;
   var checkinModal = document.getElementById("checkin");
   var checkinBtn = document.getElementById("check-in-modal-btn");
@@ -26,7 +26,6 @@ $(document).ready(function () {
     checkinModal.style.display = "block";
 
     startCheckinTimer(fiveMinutes, display);
-    updateCheckinCardFields();
   };
 
   checkinClose.onclick = function () {
@@ -45,7 +44,7 @@ $(document).ready(function () {
 
   document.addEventListener("DOMContentLoaded", function () {
     const paymentMethod = document.querySelector("#checkin #payment-method");
-    updateCheckinCardFields();
+
     paymentMethod.addEventListener("change", updateCheckinCardFields);
   });
 
@@ -131,7 +130,96 @@ $(document).ready(function () {
       },
 
       success: function (response) {
-        alert(response.message);
+        Swal.fire({
+          title: "Room Successfully Checked In!",
+          text: "Your check-in has been completed.",
+          html: `<p style="color:#1a2d1e">Guest: ${guest_name}<br>Room no. ${room}<br>Reference no. 00001</p>`,
+          icon: "success",
+          customClass: {
+            confirmButton: "my-confirm-btn-checkin",
+            denyButton: "my-deny-btn-checkin",
+            title: "my-title-checkin",
+            text: "my-text-checkin",
+          },
+          showDenyButton: true,
+          confirmButtonText: "View Receipt",
+          denyButtonText: "Activity Results",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              title: "",
+              showCloseButton: true,
+              html: `
+                <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
+                  <img src="${logoURLCheckin}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
+                  <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
+                  <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
+                  <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
+                  <hr style="border: 1px dashed #333; margin: 10px 0;">
+                  <p style="margin: 4px 0;">Date and Time: 13/04/2025 06:55 PM</p>
+                  <p style="margin: 4px 0;">Receipt no. <strong>00001</strong></p>
+                  <hr style="border: 1px dashed #333; margin: 10px 0;">
+                  <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
+                    <tr>
+                      <th style="text-align: left;">Room Type</th>
+                      <th>Qty</th>
+                      <th style="text-align: right;">Price</th>
+                    </tr>
+                    <tr>
+                      <td>Deluxe Room</td>
+                      <td>x1</td>
+                      <td style="text-align: right;">5500.00</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;">No. of Days Stayed</td>
+                      <td>x2</td>
+                      <td style="text-align: right;">11000.00</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;">Extra Pax</td>
+                      <td></td>
+                      <td style="text-align: right;">500</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;"></td>
+                      <td>x2</td>
+                      <td style="text-align: right;">1000.00</td>
+                    </tr>
+                  </table>
+                  <hr style="border: 1px dashed #333; margin: 10px 0;">
+                  <table style="width: 100%; font-size: 13px; font-weight: bold;">
+                    <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">15000.00</td></tr>
+                    <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">15000.00</td></tr>
+                    <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">0.00</td></tr>
+                  </table>
+                  <hr style="border: 1px dashed #333; margin: 10px 0;">
+                  <p style="margin-top: 10px;">Thank you!</p>
+                  <hr style="border: 1px dashed #333; margin: 10px 0;">
+                </div>
+              `,
+              showConfirmButton: true,
+              confirmButtonText: "Print Receipt",
+              confirmButtonColor: "#1a2d1e",
+              width: 360,
+              padding: "1.5em",
+              backdrop: false,
+            });
+          } else if (result.isDenied) {
+            Swal.fire({
+              title: "<strong>Finished activity on <br>time!</strong>",
+              html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
+              icon: "success",
+              customClass: {
+                confirmButton: "my-confirm-btn-checkin",
+                title: "my-title-checkin",
+              },
+              confirmButtonText: "Close",
+            });
+          }
+        });
+      },
+      error: function (error) {
+        console.log("Check-in error:", error);
       },
     });
   });
