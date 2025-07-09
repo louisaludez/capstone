@@ -1,0 +1,127 @@
+{% load static %}
+<div id="walkin" class="modal" data-logo-url="{% static 'images/new HMS-B.png' %}">
+  <div class="modal-content">
+    <span class="close" id="close-walkin-modal">&times;</span>
+    <h1>Walk-in</h1>
+
+    <div class="container">
+      <!-- Guest and Booking Info -->
+      <div class="section">
+        <div class="left-column">
+          <div class="guest">
+            <h2 class="mb-2">Guest Information</h2>
+            <div class="name">
+              <label for="guest-name" class="form-label">Name</label>
+              <input type="text" id="guest-name" name="guest-name" class="form-control" />
+            </div>
+            <div class="address">
+              <label for="guest-address" class="form-label">Address</label>
+              <input type="text" id="guest-address" name="guest-address" class="form-control" />
+            </div>
+            <div class="mobile">
+              <label for="guest-mobile" class="form-label">Mobile No.</label>
+              <input type="text" id="guest-mobile" name="guest-mobile" class="form-control" />
+            </div>
+            <div class="birth">
+              <label for="guest-birth" class="form-label">Date of Birth</label>
+              <input type="date" id="guest-birth" name="guest-birth" class="form-control" />
+            </div>
+            <div class="email">
+              <label for="guest-email" class="form-label">Email</label>
+              <input type="email" id="guest-email" name="guest-email" class="form-control" />
+            </div>
+          </div>
+          <div class="booking">
+            <h2>Booking Information</h2>
+            <div class="inline-fields">
+              <div class="stacked-date-field">
+                <label for="check-in" class="form-label">Check-in:</label>
+                <input type="date" id="check-in" name="check-in" class="form-control" placeholder="Select check-in date" />
+              </div>
+              <div class="stacked-date-field">
+                <label for="check-out" class="form-label">Check-out:</label>
+                <input type="date" id="check-out" name="check-out" placeholder="Select check-out date" class="form-control" />
+              </div>
+            </div>
+            <div>
+              <label for="room-type" class="form-label">Room Type:</label>
+              <select id="room-type" name="room-type" class="form-select">
+                <option value="" disabled selected>Select room type</option>
+                <option value="single">Single</option>
+                <option value="double">Double</option>
+                <option value="suite">Suite</option>
+              </select>
+            </div>
+            <div class="inline-fields">
+              <div>
+                <label for="total-guest" class="form-label">Total Guests:</label>
+                <input type="number" id="total-guest" name="total-guest" class="form-control" />
+              </div>
+              <div>
+                <label for="adults" class="form-label">No. of Adults</label>
+                <input type="number" name="adults" id="adults" class="form-control" />
+              </div>
+            </div>
+            <div class="inline-fields">
+              <div>
+                <label for="NoOfChildren">No. of Children</label>
+                <input type="number" name="NoOfChildren" id="NoOfChildren" class="form-control" />
+              </div>
+              <div>
+                <label for="addOns">Add-ons</label>
+                <input type="text" name="addOns" id="addOns" class="form-control" />
+              </div>
+            </div>
+            <div>
+              <label for="children" class="form-label">Children below 7 years Old:</label>
+              <input type="number" id="children" name="children" class="form-control" />
+            </div>
+          </div>
+        </div>
+        <div class="payment">
+          <h2 class="mb-2">Payment Information</h2>
+          <div class="method">
+            <label for="payment-method" class="form-label">Payment Method</label>
+            <select id="payment-method" name="payment-method" class="form-select">
+              <option value="" disabled selected>Select payment method</option>
+              <option value="credit-card">Card Payment</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+          <div class="card-fields number" hidden>
+            <label for="card-number" class="form-label">Card Number:</label>
+            <input type="text" id="card-number" name="card-number" placeholder="Enter card number" class="form-control" />
+          </div>
+          <div class="card-fields" hidden>
+            <label for="exp-date" class="form-label">Exp. Date</label>
+            <input type="month" id="exp-date" name="exp-date" class="form-control" />
+          </div>
+          <div class="card-fields" hidden>
+            <label for="cvv" class="form-label">CVV:</label>
+            <input type="text" id="cvv" name="cvv" placeholder="Enter CVV" class="form-control" />
+          </div>
+          <div class="billing">
+            <label for="billing-address" class="form-label">Billing Address:</label>
+            <input type="text" id="billing-address" name="billing-address" placeholder="Enter billing address" class="form-control" />
+          </div>
+          <div class="totalBal">
+            <label for="total-balance" class="form-label">Total Balance:</label>
+            <input type="text" id="total-balance" name="total-balance" placeholder="Enter total balance" class="form-control" />
+          </div>
+          <div class="bookRoom">
+            <button type="submit" class="btn btn-primary" id="book-room">Book Room</button>
+          </div>
+          <div class="time">
+            <div>
+              <span id="walkin-timer" style="align-self: flex-end">5:00</span>
+              <span>Time Remaining</span>
+            </div>
+            <div>
+              <img src="{% static 'images/clock-timer.png' %}" alt="" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
