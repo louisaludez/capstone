@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compact Check-out Modal</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f2f2f2;
+      }
+
+      .checkout-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .checkout-modal {
+        background: #fff;
+        border-radius: 8px;
+        width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 2px solid #0c4d00;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        padding: 16px 20px;
+        font-size: 12px;
+      }
+
+      .checkout-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: #0c2e13;
+        margin-bottom: 14px;
+      }
+
+      .checkout-container {
+        display: flex;
+        gap: 16px;
+      }
+
+      .checkout-section {
+        flex: 1;
+      }
+
+      .checkout-section-title {
+        font-size: 13px;
+        font-weight: bold;
+        margin: 14px 0 6px;
+        color: #0c2e13;
+      }
+
+      .checkout-field {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+
+      .checkout-field label {
+        width: 90px;
+        font-size: 11px;
+      }
+
+      .checkout-field input,
+      .checkout-field select {
+        width: 50%;
+        padding: 2px 4px;
+        font-size: 11px;
+        border-radius: 4px;
+        border: 1px solid #aaa;
+        background-color: #ddd;
+      }
+
+      .checkout-inline {
+        display: flex;
+        gap: 0;
+      }
+
+      .checkout-inline .checkout-field {
+        flex: 1;
+      }
+
+      .checkout-inline .checkout-field:first-child {
+        margin-right: 4px;
+      }
+
+      .checkout-button-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+
+      .checkout-submit-btn {
+        padding: 4px 12px;
+        background: #0c4d00;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .checkout-timer-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        margin-top: 20px;
+      }
+
+      .checkout-timer-text {
+        text-align: right;
+        font-size: 10px;
+      }
+
+      .checkout-timer-time {
+        font-size: 13px;
+        font-weight: bold;
+      }
+
+      .checkout-timer-icon {
+        width: 22px;
+        height: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="checkout-overlay">
+      <div class="checkout-modal">
+        <div class="checkout-title">Check-out</div>
+        <div class="checkout-container">
+          <!-- Left Section -->
+          <div class="checkout-section">
+            <div class="checkout-section-title">Guest and Stay Info</div>
+
+            <div class="checkout-field">
+              <label>Name</label><input type="text" />
+            </div>
+            <div class="checkout-field">
+              <label>Address</label><input type="text" />
+            </div>
+            <div class="checkout-field">
+              <label>Email</label><input type="email" />
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Check-in</label><input type="date" />
+              </div>
+              <div class="checkout-field">
+                <label>Check-out</label><input type="date" />
+              </div>
+            </div>
+
+            <div class="checkout-field">
+              <label>Room Type</label>
+              <select>
+                <option value="">--</option>
+                <option>Single</option>
+                <option>Double</option>
+                <option>Suite</option>
+              </select>
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Guests</label><input type="number" />
+              </div>
+              <div class="checkout-field">
+                <label>Adults</label><input type="number" />
+              </div>
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Children</label><input type="number" />
+              </div>
+              <div class="checkout-field">
+                <label>Below 7</label><input type="number" />
+              </div>
+            </div>
+
+            <div class="checkout-section-title">Payment Info</div>
+
+            <div class="checkout-field">
+              <label>Method</label>
+              <select>
+                <option selected>Card</option>
+                <option>Cash</option>
+              </select>
+            </div>
+
+            <div class="checkout-field">
+              <label>Card No.</label><input type="text" />
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Exp. Date</label><input type="text" />
+              </div>
+              <div class="checkout-field">
+                <label>CVC</label><input type="text" />
+              </div>
+            </div>
+
+            <div class="checkout-field">
+              <label>Billing Addr</label><input type="text" />
+            </div>
+          </div>
+
+          <!-- Right Section -->
+          <div class="checkout-section">
+            <div class="checkout-section-title">Billing Summary</div>
+
+            <div class="checkout-field">
+              <label>Room Charges</label><input type="text" />
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Room Service</label><input type="text" />
+              </div>
+              <div class="checkout-field">
+                <label>Laundry</label><input type="text" />
+              </div>
+            </div>
+
+            <div class="checkout-inline">
+              <div class="checkout-field">
+                <label>Cafe</label><input type="text" />
+              </div>
+              <div class="checkout-field">
+                <label>Excess Pax</label><input type="text" />
+              </div>
+            </div>
+
+            <div class="checkout-field">
+              <label>Additional</label><input type="text" />
+            </div>
+            <div class="checkout-field">
+              <label>Total</label><input type="text" />
+            </div>
+
+            <div class="checkout-button-wrapper">
+              <button class="checkout-submit-btn">Check-out</button>
+            </div>
+
+            <div class="checkout-timer-wrapper">
+              <div class="checkout-timer-text">
+                <div class="checkout-timer-time" id="checkout-timer">5:00</div>
+                <div>Time Remaining</div>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="checkout-timer-icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Timer logic
+      let countdown = 5 * 60 - 1;
+      const timerDisplay = document.getElementById("checkout-timer");
+      const interval = setInterval(() => {
+        let min = Math.floor(countdown / 60);
+        let sec = countdown % 60;
+        sec = sec < 10 ? "0" + sec : sec;
+        timerDisplay.textContent = `${min}:${sec}`;
+        countdown--;
+        if (countdown < 0) clearInterval(interval);
+      }, 1000);
+    </script>
+  </body>
+</html>

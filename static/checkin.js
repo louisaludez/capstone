@@ -24,3 +24,25 @@ checkinOverlay.addEventListener("click", function (e) {
     checkinOverlay.style.display = "none";
   }
 });
+
+function startCheckInTimer(duration, display) {
+  if (walkInTimerInterval) {
+    clearInterval(walkInTimerInterval);
+  }
+  var timer = duration - 1,
+    minutes,
+    seconds;
+  walkInTimerInterval = setInterval(function () {
+    minutes = parseInt(timer / 60, 10);
+    seconds = parseInt(timer % 60, 10);
+    minutes = minutes < 1 ? "" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+    display.textContent = `${minutes}:${seconds}`;
+    console.log(`Timer: ${minutes}:${seconds}`);
+    if (--timer < 0) {
+      timer = duration;
+      clearInterval(walkInTimerInterval);
+    }
+  }, 1000);
+}

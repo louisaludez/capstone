@@ -6,7 +6,9 @@ class Guest(models.Model):
     zip_code = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField()
     date_of_birth = models.DateField()
+    billing = models.TextField(blank=True, null=True, default='0')
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.name
