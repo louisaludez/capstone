@@ -8,6 +8,8 @@
       <div class="walkin-section">
         <div class="walkin-section-title">Guest Information</div>
         <div class="walkin-field">
+
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
           <label>Name</label><input type="text" class="walkin-name" />
         </div>
         <div class="walkin-field">
@@ -52,7 +54,9 @@
           <div class="walkin-field">
             <label>Add-ons</label>
             <div class="walkin-addons">
-              <span>Bed</span><button>-</button><span>1</span><button>+</button>
+              <span>Bed</span> <button type="button" class="wi-addons-decrease">-</button>
+              <span id="wi-addons-count">1</span>
+              <button type="button" class="wi-addons-increase">+</button>
             </div>
           </div>
         </div>

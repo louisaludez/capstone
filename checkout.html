@@ -2,274 +2,176 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Compact Check-out Modal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Check‑out Modal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
     <style>
       body {
         font-family: "Segoe UI", sans-serif;
-        background-color: #f2f2f2;
+        background: #f2f2f2;
       }
-
+      .checkout-open-btn {
+        margin: 50px; padding: 8px 16px; font-size: 14px;
+      }
       .checkout-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: none; align-items: center; justify-content: center;
+        z-index: 999;
       }
-
       .checkout-modal {
-        background: #fff;
-        border-radius: 8px;
-        width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        border: 2px solid #0c4d00;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        padding: 16px 20px;
-        font-size: 12px;
+        background: #fff; border-radius: 8px;
+        width: 750px; max-height: 90vh; overflow-y: auto;
+        padding: 0 20px 20px; border: 2px solid #0c4d00;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 12px;
       }
-
-      .checkout-title {
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-        color: #0c2e13;
-        margin-bottom: 14px;
+      .checkout-modal-title {
+        text-align: center; font-size: 25px; margin: 0 0 10px;
       }
-
       .checkout-container {
-        display: flex;
-        gap: 16px;
+        display: flex; gap: 20px; padding: 0 40px;
       }
-
-      .checkout-section {
-        flex: 1;
-      }
-
+      .checkout-section { flex: 1; min-width: 0; }
       .checkout-section-title {
-        font-size: 13px;
-        font-weight: bold;
-        margin: 14px 0 6px;
-        color: #0c2e13;
+        font-size: 20px; font-weight: bold; margin: 10px 0;
       }
-
       .checkout-field {
-        display: flex;
-        align-items: center;
-        margin-bottom: 6px;
+        display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
       }
-
       .checkout-field label {
-        width: 90px;
-        font-size: 11px;
+        width: 70px; font-size: 11px; font-weight: 500;
       }
-
       .checkout-field input,
       .checkout-field select {
-        width: 50%;
-        padding: 2px 4px;
-        font-size: 11px;
-        border-radius: 4px;
-        border: 1px solid #aaa;
-        background-color: #ddd;
+        flex: 1; min-width: 0;
+        padding: 3px 5px; font-size: 11px;
+        border: 1px solid #ccc; border-radius: 4px;
+        background-color: #dddddd;
       }
-
-      .checkout-inline {
-        display: flex;
-        gap: 0;
+      .flatpickr-input {
+        padding: 3px 5px !important; font-size: 11px !important;
       }
-
-      .checkout-inline .checkout-field {
-        flex: 1;
+      .checkout-inline-row {
+        display: flex; flex-wrap: wrap; gap: 10px;
       }
-
-      .checkout-inline .checkout-field:first-child {
-        margin-right: 4px;
+      .checkout-inline-row .checkout-field {
+        flex: 1 1 48%; max-width: 48%;
       }
-
-      .checkout-button-wrapper {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
+      .checkout-card-fields {
+        transition: all 0.3s ease; overflow: hidden;
       }
-
+      .checkout-card-fields.hidden {
+        height: 0; padding: 0; margin: 0; opacity: 0;
+        pointer-events: none;
+      }
+      .checkout-btn-wrapper {
+        display: flex; justify-content: flex-end; margin-top: 10px;
+      }
       .checkout-submit-btn {
-        padding: 4px 12px;
-        background: #0c4d00;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 12px;
-        cursor: pointer;
+        background: #0c4d00; color: #fff; border: none;
+        padding: 5px 14px; border-radius: 5px;
+        font-size: 12px; cursor: pointer;
       }
-
-      .checkout-timer-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 5px;
-        margin-top: 20px;
+      .checkout-countdown {
+        display: flex; align-items: center; justify-content: flex-end;
+        margin-top: 20px; gap: 0;
       }
-
-      .checkout-timer-text {
-        text-align: right;
-        font-size: 10px;
+      .checkout-countdown-text {
+        font-size: 10px; margin-right: 6px;
+        display: flex; flex-direction: column; align-items: flex-end;
       }
-
-      .checkout-timer-time {
-        font-size: 13px;
-        font-weight: bold;
+      .checkout-countdown-time {
+        font-size: 13px; font-weight: bold; margin: 0;
       }
-
-      .checkout-timer-icon {
-        width: 22px;
-        height: 22px;
+      .checkout-countdown svg {
+        width: 22px; height: 22px; margin-left: 0;
       }
     </style>
   </head>
   <body>
+    <button class="checkout-open-btn"
+      onclick="document.querySelector('.checkout-overlay').style.display='flex'">
+      Open Check‑out Modal
+    </button>
+
     <div class="checkout-overlay">
       <div class="checkout-modal">
-        <div class="checkout-title">Check-out</div>
+        <h2 class="checkout-modal-title">Check‑out</h2>
         <div class="checkout-container">
-          <!-- Left Section -->
+          <!-- LEFT COLUMN -->
           <div class="checkout-section">
-            <div class="checkout-section-title">Guest and Stay Info</div>
-
-            <div class="checkout-field">
-              <label>Name</label><input type="text" />
-            </div>
-            <div class="checkout-field">
-              <label>Address</label><input type="text" />
-            </div>
-            <div class="checkout-field">
-              <label>Email</label><input type="email" />
-            </div>
-
-            <div class="checkout-inline">
+            <div class="checkout-section-title">Guest and Stay Information</div>
+            <div class="checkout-field"><label>Name</label><input type="text"/></div>
+            <div class="checkout-field"><label>Address</label><input type="text"/></div>
+            <div class="checkout-field"><label>Email</label><input type="text"/></div>
+            <div class="checkout-inline-row">
               <div class="checkout-field">
-                <label>Check-in</label><input type="date" />
+                <label>Check‑in Date</label><input id="co-checkin" type="text"/>
               </div>
               <div class="checkout-field">
-                <label>Check-out</label><input type="date" />
+                <label>Check‑out Date</label><input id="co-checkout" type="text"/>
               </div>
             </div>
-
             <div class="checkout-field">
-              <label>Room Type</label>
-              <select>
-                <option value="">--</option>
-                <option>Single</option>
-                <option>Double</option>
-                <option>Suite</option>
+              <label>Room Type</label><select><option>--</option></select>
+            </div>
+            <div class="checkout-inline-row">
+              <div class="checkout-field"><label>Total Guests</label><input type="number"/></div>
+              <div class="checkout-field"><label>No. of Adults</label><input type="number"/></div>
+            </div>
+            <div class="checkout-inline-row">
+              <div class="checkout-field"><label>No. of Children</label><input type="number"/></div>
+              <div class="checkout-field"><label>Children below 7</label><input type="number"/></div>
+            </div>
+
+            <div class="checkout-section-title">Payment Information</div>
+            <div class="checkout-field">
+              <label>Payment Method</label>
+              <select class="checkout-payment-method">
+                <option value="card" selected>Card Payment</option>
+                <option value="cash">Cash Payment</option>
               </select>
             </div>
 
-            <div class="checkout-inline">
-              <div class="checkout-field">
-                <label>Guests</label><input type="number" />
-              </div>
-              <div class="checkout-field">
-                <label>Adults</label><input type="number" />
-              </div>
-            </div>
-
-            <div class="checkout-inline">
-              <div class="checkout-field">
-                <label>Children</label><input type="number" />
-              </div>
-              <div class="checkout-field">
-                <label>Below 7</label><input type="number" />
+            <!-- Visible by default -->
+            <div class="checkout-card-fields">
+              <div class="checkout-field"><label>Card Number</label><input type="text"/></div>
+              <div class="checkout-inline-row">
+                <div class="checkout-field"><label>Exp. Date</label><input type="text"/></div>
+                <div class="checkout-field"><label>CVC Code</label><input type="text"/></div>
               </div>
             </div>
 
-            <div class="checkout-section-title">Payment Info</div>
-
-            <div class="checkout-field">
-              <label>Method</label>
-              <select>
-                <option selected>Card</option>
-                <option>Cash</option>
-              </select>
-            </div>
-
-            <div class="checkout-field">
-              <label>Card No.</label><input type="text" />
-            </div>
-
-            <div class="checkout-inline">
-              <div class="checkout-field">
-                <label>Exp. Date</label><input type="text" />
-              </div>
-              <div class="checkout-field">
-                <label>CVC</label><input type="text" />
-              </div>
-            </div>
-
-            <div class="checkout-field">
-              <label>Billing Addr</label><input type="text" />
-            </div>
+            <div class="checkout-field"><label>Billing Address</label><input type="text"/></div>
           </div>
 
-          <!-- Right Section -->
+          <!-- RIGHT COLUMN -->
           <div class="checkout-section">
             <div class="checkout-section-title">Billing Summary</div>
-
-            <div class="checkout-field">
-              <label>Room Charges</label><input type="text" />
+            <div class="checkout-field"><label>Room Charges</label><input type="text"/></div>
+            <div class="checkout-inline-row">
+              <div class="checkout-field"><label>Room Service</label><input type="text"/></div>
+              <div class="checkout-field"><label>Laundry</label><input type="text"/></div>
             </div>
-
-            <div class="checkout-inline">
-              <div class="checkout-field">
-                <label>Room Service</label><input type="text" />
-              </div>
-              <div class="checkout-field">
-                <label>Laundry</label><input type="text" />
-              </div>
+            <div class="checkout-inline-row">
+              <div class="checkout-field"><label>Cafe</label><input type="text"/></div>
+              <div class="checkout-field"><label>Excess Pax</label><input type="text"/></div>
             </div>
+            <div class="checkout-field"><label>Additional Charges</label><input type="text"/></div>
+            <div class="checkout-field"><label>Total Balance</label><input type="text"/></div>
 
-            <div class="checkout-inline">
-              <div class="checkout-field">
-                <label>Cafe</label><input type="text" />
-              </div>
-              <div class="checkout-field">
-                <label>Excess Pax</label><input type="text" />
-              </div>
+            <div class="checkout-btn-wrapper">
+              <button class="checkout-submit-btn">Check‑out</button>
             </div>
-
-            <div class="checkout-field">
-              <label>Additional</label><input type="text" />
-            </div>
-            <div class="checkout-field">
-              <label>Total</label><input type="text" />
-            </div>
-
-            <div class="checkout-button-wrapper">
-              <button class="checkout-submit-btn">Check-out</button>
-            </div>
-
-            <div class="checkout-timer-wrapper">
-              <div class="checkout-timer-text">
-                <div class="checkout-timer-time" id="checkout-timer">5:00</div>
+            <div class="checkout-countdown">
+              <div class="checkout-countdown-text">
+                <div class="checkout-countdown-time">5:00</div>
                 <div>Time Remaining</div>
               </div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="checkout-timer-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
           </div>
@@ -277,18 +179,34 @@
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-      // Timer logic
-      let countdown = 5 * 60 - 1;
-      const timerDisplay = document.getElementById("checkout-timer");
-      const interval = setInterval(() => {
-        let min = Math.floor(countdown / 60);
-        let sec = countdown % 60;
-        sec = sec < 10 ? "0" + sec : sec;
-        timerDisplay.textContent = `${min}:${sec}`;
-        countdown--;
-        if (countdown < 0) clearInterval(interval);
-      }, 1000);
+      
+      flatpickr("#co-checkin",{ dateFormat:"Y-m-d", allowInput:true });
+      flatpickr("#co-checkout",{ dateFormat:"Y-m-d", allowInput:true });
+
+      const pm = document.querySelector(".checkout-payment-method"),
+            cf = document.querySelector(".checkout-card-fields");
+
+      function toggleCF(){
+        if (pm.value === "card") {
+          cf.classList.remove("hidden");
+          cf.style.height = cf.scrollHeight + "px";
+        } else {
+          cf.classList.add("hidden");
+          cf.style.height = "0px";
+        }
+      }
+
+      document.querySelector(".checkout-overlay")
+        .addEventListener("click", e => {
+          if (!document.querySelector(".checkout-modal").contains(e.target)) {
+            document.querySelector(".checkout-overlay").style.display = "none";
+          }
+        });
+
+      pm.addEventListener("change", toggleCF);
+      // ← No initial toggleCF() call, so card fields stay visible
     </script>
   </body>
 </html>

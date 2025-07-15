@@ -1,63 +1,89 @@
 {% load static %}
+<!-- Check‑in Modal -->
 <div class="checkin-overlay">
   <div class="checkin-modal">
-    <h2 class="checkin-modal-title">Check-in</h2>
+    <h2 class="checkin-modal-title">Check‑in</h2>
 
     <div class="checkin-container">
       <!-- Guest Info -->
       <div class="checkin-section">
         <div class="checkin-section-title">Guest Information</div>
         <div class="checkin-field">
-          <label>Name</label><input type="text" />
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+          <label>Name</label>
+          <input id="ci-guest-name" type="text" />
         </div>
         <div class="checkin-field">
-          <label>Address</label><input type="text" />
+          <label>Address</label>
+          <input id="ci-guest-address" type="text" />
         </div>
         <div class="checkin-field">
-          <label>Mobile no.</label><input type="text" />
+          <label>Mobile no.</label>
+          <input id="ci-guest-mobile" type="text" />
         </div>
         <div class="checkin-field">
-          <label>Date of Birth</label><input id="ci-dob" type="text" placeholder="Birthday" />
+          <label>Date of Birth</label>
+          <input id="ci-guest-birth" type="text" placeholder="Birthday" />
         </div>
         <div class="checkin-field">
-          <label>Email</label><input type="email" />
+          <label>Email</label>
+          <input id="ci-guest-email" type="email" />
         </div>
 
         <div class="checkin-section-title">Booking Information</div>
         <div class="checkin-inline-row">
           <div class="checkin-field">
-            <label>Check-in Date</label><input id="ci-checkin" type="text" />
+            <label>Check‑in Date</label>
+            <input id="ci-checkin-date" type="text" />
           </div>
           <div class="checkin-field">
-            <label>Check-out Date</label><input id="ci-checkout" type="text" />
+            <label>Check‑out Date</label>
+            <input id="ci-checkout-date" type="text" />
           </div>
         </div>
         <div class="checkin-field">
-          <label>Room</label><select>
-            <option>--</option>
+          <label>Room</label>
+          <select id="ci-room-type">
+                <option value="" disabled selected>Select Room</option>
+                <option value="1">Room 1 : Standard</option>
+                <option value="2">Room 2 : Family</option>
+                <option value="3">Room 3 : Deluxe</option>
+                <option value="4">Room 4 : Standard</option>
+                <option value="5">Room 5 : Family</option>
+                <option value="6">Room 6 : Deluxe</option>
+                <option value="7">Room 7 : Standard</option>
+                <option value="8">Room 8 : Family</option>
+                <option value="9">Room 9 : Deluxe</option>
+                <option value="10">Room 10 : Standard</option>
           </select>
         </div>
         <div class="checkin-inline-row">
           <div class="checkin-field">
-            <label>Total Guests</label><input type="number" />
+            <label>Total Guests</label>
+            <input id="ci-total-guests" type="number" />
           </div>
           <div class="checkin-field">
-            <label>No. of Adults</label><input type="number" />
+            <label>No. of Adults</label>
+            <input id="ci-no-of-adults" type="number" />
           </div>
         </div>
         <div class="checkin-inline-row">
           <div class="checkin-field">
-            <label>No. of Children</label><input type="number" />
+            <label>No. of Children</label>
+            <input id="ci-no-of-children" type="number" />
           </div>
           <div class="checkin-field">
-            <label>Add-ons</label>
+            <label>Add‑ons</label>
             <div class="checkin-addons">
-              <span>Bed</span><button>-</button><span>1</span><button>+</button>
+              <button type="button" class="ci-addons-decrease">-</button>
+              <span id="ci-addons-count">1</span>
+              <button type="button" class="ci-addons-increase">+</button>
             </div>
           </div>
         </div>
         <div class="checkin-field">
-          <label>Children Below 7 Years old</label><input type="number" />
+          <label>Children Below 7 Years old</label>
+          <input id="ci-children-below-7" type="number" />
         </div>
       </div>
 
@@ -66,7 +92,7 @@
         <div class="checkin-section-title">Payment Info</div>
         <div class="checkin-field">
           <label>Payment Method</label>
-          <select class="checkin-payment-method">
+          <select id="ci-payment-method" class="checkin-payment-method">
             <option value="card" selected>Card Payment</option>
             <option value="cash">Cash Payment</option>
           </select>
@@ -74,25 +100,30 @@
 
         <div class="checkin-card-fields">
           <div class="checkin-field">
-            <label>Card Number</label><input type="text" placeholder="(if applicable)" />
+            <label>Card Number</label>
+            <input id="ci-card-number" type="text" placeholder="(if applicable)" />
           </div>
           <div class="checkin-field">
-            <label>Exp. Date</label><input type="text" />
+            <label>Exp. Date</label>
+            <input id="ci-exp-date" type="text" />
           </div>
           <div class="checkin-field">
-            <label>CVC</label><input type="text" />
+            <label>CVC</label>
+            <input id="ci-cvc" type="text" />
           </div>
         </div>
 
         <div class="checkin-field">
-          <label>Billing Address</label><input type="text" />
+          <label>Billing Address</label>
+          <input id="ci-billing-address" type="text" />
         </div>
         <div class="checkin-field">
-          <label>Balance</label><input type="text" />
+          <label>Balance</label>
+          <input id="ci-current-balance" type="text" />
         </div>
 
         <div class="checkin-btn-wrapper">
-          <button class="checkin-book-btn">Check-in Room</button>
+          <button class="checkin-book-btn">Check‑in Room</button>
         </div>
 
         <div class="checkin-countdown">
@@ -100,7 +131,7 @@
             <div class="checkin-countdown-time">5:00</div>
             <div>Time Remaining</div>
           </div>
-          <img src="{% static 'images/clock-timer.png' %}" alt="" />
+          <img src="{% static 'images/clock-timer.png' %}" alt="Timer Icon" />
         </div>
       </div>
     </div>

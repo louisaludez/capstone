@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <link rel="stylesheet" href="{% static 'walkin-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'checkout-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'personnel.css' %}" />
   <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
@@ -38,7 +39,7 @@
         <button class="btn" id="walk-in-modal-btn">Walk-in</button>
       </div>
       <div class="check-in">
-        <button class="btn" id="check-in-modal-btn" onclick="document.querySelector('.checkin-overlay').style.display='flex'">Check-in</button>
+        <button class="btn" id="check-in-modal-btn">Check-in</button>
       </div>
       <div class="check-out">
         <button class="btn" id="check-out-modal-btn">Check-out</button>
@@ -123,6 +124,7 @@
   </script>
   <script>
     const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
+    
   </script>
   <script src="{% static 'walkin.js' %}?v=1.0"></script>
   <script src="{% static 'checkin.js' %}?v=1.0"></script>
