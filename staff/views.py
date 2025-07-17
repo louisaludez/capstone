@@ -11,6 +11,7 @@ from .models import *
 from django.http import JsonResponse
 from decimal import Decimal
 from django.core.paginator import Paginator
+
 @decorator.role_required('personnel')
 def home(request):
     guest = Guest.objects.all()
@@ -124,22 +125,90 @@ def book_room(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 
+from django.http import JsonResponse
+from .models import Guest, Booking, Payment
+
+from django.http import JsonResponse
+from .models import Guest, Booking, Payment
+
 def getGuest(request, guest_id):
     if request.method == 'GET':
-     print(f"Fetching guest with ID: {guest_id}")
-     try:
-        guest = Guest.objects.get(id=guest_id)
-        data = {
-            'name': guest.name,
-            'address': guest.address,
-            'zip_code': guest.zip_code,
-            'email': guest.email,
-            'date_of_birth': guest.date_of_birth.strftime('%Y-%m-%d'),
-        }
-        print(f"Guest data: {data}")
-        return JsonResponse(data)
-     except Guest.DoesNotExist:
-        return JsonResponse({'error': 'Guest not found'}, status=404)
+        print(f"Fetching guest with ID: {guest_id}")
+        try:
+            guest = Guest.objects.get(id=guest_id)
+
+            # Prepare guest base data
+            guest_data = {
+                'id': guest.id,
+                'name': guest.name,
+                'address': guest.address,
+                'zip_code': guest.zip_code,
+                'email': guest.email,
+                'date_of_birth': guest.date_of_birth.strftime('%Y-%m-%d'),
+                'billing': guest.billing,
+                'room_service_billing': guest.room_service_billing,
+                'laundry_billing': guest.laundry_billing,
+                'cafe_billing': guest.cafe_billing,
+                'excess_pax_billing': guest.excess_pax_billing,
+                'additional_charge_billing': guest.additional_charge_billing,
+                'created_at': guest.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'bookings': [],
+                'check_in_date': None,
+                'check_out_date': None,
+                'room': None,
+                'booking_status': None
+            }
+
+            bookings = Booking.objects.filter(guest=guest)
+
+            for index, booking in enumerate(bookings):
+                booking_data = {
+                    'id': booking.id,
+                    'booking_date': booking.booking_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    'check_in_date': booking.check_in_date.strftime('%Y-%m-%d'),
+                    'check_out_date': booking.check_out_date.strftime('%Y-%m-%d'),
+                    'room': booking.room,
+                    'total_of_guests': booking.total_of_guests,
+                    'num_of_adults': booking.num_of_adults,
+                    'num_of_children': booking.num_of_children,
+                    'status': booking.status,
+                    'payment': None
+                }
+
+                try:
+                    payment = Payment.objects.get(booking=booking)
+                    booking_data['payment'] = {
+                        'id': payment.id,
+                        'method': payment.method,
+                        'card_number': payment.card_number,
+                        'exp_date': payment.exp_date,
+                        'cvc_code': payment.cvc_code,
+                        'billing_address': payment.billing_address,
+                        'total_balance': float(payment.total_balance),
+                        'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    }
+                except Payment.DoesNotExist:
+                    booking_data['payment'] = None
+
+                guest_data['bookings'].append(booking_data)
+
+                # Flatten only the first booking into root-level fields
+                if index == 0:
+                    guest_data['check_in_date'] = booking.check_in_date.strftime('%Y-%m-%d')
+                    guest_data['check_out_date'] = booking.check_out_date.strftime('%Y-%m-%d')
+                    guest_data['room'] = booking.room
+                    guest_data['booking_status'] = booking.status
+                    guest_data['num_of_adults'] = booking.num_of_adults
+                    guest_data['num_of_children'] = booking.num_of_children
+                    guest_data['total_of_guests'] = booking.total_of_guests
+                    guest_data['no_of_children_below_7'] = booking.no_of_children_below_7 
+
+            print(f"Guest data: {guest_data}")
+            return JsonResponse(guest_data, safe=False)
+
+        except Guest.DoesNotExist:
+            return JsonResponse({'error': 'Guest not found'}, status=404)
+
 
 
 def get_reservations_ajax(request):
@@ -173,4 +242,38 @@ def get_reservations_ajax(request):
         "num_pages": paginator.num_pages,
         "current_page": page.number,
     })
-    
+
+
+
+def room_status(request):
+    """
+    Expects ?date=YYYY-MM-DD
+    Returns JSON: { "occupied": ["R7","R4", ...] }
+    """
+    date_str = request.GET.get("date")
+    print(f"[DEBUG] received date_str: {date_str!r}")
+
+    try:
+        d = datetime.strptime(date_str, "%Y-%m-%d").date()
+        print(f"[DEBUG] parsed date: {d!r}")
+    except (ValueError, TypeError) as e:
+        print(f"[DEBUG] date parsing error: {e}")
+        return JsonResponse({"error": "invalid or missing date"}, status=400)
+
+    # Match bookings where the selected date falls within check-in and check-out
+    occupied_qs = Booking.objects.filter(
+        check_in_date__lte=d,
+        check_out_date__gte=d
+    ).values_list("room", flat=True)
+
+    occupied_rooms = list(occupied_qs)
+
+    # Prefix "R" if needed
+    occupied_rooms = [
+        f"R{room}" if not str(room).startswith("R") else str(room)
+        for room in occupied_rooms
+    ]
+
+    print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
+
+    return JsonResponse({"occupied": occupied_rooms})

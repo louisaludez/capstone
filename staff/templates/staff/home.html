@@ -17,22 +17,22 @@
   <div class="main">
     <h2 style="margin-left: 30px; margin-top: 20px">Front Office</h2>
     <div class="row">
-      <div class="div1 vacant">R1</div>
-      <div class="div2 vacant">R2</div>
+      <div class="div1 vacant" data-room="R1">R1</div>
+      <div class="div2 vacant" data-room="R2">R2</div>
       <div class="div3">
         <span>View Logs</span>
-        <input class="form-control" type="date" />
+        <input class="form-control" type="date" id="date-select" />
       </div>
-      <div class="div6 maintinance">R6</div>
-      <div class="div7 occupied">R7</div>
-      <div class="div8 vacant">R3</div>
-      <div class="div9 occupied">R4</div>
-      <div class="div10 occupied">R5</div>
-      <div class="div11 vacant">R8</div>
-      <div class="div12 vacant">R9</div>
-      <div class="div13 occupied">R10</div>
-      <div class="div14 maintinance">R11</div>
-      <div class="div15 vacant">R12</div>
+      <div class="div6 maintinance" data-room="R6">R6</div>
+      <div class="div7 occupied" data-room="R7">R7</div>
+      <div class="div8 vacant" data-room="R3">R3</div>
+      <div class="div9 occupied" data-room="R4">R4</div>
+      <div class="div10 occupied" data-room="R5">R5</div>
+      <div class="div11 vacant" data-room="R8">R8</div>
+      <div class="div12 vacant" data-room="R9">R9</div>
+      <div class="div13 occupied" data-room="R10">R10</div>
+      <div class="div14 maintinance" data-room="R11">R11</div>
+      <div class="div15 vacant" data-room="R12">R12</div>
     </div>
     <div class="row2">
       <div class="walk-in">
@@ -123,8 +123,51 @@
     })
   </script>
   <script>
-    const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
+    $(function () {
+      const $date = $('#date-select')
     
+      function refreshRooms(date) {
+        if (!date) return
+        $.getJSON('/staff/api/room-status/', { date })
+          .done(function (data) {
+            console.log('🔍 room‑status:', data)
+    
+            // Vacant everything (except maintenance)
+            $('[data-room]')
+              .not('.maintinance')
+              .each(function () {
+                $(this).removeClass('occupied vacant').addClass('vacant')
+              })
+    
+            // Mark occupied
+            ;(data.occupied || []).forEach(function (roomCode) {
+              const $r = $(`[data-room="${roomCode}"]`)
+              if ($r.length) {
+                $r.removeClass('vacant').addClass('occupied')
+              } else {
+                console.warn('Missing room div for:', roomCode)
+              }
+            })
+          })
+          .fail(function (xhr) {
+            console.error('Error loading room status:', xhr.responseText)
+          })
+      }
+    
+      // on change
+      $date.on('change', function () {
+        refreshRooms(this.value)
+      })
+    
+      // default to today
+      const today = new Date().toISOString().slice(0, 10)
+      $date.val(today).trigger('change')
+    })
+  </script>
+
+  <script>
+    const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
+    const logoURLCheckin = "{% static 'images/new HMS-B.png' %}"
   </script>
   <script src="{% static 'walkin.js' %}?v=1.0"></script>
   <script src="{% static 'checkin.js' %}?v=1.0"></script>

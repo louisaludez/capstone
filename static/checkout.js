@@ -66,3 +66,53 @@ function closeCheckoutModal() {
   clearInterval(checkOutTimerInterval);
   checkOutTimerInterval = null;
 }
+
+
+$(".guests-name-checkout").on("change", function () {
+  console.log("Guest name changed");
+  console.log($(this).val());
+  var guest_id = $(this).val();
+  $.ajax({
+    url: `/staff/get-guest/${guest_id}/`,
+    type: "GET",
+    success: function (response) {
+      console.log("Gusest data received:", response);
+      console.log("Guest Email:", response.email);
+      console.log("Guest Address:", response.address);
+      console.log("checkin date",response.bookings[0].check_in_date )
+      console.log("guest", response.num_of_adults)
+      $(".guest-address-checkout").val(response.address);
+      $(".guest-email-checkout").val(response.email);
+      $(".guest-birth-checkout").val(response.date_of_birth);
+       $(".guest-check-in-date-co").val(response.check_in_date);
+      $(".guest-check-out-date-co").val(response.check_out_date);
+      $(".guest-room-type-checkout").val(response.room);
+      $(".total-guest-checkout").val(response.total_of_guests);
+      $(".no-adults-checkout").val(response.num_of_adults);
+      $(".no-children-checkout").val(response.num_of_children);
+      $(".no-below-7-checkout").val(response.no_of_children_below_7);
+      
+      function toNumber(value) {
+        return parseFloat(value) || 0;
+      }
+
+      let billing = toNumber(response.billing);
+      let roomService = toNumber(response.room_service_billing);
+      let laundry = toNumber(response.laundry_billing);
+      let cafe = toNumber(response.cafe_billing);
+      let excessPax = toNumber(response.excess_pax_billing);
+      let additional = toNumber(response.additional_charge_billing);
+      $(".guest-billing-checkout").val(billing);
+      $(".guest-rm-billing-checkout").val(roomService);
+      $(".guest-laundry-billing-checkout").val(laundry);
+      $(".guest-cafe-billing-checkout").val(cafe);
+      $(".guest-ep-billing-checkout").val(excessPax);
+      $(".guest-additional-charge-checkout").val(additional);
+      let total = billing + roomService + laundry + cafe + excessPax + additional;
+      $(".guest-total-balance-checkout").val(total.toFixed(2));
+    },
+    error: function (message) {
+      console.error("Error fetching guest data:", message);
+    },
+  });
+});

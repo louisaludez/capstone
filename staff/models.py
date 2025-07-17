@@ -7,6 +7,11 @@ class Guest(models.Model):
     email = models.EmailField()
     date_of_birth = models.DateField()
     billing = models.TextField(blank=True, null=True, default='0')
+    room_service_billing = models.TextField(blank=True, null=True, default='0')
+    laundry_billing = models.TextField(blank=True, null=True, default='0')
+    cafe_billing = models.TextField(blank=True, null=True, default='0')
+    excess_pax_billing = models.TextField(blank=True, null=True, default='0')
+    additional_charge_billing = models.TextField(blank=True, null=True, default='0')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -27,6 +32,7 @@ class Booking(models.Model):
     total_of_guests = models.PositiveIntegerField()
     num_of_adults = models.PositiveIntegerField()
     num_of_children = models.PositiveIntegerField(default=0)
+    no_of_children_below_7 = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):

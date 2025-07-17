@@ -6,27 +6,33 @@
           <!-- LEFT COLUMN -->
           <div class="checkout-section">
             <div class="checkout-section-title">Guest and Stay Information</div>
-            <div class="checkout-field"><label>Name</label><input type="text"/></div>
-            <div class="checkout-field"><label>Address</label><input type="text"/></div>
-            <div class="checkout-field"><label>Email</label><input type="text"/></div>
+            <div class="checkout-field"><label>Name</label>
+              <select name="" id="" class="guests-name-checkout">
+                <option value="" disabled selected>Select guest</option>
+                {% for guests in guest %}
+                  <option value="{{ guests.id }}">{{ guests.name }}</option>
+                {% endfor %} 
+              </select></div>
+            <div class="checkout-field"><label>Address</label><input type="text"/ class="guest-address-checkout"></div>
+            <div class="checkout-field"><label>Email</label><input type="text"/ class="guest-email-checkout"></div>
             <div class="checkout-inline-row">
               <div class="checkout-field">
-                <label>Check‑in Date</label><input id="co-checkin" type="text"/>
+                <label>Check‑in Date</label><input id="co-checkin" type="text"class="guest-check-in-date-co"/>
               </div>
               <div class="checkout-field">
-                <label>Check‑out Date</label><input id="co-checkout" type="text"/>
+                <label>Check‑out Date</label><input id="co-checkout" type="text" class="guest-check-out-date-co"/>
               </div>
             </div>
             <div class="checkout-field">
-              <label>Room Type</label><select><option>--</option></select>
+              <label>Room Type</label><input type="text" name="" id="" class="guest-room-type-checkout"/>
             </div>
             <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Total Guests</label><input type="number"/></div>
-              <div class="checkout-field"><label>No. of Adults</label><input type="number"/></div>
+              <div class="checkout-field"><label>Total Guests</label><input type="text" class="total-guest-checkout"/></div>
+              <div class="checkout-field"><label>No. of Adults</label><input type="text" class="no-adults-checkout"/></div>
             </div>
             <div class="checkout-inline-row">
-              <div class="checkout-field"><label>No. of Children</label><input type="number"/></div>
-              <div class="checkout-field"><label>Children below 7</label><input type="number"/></div>
+              <div class="checkout-field"><label>No. of Children</label><input type="text" class="no-children-checkout"/></div>
+              <div class="checkout-field"><label>Children below 7</label><input type="text" class="no-below-7-checkout"/></div>
             </div>
 
             <div class="checkout-section-title">Payment Information</div>
@@ -53,17 +59,17 @@
           <!-- RIGHT COLUMN -->
           <div class="checkout-section">
             <div class="checkout-section-title">Billing Summary</div>
-            <div class="checkout-field"><label>Room Charges</label><input type="text"/></div>
+            <div class="checkout-field"><label>Room Charges</label><input type="text" class="guest-billing-checkout"/></div>
             <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Room Service</label><input type="text"/></div>
-              <div class="checkout-field"><label>Laundry</label><input type="text"/></div>
+              <div class="checkout-field"><label>Room Service</label><input type="text" class="guest-rm-billing-checkout"/></div>
+              <div class="checkout-field"><label>Laundry</label><input type="text" class="guest-laundry-billing-checkout"/></div>
             </div>
             <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Cafe</label><input type="text"/></div>
-              <div class="checkout-field"><label>Excess Pax</label><input type="text"/></div>
+              <div class="checkout-field"><label>Cafe</label><input type="text" class="guest-cafe-billing-checkout"/></div>
+              <div class="checkout-field"><label>Excess Pax</label><input type="text" class="guest-ep-billing-checkout"/></div>
             </div>
-            <div class="checkout-field"><label>Additional Charges</label><input type="text"/></div>
-            <div class="checkout-field"><label>Total Balance</label><input type="text"/></div>
+            <div class="checkout-field"><label>Additional Charges</label><input type="text" class="guest-additional-charge-checkout"/></div>
+            <div class="checkout-field"><label>Total Balance</label><input type="text" class="guest-total-balance-checkout"/></div>
 
             <div class="checkout-btn-wrapper">
               <button class="checkout-submit-btn">Check‑out</button>

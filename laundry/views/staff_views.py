@@ -150,14 +150,14 @@ def create_laundry_order(request):
             if payment_method == 'Charge to room':
                 print("💳 [DEBUG] Payment method is 'Charge to Room', updating guest billing.")
                 try:
-                    current_billing = float(guest.billing or 0)
+                    current_billing = float(guest.laundry_billing or 0)
                     print(f"💰 [DEBUG] Current guest billing: {current_billing}")
                 except ValueError:
                     print("⚠️ [WARN] Guest billing value invalid, resetting to 0")
                     current_billing = 0
 
                 new_billing = current_billing + total_amount
-                guest.billing = str(new_billing)
+                guest.laundry_billing = str(new_billing)
                 guest.save()
                 print(f"💰 [DEBUG] Guest billing updated: {current_billing} → {new_billing}")
 
