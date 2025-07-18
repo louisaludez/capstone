@@ -68,7 +68,7 @@ function closeCheckoutModal() {
 }
 
 
-$(".guests-name-checkout").on("change", function () {
+$(".guest-name-checkout").on("change", function () {
   console.log("Guest name changed");
   console.log($(this).val());
   var guest_id = $(this).val();
@@ -79,19 +79,19 @@ $(".guests-name-checkout").on("change", function () {
       console.log("Gusest data received:", response);
       console.log("Guest Email:", response.email);
       console.log("Guest Address:", response.address);
-      console.log("checkin date",response.bookings[0].check_in_date )
-      console.log("guest", response.num_of_adults)
+      console.log("checkin date", response.bookings[0].check_in_date);
+      console.log("guest", response.num_of_adults);
       $(".guest-address-checkout").val(response.address);
       $(".guest-email-checkout").val(response.email);
       $(".guest-birth-checkout").val(response.date_of_birth);
-       $(".guest-check-in-date-co").val(response.check_in_date);
+      $(".guest-check-in-date-co").val(response.check_in_date);
       $(".guest-check-out-date-co").val(response.check_out_date);
       $(".guest-room-type-checkout").val(response.room);
       $(".total-guest-checkout").val(response.total_of_guests);
       $(".no-adults-checkout").val(response.num_of_adults);
       $(".no-children-checkout").val(response.num_of_children);
       $(".no-below-7-checkout").val(response.no_of_children_below_7);
-      
+
       function toNumber(value) {
         return parseFloat(value) || 0;
       }
@@ -108,7 +108,8 @@ $(".guests-name-checkout").on("change", function () {
       $(".guest-cafe-billing-checkout").val(cafe);
       $(".guest-ep-billing-checkout").val(excessPax);
       $(".guest-additional-charge-checkout").val(additional);
-      let total = billing + roomService + laundry + cafe + excessPax + additional;
+      let total =
+        billing + roomService + laundry + cafe + excessPax + additional;
       $(".guest-total-balance-checkout").val(total.toFixed(2));
     },
     error: function (message) {
@@ -116,3 +117,50 @@ $(".guests-name-checkout").on("change", function () {
     },
   });
 });
+
+ $(".checkout-checkout-btdn").on("click", function () {
+   
+   $.ajax({
+     url: "/staff/api/checkout/", // 🔁 Adjust this URL to your Django view
+     type: "POST",
+     data: {
+       csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+
+       guest_id: $(".checkout-guest-id").val(),
+       check_in: $(".checkout-check-in").val(),
+       check_out: $(".checkout-check-out").val(),
+       room_number: $(".checkout-room").val(),
+
+       // Billing Breakdown
+       total_billing: $(".guest-billing-checkout").val(),
+       room_service: $(".guest-rm-billing-checkout").val(),
+       laundry: $(".guest-laundry-billing-checkout").val(),
+       cafe: $(".guest-cafe-billing-checkout").val(),
+       excess_pax: $(".guest-ep-billing-checkout").val(),
+       additional_charges: $(".guest-additional-charge-checkout").val(),
+
+       // Payment info
+       payment_method: $(".checkout-payment-method").val(),
+       card_number: $(".checkout-card-number").val(),
+       card_expiry: $(".checkout-card-exp-date").val(),
+       card_cvc: $(".checkout-card-cvc").val(),
+       billing_address: $(".checkout-billing-address").val(),
+       balance: $(".checkout-balance").val(),
+     },
+     success: function (response) {
+       Swal.fire({
+         icon: "success",
+         title: "Checkout Successful",
+         text: response.message || "Guest has been checked out.",
+       });
+       closeCheckoutModal();
+     },
+     error: function (xhr) {
+       Swal.fire({
+         icon: "error",
+         title: "Checkout Failed",
+         text: xhr.responseText || "Something went wrong.",
+       });
+     },
+   });
+ });

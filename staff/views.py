@@ -11,7 +11,7 @@ from .models import *
 from django.http import JsonResponse
 from decimal import Decimal
 from django.core.paginator import Paginator
-
+from django.utils.dateparse import parse_date
 @decorator.role_required('personnel')
 def home(request):
     guest = Guest.objects.all()
@@ -54,11 +54,7 @@ def check_in(request):
         'today': date.today().strftime('%Y-%m-%d')
     })
 
-@decorator.role_required('personnel')
-def check_out(request, booking_id):
-    # Booking checkout logic goes here
-    messages.success(request, "Check-out functionality is under development.")
-    return redirect('view_reservations')
+
 
 @decorator.role_required('personnel')
 def view_reservations(request):
@@ -125,11 +121,7 @@ def book_room(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 
-from django.http import JsonResponse
-from .models import Guest, Booking, Payment
 
-from django.http import JsonResponse
-from .models import Guest, Booking, Payment
 
 def getGuest(request, guest_id):
     if request.method == 'GET':
@@ -229,7 +221,7 @@ def get_reservations_ajax(request):
             "service": "Reservation",  # Static label
             "reservation_date": b.booking_date.strftime("%m/%d/%Y"),
             "checkin_date": b.check_in_date.strftime("%m/%d/%Y"),
-            "timein": "9:00AM",  # Optional: Replace if you have a real field
+            "timein": "9:00AM", 
             "status": b.status,
         }
         for b in page.object_list
@@ -277,3 +269,57 @@ def room_status(request):
     print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
 
     return JsonResponse({"occupied": occupied_rooms})
+
+
+
+
+def perform_checkout(request):
+    if request.method == 'POST':
+        try:
+            guest_id = request.POST.get('guest_id')
+            guest = Guest.objects.get(id=guest_id)
+
+            # Get most recent active booking
+            booking = Booking.objects.filter(guest=guest, status='active').order_by('-booking_date').first()
+
+            if not booking:
+                return JsonResponse({'success': False, 'message': 'No active booking found for this guest.'}, status=404)
+
+            # Update booking dates and status
+            booking.check_in_date = parse_date(request.POST.get('check_in'))
+            booking.check_out_date = parse_date(request.POST.get('check_out'))
+            booking.room = request.POST.get('room')
+            booking.total_of_guests = request.POST.get('total_guests')
+            booking.num_of_adults = request.POST.get('adults')
+            booking.num_of_children = request.POST.get('children')
+            booking.no_of_children_below_7 = request.POST.get('below_7')
+            booking.status = 'checked_out'
+            booking.save()
+
+            # Update guest billing info
+            guest.billing = Decimal(request.POST.get('room_charges') or 0)
+            guest.room_service_billing = Decimal(request.POST.get('room_service') or 0)
+            guest.laundry_billing = Decimal(request.POST.get('laundry') or 0)
+            guest.cafe_billing = Decimal(request.POST.get('cafe') or 0)
+            guest.excess_pax_billing = Decimal(request.POST.get('excess_pax') or 0)
+            guest.additional_charge_billing = Decimal(request.POST.get('additional_charges') or 0)
+            guest.save()
+
+            # Create or update payment record
+            payment, created = Payment.objects.get_or_create(booking=booking)
+            payment.method = request.POST.get('payment_method')
+            payment.card_number = request.POST.get('card_number')
+            payment.exp_date = request.POST.get('exp_date')
+            payment.cvc_code = request.POST.get('cvv')
+            payment.billing_address = request.POST.get('billing_address')
+            payment.total_balance = Decimal(request.POST.get('total_balance') or 0)
+            payment.save()
+
+            return JsonResponse({'success': True, 'message': 'Guest successfully checked out.'}, status=200)
+
+        except Guest.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Guest not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)

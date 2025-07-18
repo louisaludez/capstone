@@ -6,7 +6,7 @@ class Guest(models.Model):
     zip_code = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField()
     date_of_birth = models.DateField()
-    billing = models.TextField(blank=True, null=True, default='0')
+    billing = models.TextField(blank=True, null=True, default='1000')
     room_service_billing = models.TextField(blank=True, null=True, default='0')
     laundry_billing = models.TextField(blank=True, null=True, default='0')
     cafe_billing = models.TextField(blank=True, null=True, default='0')
