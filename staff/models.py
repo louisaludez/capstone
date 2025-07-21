@@ -50,7 +50,7 @@ class Payment(models.Model):
     exp_date = models.CharField(max_length=50, blank=True, null=True)
     cvc_code = models.CharField(max_length=4, blank=True, null=True)
     billing_address = models.TextField(blank=True, null=True)
-    total_balance = models.DecimalField(max_digits=10, decimal_places=2)
+    total_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Payment for Booking {self.booking.id} - {self.method}"

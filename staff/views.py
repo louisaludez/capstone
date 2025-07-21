@@ -275,51 +275,96 @@ def room_status(request):
 
 def perform_checkout(request):
     if request.method == 'POST':
+        print("=== Starting CHECKOUT process ===")
+        print("Incoming POST data:", request.POST)
+
         try:
             guest_id = request.POST.get('guest_id')
+            print("Guest ID:", guest_id)
             guest = Guest.objects.get(id=guest_id)
+            print("Fetched Guest:", guest)
 
-            # Get most recent active booking
-            booking = Booking.objects.filter(guest=guest, status='active').order_by('-booking_date').first()
-
+            # Get most recent booking
+            booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
+            print("Latest Booking:", booking)
             if not booking:
+                print("No active booking found.")
                 return JsonResponse({'success': False, 'message': 'No active booking found for this guest.'}, status=404)
 
-            # Update booking dates and status
-            booking.check_in_date = parse_date(request.POST.get('check_in'))
-            booking.check_out_date = parse_date(request.POST.get('check_out'))
+            # Dates
+            check_in_raw = request.POST.get('check_in')
+            check_out_raw = request.POST.get('check_out')
+            print("Check-in:", check_in_raw, "Check-out:", check_out_raw)
+
+            if not check_in_raw or not check_out_raw:
+                print("Missing check-in or check-out date.")
+                return JsonResponse({'success': False, 'message': 'Missing check-in or check-out date.'}, status=400)
+
+            try:
+                booking.check_in_date = parse_date(str(check_in_raw))
+                booking.check_out_date = parse_date(str(check_out_raw))
+                print("Parsed check-in date:", booking.check_in_date)
+                print("Parsed check-out date:", booking.check_out_date)
+            except Exception as date_error:
+                print("Date parsing error:", date_error)
+                return JsonResponse({'success': False, 'message': f"Date parsing error: {date_error}"}, status=400)
+
+            # Booking details
             booking.room = request.POST.get('room')
-            booking.total_of_guests = request.POST.get('total_guests')
-            booking.num_of_adults = request.POST.get('adults')
-            booking.num_of_children = request.POST.get('children')
-            booking.no_of_children_below_7 = request.POST.get('below_7')
-            booking.status = 'checked_out'
+            booking.total_of_guests = int(request.POST.get('total_guests') or 0)
+            booking.num_of_adults = int(request.POST.get('adults') or 0)
+            booking.num_of_children = int(request.POST.get('children') or 0)
+            booking.no_of_children_below_7 = int(request.POST.get('below_7') or 0)
+            booking.status = 'Checked-out'
             booking.save()
+            print("Booking updated:", booking)
 
-            # Update guest billing info
-            guest.billing = Decimal(request.POST.get('room_charges') or 0)
-            guest.room_service_billing = Decimal(request.POST.get('room_service') or 0)
-            guest.laundry_billing = Decimal(request.POST.get('laundry') or 0)
-            guest.cafe_billing = Decimal(request.POST.get('cafe') or 0)
-            guest.excess_pax_billing = Decimal(request.POST.get('excess_pax') or 0)
-            guest.additional_charge_billing = Decimal(request.POST.get('additional_charges') or 0)
+            # Guest billing
+            guest.billing = request.POST.get('room_charges') or '0'
+            guest.room_service_billing = request.POST.get('room_service') or '0'
+            guest.laundry_billing = request.POST.get('laundry') or '0'
+            guest.cafe_billing = request.POST.get('cafe') or '0'
+            guest.excess_pax_billing = request.POST.get('excess_pax') or '0'
+            guest.additional_charge_billing = request.POST.get('additional_charges') or '0'
             guest.save()
+            print("Guest billing updated:", {
+                'billing': guest.billing,
+                'room_service_billing': guest.room_service_billing,
+                'laundry_billing': guest.laundry_billing,
+                'cafe_billing': guest.cafe_billing,
+                'excess_pax_billing': guest.excess_pax_billing,
+                'additional_charge_billing': guest.additional_charge_billing,
+            })
 
-            # Create or update payment record
+            # Payment
             payment, created = Payment.objects.get_or_create(booking=booking)
             payment.method = request.POST.get('payment_method')
             payment.card_number = request.POST.get('card_number')
             payment.exp_date = request.POST.get('exp_date')
             payment.cvc_code = request.POST.get('cvv')
             payment.billing_address = request.POST.get('billing_address')
-            payment.total_balance = Decimal(request.POST.get('total_balance') or 0)
+            payment.total_balance = Decimal(request.POST.get('balance') or 0)
+            print('total balance : ' + str(payment.total_balance))
             payment.save()
+            print("Payment saved:", {
+                'method': payment.method,
+                'card_number': payment.card_number,
+                'exp_date': payment.exp_date,
+                'cvc_code': payment.cvc_code,
+                'billing_address': payment.billing_address,
+                'total_balance': payment.total_balance,
+            })
 
+            print("=== CHECKOUT SUCCESSFUL ===")
             return JsonResponse({'success': True, 'message': 'Guest successfully checked out.'}, status=200)
 
         except Guest.DoesNotExist:
+            print("Error: Guest not found.")
             return JsonResponse({'success': False, 'message': 'Guest not found.'}, status=404)
+
         except Exception as e:
+            print("Unexpected error during checkout:", e)
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
+    print("Invalid request method (not POST).")
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)

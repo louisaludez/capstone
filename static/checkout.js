@@ -68,7 +68,7 @@ function closeCheckoutModal() {
 }
 
 
-$(".guest-name-checkout").on("change", function () {
+$(".guests-name-checkout").on("change", function () {
   console.log("Guest name changed");
   console.log($(this).val());
   var guest_id = $(this).val();
@@ -118,18 +118,19 @@ $(".guest-name-checkout").on("change", function () {
   });
 });
 
- $(".checkout-checkout-btdn").on("click", function () {
+ $(".checkout-submit-btn").on("click", function () {
    
+  console.log("Checkout button clicked");
    $.ajax({
-     url: "/staff/api/checkout/", // 🔁 Adjust this URL to your Django view
+     url: "/staff/api/checkout/",
      type: "POST",
      data: {
        csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
 
-       guest_id: $(".checkout-guest-id").val(),
-       check_in: $(".checkout-check-in").val(),
-       check_out: $(".checkout-check-out").val(),
-       room_number: $(".checkout-room").val(),
+       guest_id: $(".guests-name-checkout").val(),
+       check_in: $(".guest-check-in-date-co").val(),
+       check_out: $(".guest-check-out-date-co").val(),
+       room: $(".guest-room-type-checkout").val(),
 
        // Billing Breakdown
        total_billing: $(".guest-billing-checkout").val(),
@@ -145,7 +146,7 @@ $(".guest-name-checkout").on("change", function () {
        card_expiry: $(".checkout-card-exp-date").val(),
        card_cvc: $(".checkout-card-cvc").val(),
        billing_address: $(".checkout-billing-address").val(),
-       balance: $(".checkout-balance").val(),
+       balance: $(".guest-total-balance-checkout").val(),
      },
      success: function (response) {
        Swal.fire({
