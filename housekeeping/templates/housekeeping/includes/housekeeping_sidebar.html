@@ -7,6 +7,7 @@
     <a href="{% url 'housekeeping_home' %}" class="{% if active_page == 'home' %}active{% endif %}">Tasks</a>
     <a href="" class="{% if active_page == 'messages' %}active{% endif %}">Timeline</a>
     <a href="" class="{% if active_page == 'activities' %}active{% endif %}">Messenger</a>
+    <a href="{% url 'activity_home'%}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
   </div>
   <div class="mt-auto p-3 d-flex flex-column align-items-center">
     <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold;">

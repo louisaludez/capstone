@@ -3,15 +3,13 @@
   <div class="text-center p-3">
     <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" />
   </div>
-  <div class="sidebar-menu mt-2">
-    <a href="" class="{% if active_page == 'home' %}active{% endif %}">Dashboard</a>
-    <a href="" class="{% if active_page == 'orders' %}active{% endif %}">Accounts</a>
-    <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Training</a>
-    <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Analytics</a>
+  <div class="sidebar-menu mt-4 mb-5">
+    <a href="" class="{% if active_page == 'home' %}active{% endif %}">POS</a>
+    <a href="" class="{% if active_page == 'orders' %}active{% endif %}">Orders</a>
     <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
     <a href="{% url 'activity_home' %}">Activity</a>
   </div>
-  <div class=" p-3 d-flex flex-column align-items-center">
+  <div class="mt-auto p-3 d-flex flex-column align-items-center">
     <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold; ">
       <em>You are logged in as <span style="text-decoration: underline; color:white">{{ user.username }}</span></em>
     </p>

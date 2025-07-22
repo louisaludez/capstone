@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cafe', '0004_remove_orderitem_menu_item_remove_order_cashier_and_more'),
+        
         ('concierge', '0002_remove_conciergerequestspa_assigned_to_and_more'),
         ('laundry', '0002_remove_laundryorder_customer_and_more'),
         ('room_service', '0002_remove_roomservicehousekeepingrequest_customer_and_more'),

@@ -1,17 +1,78 @@
-{% extends 'base.html'%}
-{% load static%}
-
-{% block title %}
-  Dashboard | ACES HMS
-{% endblock %}
-
-{% block extra_head%}
+{% extends './base.html' %} {% load static %} {% load humanize %} {% block title%} Dashboard | ACES HMS {% endblock %} {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock%}
-{% block sidebar %}
-  {% include '../includes/hms-admin-sidebar.html' with active_page='home' %}
-{% endblock %}
-{% block content%}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Chart.js SARIMA data fetch
+    fetch("/hmsAdmin/api/occupancy-forecast/")
+      .then((response) => response.json())
+      .then((data) => {
+        const ctx = document.getElementById("statsChart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [
+              ...data.historical.map((item) => item.date),
+              ...data.forecast.map((item) => item.date),
+            ],
+            datasets: [
+              {
+                label: "Historical Occupancy Rate",
+                data: data.historical.map((item) => item.occupancy_rate),
+                borderColor: "#1976d2",
+                backgroundColor: "rgba(25, 118, 210, 0.08)",
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+              },
+              {
+                label: "Forecasted Occupancy Rate",
+                data: [
+                  ...Array(data.historical.length).fill(null),
+                  ...data.forecast.map((item) => item.occupancy_rate),
+                ],
+                borderColor: "#e53935",
+                backgroundColor: "rgba(229, 57, 53, 0.08)",
+                borderDash: [6, 6],
+                tension: 0.4,
+                fill: false,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: true },
+              tooltip: { mode: "index", intersect: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Occupancy Rate" },
+                ticks: {
+                  callback: (v) => `${v.toFixed(2)} (${(v * 100).toFixed(0)}%)`,
+                },
+              },
+              x: {
+                title: { display: true, text: "Month" },
+                ticks: { autoSkip: true, maxTicksLimit: 14 },
+              },
+            },
+          },
+        });
+      });
+
+    // DataTables init
+    $("#usersTable").DataTable({
+      paging: true,
+      pageLength: 4,
+      lengthChange: false,
+      searching: false,
+      info: false,
+    });
+  });
+</script>
+{% endblock %} {% block sidebar %} {% include 'includes/hms-admin-sidebar.html' with active_page='dashboard' %} {% endblock %} {% block content %}
 <h1 class="mb-2" style="font-size: 2rem">Dashboard</h1>
 <div class="row g-2">
   <div class="col-lg-8 col-md-7 col-12">
@@ -121,78 +182,4 @@
     </table>
   </div>
 </div>
-{% endblock%}
-{% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Chart.js SARIMA data fetch
-    fetch("/hmsAdmin/api/occupancy-forecast/")
-      .then((response) => response.json())
-      .then((data) => {
-        const ctx = document.getElementById("statsChart").getContext("2d");
-        new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: [
-              ...data.historical.map((item) => item.date),
-              ...data.forecast.map((item) => item.date),
-            ],
-            datasets: [
-              {
-                label: "Historical Occupancy Rate",
-                data: data.historical.map((item) => item.occupancy_rate),
-                borderColor: "#1976d2",
-                backgroundColor: "rgba(25, 118, 210, 0.08)",
-                tension: 0.4,
-                fill: true,
-                pointRadius: 2,
-              },
-              {
-                label: "Forecasted Occupancy Rate",
-                data: [
-                  ...Array(data.historical.length).fill(null),
-                  ...data.forecast.map((item) => item.occupancy_rate),
-                ],
-                borderColor: "#e53935",
-                backgroundColor: "rgba(229, 57, 53, 0.08)",
-                borderDash: [6, 6],
-                tension: 0.4,
-                fill: false,
-                pointRadius: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: true },
-              tooltip: { mode: "index", intersect: false },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: "Occupancy Rate" },
-                ticks: {
-                  callback: (v) => `${v.toFixed(2)} (${(v * 100).toFixed(0)}%)`,
-                },
-              },
-              x: {
-                title: { display: true, text: "Month" },
-                ticks: { autoSkip: true, maxTicksLimit: 14 },
-              },
-            },
-          },
-        });
-      });
-
-    // DataTables init
-    $("#usersTable").DataTable({
-      paging: true,
-      pageLength: 4,
-      lengthChange: false,
-      searching: false,
-      info: false,
-    });
-  });
-</script>
-{% endblock%}
+{% endblock %}

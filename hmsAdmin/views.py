@@ -156,7 +156,7 @@ def delete_user(request, user_id):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
-@decorator.role_required('admin')
+
 def occupancy_forecast(request):
     return JsonResponse({
         'error': 'Forecasting disabled. No data available from updated models.'

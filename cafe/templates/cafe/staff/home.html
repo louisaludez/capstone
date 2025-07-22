@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Cafe Staff Home
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <style>
+    .pos-container {
+      height: 85vh;
+      padding: 20px 30px 10px 30px;
+    }
+    .pos-content-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 100%;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .left-side {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.8);
+    
+      border: 1px solid black;
+      border-radius: 10px;
+      margin-right: 20px;
+      height: 100%;
+      width: 50px;
+    }
+    .right-side {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border: 1px solid black;
+      border-radius: 10px;
+      margin-left: 20px;
+      height: 100%;
+      width: 35%;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+
+{% block content %}
+  <div class="pos-container">
+    <h1>Cafe POS</h1>
+    <div class="pos-content-container">
+      <div class="left-side"></div>
+      <div class="right-side">
+        <div class="order-header"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    // You can add JS interactivity later here (e.g. + / - qty buttons)
+  </script>
+{% endblock %}
