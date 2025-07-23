@@ -14,7 +14,7 @@
     }
     .pos-content-container {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       height: 100%;
     }
@@ -26,20 +26,175 @@
       flex: 1;
       background-color: rgba(255, 255, 255, 0.8);
     
-      border: 1px solid black;
       border-radius: 10px;
-      margin-right: 20px;
+    
+      justify-self: center;
       height: 100%;
-      width: 50px;
+      font-size: 0.6rem;
+      align-self: center;
+    }
+    .left-side > .first-row .col {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .left-side > .first-row {
+      display: flex;
+      gap: 15px;
+      padding: 0px 10px 0px 10px;
+    }
+    .left-side > .first-row span {
+      font-size: 0.6rem;
+      font-weight: bold;
+    }
+    .left-side > .first-row small {
+      font-size: 0.5rem;
+    
+      color: gray;
+    }
+    
+    .first-row {
+      align-items: center;
+      border: 1px solid black;
+      border-radius: 8px;
+      width: 100%;
+      align-self: center;
+      justify-self: center;
+      height: 40px;
+    }
+    /*  second row */
+    .second-row {
+      border: 1px solid black;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      justify-self: center;
+      margin-top: 10px;
+      border-radius: 8px;
+      height: 30px;
+    }
+    .second-row div {
+      height: 100%;
+    }
+    #search-icon {
+      width: 20px;
+      height: 20px;
+      align-self: center;
+    }
+    .search-bar {
+      border: none;
+      height: 100% !important;
+      width: 100%;
+      outline: none;
+    }
+    
+    .search-bar::placeholder {
+      font-style: italic;
+    }
+    /* third-row*/
+    .menu-card {
+      border: 1px solid #123c1e;
+      border-radius: 8px;
+      background-color: white;
+      color: #102416;
+      transition: transform 0.3s ease;
+    }
+    .menu-card:hover {
+      transform: scale(1.05); /* Zoom in by 5% */
+      cursor: pointer;
+    }
+    .item-name {
+      font-size: 12px;
     }
     .right-side {
       background-color: rgba(255, 255, 255, 0.8);
-      padding: 20px;
+      padding: 5px 0px 0px 0px;
       border: 1px solid black;
       border-radius: 10px;
       margin-left: 20px;
       height: 100%;
       width: 35%;
+      justify-self: center;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+    }
+    .details {
+      width: 100%;
+    
+      align-self: center;
+      justify-self: center;
+    }
+    .details div {
+      height: 20px;
+    }
+    .details div span {
+      font-size: 0.6rem;
+      font-weight: bold;
+    }
+    .details div input {
+      width: 30%;
+      border-radius: 15px;
+    }
+    .total span {
+      font-size: 0.7rem !important;
+    }
+    .method {
+      display: flex;
+      width: 100%;
+      font-size: 0.6rem;
+      justify-self: center;
+      justify-content: space-evenly;
+      align-items: center;
+      font-weight: bold;
+    
+      margin-bottom: 10px;
+    }
+    .method > .col > button {
+      margin-left: 10px;
+    }
+    .method div {
+      display: flex;
+      gap: 5px;
+    }
+    .method div > button {
+      border-radius: 10px;
+      background-color: white;
+      border: 1px solid black;
+    }
+    .items {
+      height: 28%;
+    
+      width: 100%;
+      align-self: center;
+      overflow-y: auto;
+    }
+    .right-side .order {
+      width: 100%;
+      margin-left: 0px;
+    }
+    .right-side .items,
+    .right-side .details,
+    .right-side .method {
+      flex-shrink: 0;
+    }
+    
+    .right-side .order button {
+      width: 100%;
+    }
+    .right-side .order button {
+      height: 40px;
+      border: none;
+      border-top: 2px solid black !important;
+      background-color: transparent;
+    }
+    .items > div {
+    }
+    .dt-button   {
+      height: 20px;
+      font-size: 0.5rem;
+      width: 150px;
     }
   </style>
 {% endblock %}
@@ -52,9 +207,375 @@
   <div class="pos-container">
     <h1>Cafe POS</h1>
     <div class="pos-content-container">
-      <div class="left-side"></div>
+      <div class="left-side">
+        <div class="row first-row">
+          <div class="col">
+            <span>All</span>
+
+            <small>36 items</small>
+          </div>
+          <div class="col">
+            <span>Pasta</span>
+
+            <small>36 items</small>
+          </div>
+          <div class="col">
+            <span>Pastry</span>
+
+            <small>36 items</small>
+          </div>
+          <div class="col">
+            <span>Hot Drinks</span>
+
+            <small>36 items</small>
+          </div>
+          <div class="col">
+            <span>Cold Drinks</span>
+
+            <small>36 items</small>
+          </div>
+          <div class="col">
+            <span>Sandwiches</span>
+
+            <small>36 items</small>
+          </div>
+        </div>
+        <div class="row align-items-center second-row">
+          <div class="col-10 d-flex justify-content-start">
+            <input type="text" name="" id="" class="search-bar" placeholder="Search items" />
+          </div>
+          <div class="col-2 d-flex justify-content-end">
+            <img src="{% static 'images/search.png' %}" alt="" id="search-icon" style="cursor: pointer  ;" />
+          </div>
+        </div>
+        <div class="row third-row g-3 mt-1">
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Aglio e Olio</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Nutella Croffle</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Choco Croffle</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Hot Chocolate</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Hot Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Spaghetti</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Carbonara</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Berry Croffle</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Arrabiatta</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Tuna Carbonara</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Chicken Alfredo</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Marinara</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pasta</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Spanish Latte</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Cold Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Latte</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Cold Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">S’mores Latte</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Cold Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Bacon & Egg</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Sandwiches</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Spam & Egg</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Sandwiches</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Croissant</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Berry Croissant</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Barista Blend</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Cold Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Eclairs</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Spanish Latte</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Hot Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Cream Puff</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Green Tea</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Hot Drinks</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="menu-card p-2">
+              <div class="fw-bold item-name">Nutella Croissant</div>
+              <div class="d-flex justify-content-between mt-2">
+                <small class="text-muted">Pastry</small>
+                <small class="text-muted">220.00</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="right-side">
-        <div class="order-header"></div>
+        <div class="row header px-3 py-2">
+          <div class="col d-flex justify-content-between align-items-center">
+            <div class="text-center w-100">
+              <div class="fw-semibold">Customer Name</div>
+              <small class="text-muted">Order no. #00001</small>
+            </div>
+            <img src="{% static 'images/editing.png' %}" alt="Edit" class="ms-2" style="width: 16px; height: 16px; cursor: pointer;" />
+          </div>
+        </div>
+        <hr />
+        <div class="row items">
+          <div class="col-12 d-flex justify-content-center mb-2">
+            <button class="btn btn-outline-dark btn-sm me-1 px-3 py-1 dt-button">Dine In</button>
+            <button class="btn btn-outline-dark btn-sm px-3 py-1 dt-button">Takeout</button>
+          </div>
+
+          <div class="col-6 mb-2">
+            <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
+              <strong style="font-size: 0.9rem;">Hot Chocolate</strong><br />
+              <small class="text-muted">Hot Drinks</small>
+            </div>
+          </div>
+          <div class="col-6 d-flex align-items-center justify-content-between mb-2" style="font-size: 0.85rem;">
+            <div>
+              <div class="mb-1 text-end">220.00</div>
+              <div class="input-group input-group-sm">
+                <button class="btn btn-outline-dark btn-sm px-2 py-0">−</button>
+                <input type="text" class="form-control text-center py-0" value="1" style="max-width: 30px; font-size: 0.85rem;" readonly />
+                <button class="btn btn-outline-dark btn-sm px-2 py-0">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 mb-2">
+            <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
+              <strong style="font-size: 0.9rem;">Spanish Latte</strong><br />
+              <small class="text-muted">Cold Drinks</small>
+            </div>
+          </div>
+          <div class="col-6 d-flex align-items-center justify-content-between mb-2" style="font-size: 0.85rem;">
+            <div>
+              <div class="mb-1 text-end">220.00</div>
+              <div class="input-group input-group-sm">
+                <button class="btn btn-outline-dark btn-sm px-2 py-0">−</button>
+                <input type="text" class="form-control text-center py-0" value="1" style="max-width: 30px; font-size: 0.85rem;" readonly />
+                <button class="btn btn-outline-dark btn-sm px-2 py-0">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-section mt-auto">
+          <div class="row details">
+            <div class="col-12 d-flex justify-content-between mb-2">
+              <span>Subtotal</span>
+              <input type="text" />
+            </div>
+
+            <div class="col-12 d-flex justify-content-between mb-2">
+              <span>Cash Tendered</span>
+              <input type="text" />
+            </div>
+
+            <div class="col-12 d-flex justify-content-between mb-2">
+              <span>Change</span>
+              <input type="text" />
+            </div>
+
+            <div class="col-12 d-flex justify-content-between mb-2 total">
+              <span>TOTAL</span>
+              <span>0.00</span>
+            </div>
+          </div>
+          <hr />
+          <div class="row method">
+            <div class="col">
+              <span>Payment method</span>
+              <button>Charge to room</button>
+              <button>Card Payment</button>
+            </div>
+          </div>
+          <div class="row order">
+            <button>Place Order</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
