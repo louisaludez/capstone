@@ -191,7 +191,7 @@
     }
     .items > div {
     }
-    .dt-button   {
+    .dt-button {
       height: 20px;
       font-size: 0.5rem;
       width: 150px;
@@ -209,287 +209,46 @@
     <div class="pos-content-container">
       <div class="left-side">
         <div class="row first-row">
-          <div class="col">
+          <div class="col filter-box" data-category="">
             <span>All</span>
-
-            <small>36 items</small>
+            <small>{{ total_items }} Items</small>
           </div>
-          <div class="col">
+          <div class="col filter-box" data-category="Pasta">
             <span>Pasta</span>
-
-            <small>36 items</small>
+            <small>{{ pasta_count }} items</small>
           </div>
-          <div class="col">
+          <div class="col filter-box" data-category="Pastry">
             <span>Pastry</span>
-
-            <small>36 items</small>
+            <small>{{ pastry_count }} items</small>
           </div>
-          <div class="col">
+          <div class="col filter-box" data-category="Hot Drinks">
             <span>Hot Drinks</span>
-
-            <small>36 items</small>
+            <small>{{ hot_drinks_count }} items</small>
           </div>
-          <div class="col">
+          <div class="col filter-box" data-category="Cold Drinks">
             <span>Cold Drinks</span>
-
-            <small>36 items</small>
+            <small>{{ cold_drinks_count }} items</small>
           </div>
-          <div class="col">
+          <div class="col filter-box" data-category="Sandwiches">
             <span>Sandwiches</span>
-
-            <small>36 items</small>
+            <small>{{ sandwiches_count }} items</small>
           </div>
         </div>
+
         <div class="row align-items-center second-row">
           <div class="col-10 d-flex justify-content-start">
-            <input type="text" name="" id="" class="search-bar" placeholder="Search items" />
+            <input type="text" class="search-bar" placeholder="Search items" />
           </div>
           <div class="col-2 d-flex justify-content-end">
-            <img src="{% static 'images/search.png' %}" alt="" id="search-icon" style="cursor: pointer  ;" />
+            <img src="{% static 'images/search.png' %}" alt="" id="search-icon" style="cursor: pointer;" />
           </div>
         </div>
-        <div class="row third-row g-3 mt-1">
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Aglio e Olio</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
 
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Nutella Croffle</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Choco Croffle</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Hot Chocolate</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Hot Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Spaghetti</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Carbonara</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Berry Croffle</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Arrabiatta</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Tuna Carbonara</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Chicken Alfredo</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Marinara</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pasta</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Spanish Latte</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Cold Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Latte</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Cold Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">S’mores Latte</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Cold Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Bacon & Egg</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Sandwiches</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Spam & Egg</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Sandwiches</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Croissant</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Berry Croissant</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Barista Blend</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Cold Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Eclairs</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Spanish Latte</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Hot Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Cream Puff</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Green Tea</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Hot Drinks</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-3">
-            <div class="menu-card p-2">
-              <div class="fw-bold item-name">Nutella Croissant</div>
-              <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">Pastry</small>
-                <small class="text-muted">220.00</small>
-              </div>
-            </div>
-          </div>
+        <div class="row third-row g-3 mt-1" id="item-results">
+          {% include './includes/item_cards.html' %}
         </div>
       </div>
+
       <div class="right-side">
         <div class="row header px-3 py-2">
           <div class="col d-flex justify-content-between align-items-center">
@@ -506,62 +265,28 @@
             <button class="btn btn-outline-dark btn-sm me-1 px-3 py-1 dt-button">Dine In</button>
             <button class="btn btn-outline-dark btn-sm px-3 py-1 dt-button">Takeout</button>
           </div>
-
-          <div class="col-6 mb-2">
-            <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
-              <strong style="font-size: 0.9rem;">Hot Chocolate</strong><br />
-              <small class="text-muted">Hot Drinks</small>
-            </div>
-          </div>
-          <div class="col-6 d-flex align-items-center justify-content-between mb-2" style="font-size: 0.85rem;">
-            <div>
-              <div class="mb-1 text-end">220.00</div>
-              <div class="input-group input-group-sm">
-                <button class="btn btn-outline-dark btn-sm px-2 py-0">−</button>
-                <input type="text" class="form-control text-center py-0" value="1" style="max-width: 30px; font-size: 0.85rem;" readonly />
-                <button class="btn btn-outline-dark btn-sm px-2 py-0">+</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-6 mb-2">
-            <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
-              <strong style="font-size: 0.9rem;">Spanish Latte</strong><br />
-              <small class="text-muted">Cold Drinks</small>
-            </div>
-          </div>
-          <div class="col-6 d-flex align-items-center justify-content-between mb-2" style="font-size: 0.85rem;">
-            <div>
-              <div class="mb-1 text-end">220.00</div>
-              <div class="input-group input-group-sm">
-                <button class="btn btn-outline-dark btn-sm px-2 py-0">−</button>
-                <input type="text" class="form-control text-center py-0" value="1" style="max-width: 30px; font-size: 0.85rem;" readonly />
-                <button class="btn btn-outline-dark btn-sm px-2 py-0">+</button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="bottom-section mt-auto">
           <div class="row details">
             <div class="col-12 d-flex justify-content-between mb-2">
               <span>Subtotal</span>
-              <input type="text" />
+              <input type="text" placeholder="0.00" disabled class="subtotal" id="subtotal" />
             </div>
 
             <div class="col-12 d-flex justify-content-between mb-2">
               <span>Cash Tendered</span>
-              <input type="text" />
+              <input type="text" id="cash-tentered" />
             </div>
 
             <div class="col-12 d-flex justify-content-between mb-2">
               <span>Change</span>
-              <input type="text" />
+              <input type="text" value="0.00" disabled id="change" />
             </div>
 
             <div class="col-12 d-flex justify-content-between mb-2 total">
               <span>TOTAL</span>
-              <span>0.00</span>
+              <span id="total">0.00</span>
             </div>
           </div>
           <hr />
@@ -583,6 +308,107 @@
 
 {% block extra_js %}
   <script>
-    // You can add JS interactivity later here (e.g. + / - qty buttons)
+    const searchInput = document.querySelector('.search-bar')
+    const filterDivs = document.querySelectorAll('.filter-box')
+    const rowItems = document.querySelector('.items')
+    const subtotal = document.getElementById('subtotal')
+    const cashTentered = document.getElementById('cash-tentered')
+    const change = document.getElementById('change')
+    const totalText = document.getElementById('total')
+    const addQuantity = document.getElementById('add')
+    let currentCategory = ''
+    let currentSearch = ''
+    const selectedNames = []
+    
+    const menuCard = document.querySelectorAll('.menu-card')
+    function fetchItems() {
+      const url = `/cafe/search-items-ajax/?search=${currentSearch}&category=${currentCategory}`
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById('item-results').innerHTML = data.html
+        })
+    }
+    searchInput.addEventListener('input', function () {
+      currentSearch = this.value
+      fetchItems()
+    })
+    filterDivs.forEach((div) => {
+      div.addEventListener('click', function () {
+        currentCategory = this.dataset.category
+        fetchItems()
+      })
+    })
+    menuCard.forEach((div) => {
+      div.addEventListener('click', function () {
+        name = this.dataset.name
+        category = this.dataset.category
+        price = this.dataset.price
+        console.log('Name ', name)
+        console.log('category', category)
+        console.log('price', price)
+        addItem(name, category, price, rowItems)
+      })
+    })
+    function addItem(name, category, price, div) {
+      let currentTotal = parseFloat(subtotal.value) || 0
+      let priceValue = parseFloat(price) || 0
+    
+      subtotal.value = (priceValue + currentTotal).toFixed(2)
+      if (verify(selectedNames, name)) {
+       
+        
+      } else {
+        div.innerHTML += `
+              <div class="col-6 mb-2">
+                <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
+                  <strong style="font-size: 0.5rem;">${name}</strong><br />
+                  <small class="text-muted" style="font-size: 0.5rem;">${category}</small>
+                </div>
+              </div>
+              <div class="col-6 d-flex align-items-center justify-content-between mb-2" style="font-size: 0.5rem;">
+                <div>
+                  <div class="mb-1 text-end" style="font-size: 0.5rem;">${price}</div>
+                  <div class="input-group input-group-sm" style="font-size: 0.5rem;">
+                    <button class="btn btn-outline-dark btn-sm px-2 py-0">−</button>
+<input type="text" class="form-control text-center py-0" value="1" style="max-width: 30px; font-size: 0.85rem;" readonly data-quantity=${name}/>
+
+                    <button class="btn btn-outline-dark btn-sm px-2 py-0" id="add">+</button>
+                  </div>
+                </div>
+              </div>
+            `
+      }
+      selectedNames.push(name)
+    }
+    cashTentered.addEventListener('input', function () {
+      let stotal = parseInt(subtotal.value)
+      let tendered = parseInt(cashTentered.value) || 0
+    
+      let total = tendered - stotal
+      if (total < 0) {
+        total = 0
+      }
+    
+      change.value = total
+      totalText.innerText = 'P' + parseFloat(stotal).toFixed(2)
+    })
+    
+    function verify(myArray, myString) {
+      console.log('🔍 Accessed verify() function')
+      console.log('📋 Original Array:', myArray)
+      console.log('🔎 String to search:', myString)
+    
+      // Normalize the values (trim and lowercase)
+      const cleanedArray = myArray.map((item) => item.trim().toLowerCase())
+      const cleanedString = myString.trim().toLowerCase()
+    
+      const result = cleanedArray.includes(cleanedString)
+      console.log('🧼 Cleaned Array:', cleanedArray)
+      console.log('🧼 Cleaned String:', cleanedString)
+      console.log('✅ Match found?', result)
+    
+      return result
+    }
   </script>
 {% endblock %}
