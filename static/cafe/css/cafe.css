@@ -1,0 +1,239 @@
+.pm.active,
+.dt-button.active {
+    background-color: #7eb455;
+    color: #fff;
+    border-color: green
+}
+
+.po-btn {
+    background-color: #7eb455 !important;
+}
+
+.pos-container {
+    height: 85vh;
+    padding: 20px 30px 10px 30px;
+}
+
+.pos-content-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.left-side {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.8);
+
+    border-radius: 10px;
+
+    justify-self: center;
+    height: 100%;
+    font-size: 0.6rem;
+    align-self: center;
+}
+
+.left-side>.first-row .col {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.left-side>.first-row {
+    display: flex;
+    gap: 15px;
+    padding: 0px 10px 0px 10px;
+}
+
+.left-side>.first-row span {
+    font-size: 0.6rem;
+    font-weight: bold;
+}
+
+.left-side>.first-row small {
+    font-size: 0.5rem;
+
+    color: gray;
+}
+
+.first-row {
+    align-items: center;
+    border: 1px solid black;
+    border-radius: 8px;
+    width: 100%;
+    align-self: center;
+    justify-self: center;
+    height: 40px;
+}
+
+/*  second row */
+.second-row {
+    border: 1px solid black;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    margin-top: 10px;
+    border-radius: 8px;
+    height: 30px;
+}
+
+.second-row div {
+    height: 100%;
+}
+
+#search-icon {
+    width: 20px;
+    height: 20px;
+    align-self: center;
+}
+
+.search-bar {
+    border: none;
+    height: 100% !important;
+    width: 100%;
+    outline: none;
+}
+
+.search-bar::placeholder {
+    font-style: italic;
+}
+
+/* third-row*/
+.menu-card {
+    border: 1px solid #123c1e;
+    border-radius: 8px;
+    background-color: white;
+    color: #102416;
+    transition: transform 0.3s ease;
+}
+
+.menu-card:hover {
+    transform: scale(1.05);
+    /* Zoom in by 5% */
+    cursor: pointer;
+}
+
+.item-name {
+    font-size: 12px;
+}
+
+.right-side {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 0px 0px 0px;
+    border: 1px solid black;
+    border-radius: 10px;
+    margin-left: 20px;
+    height: 100%;
+    width: 35%;
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.details {
+    width: 100%;
+
+    align-self: center;
+    justify-self: center;
+}
+
+.details div {
+    height: 20px;
+}
+
+.details div span {
+    font-size: 0.6rem;
+    font-weight: bold;
+}
+
+.details div input {
+    width: 30%;
+    border-radius: 15px;
+}
+
+.total span {
+    font-size: 0.7rem !important;
+}
+
+.method {
+    display: flex;
+    width: 100%;
+    font-size: 0.6rem;
+    justify-self: center;
+    justify-content: space-evenly;
+    align-items: center;
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+.method>.col>button {
+    margin-left: 10px;
+}
+
+.method div {
+    display: flex;
+    gap: 5px;
+}
+
+.method div>button {
+    border-radius: 10px;
+    background-color: white;
+    border: 1px solid black;
+}
+
+.items {
+    height: 28%;
+
+    width: 100%;
+    align-self: center;
+    overflow-y: auto;
+}
+
+.right-side .order {
+    width: 100%;
+    margin-left: 0px;
+}
+
+.right-side .items,
+.right-side .details,
+.right-side .method {
+    flex-shrink: 0;
+}
+
+.right-side .order button {
+    width: 100%;
+}
+
+.right-side .order button {
+    height: 40px;
+    border: none;
+    border-top: 2px solid black !important;
+    background-color: transparent;
+}
+
+.items>div {}
+
+.dt-button {
+    height: 20px;
+    font-size: 0.5rem;
+    width: 150px;
+}
+
+.po-btn:disabled {
+    /* Slightly faded */
+    color: black !important;
+    /* Keep text visible */
+    pointer-events: none;
+    background-color: #fff !important;
+    /* Prevent clicks */
+}
+

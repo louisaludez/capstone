@@ -41,4 +41,5 @@ def search_items_ajax(request):
         items = items.filter(item_category__icontains=category)
 
     html = render_to_string('cafe/staff/includes/item_cards.html', {'items': items})
+    print(html)
     return JsonResponse({'html': html})
