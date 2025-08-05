@@ -3,18 +3,189 @@
 {% block title %}
   Guest Booking
 {% endblock %}
+
 {% block link %}
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 {% endblock %}
+
 {% block extra_head %}
-
+  <style>
+    .booking-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .booking-card {
+      border: 1px solid #2e7d32;
+      border-radius: 10px;
+      padding: 20px;
+      width: 100%;
+      max-width: 800px;
+      background-color: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stay-type {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .stay-btn {
+      padding: 8px 16px;
+      border: 1px solid #2e7d32;
+      background: white;
+      color: #2e7d32;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .stay-btn.active {
+      background: #e8f5e9;
+      font-weight: 600;
+    }
+    
+    .booking-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .date-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid #2e7d32;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background-color: #fff;
+      gap: 10px;
+      flex: 2;
+      min-width: 300px;
+    }
+    
+    .guest-select {
+      display: flex;
+      align-items: center;
+      border: 1px solid #2e7d32;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background-color: #fff;
+      gap: 10px;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .date-input label,
+    .guest-select label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    
+    .separator {
+      padding: 0 10px;
+      color: #ccc;
+    }
+    
+    .dropdown-icon {
+      margin-left: auto;
+      color: #2e7d32;
+    }
+    
+    .search-btn-wrapper {
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .search-btn {
+      padding: 10px 40px;
+      background-color: #74b65d;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    
+    .search-btn:hover {
+      background-color: #689f38;
+    }
+    .btns {
+      width: 200px;
+      border: 1px solid black;
+    }
+    .calendars {
+      width: 110px;
+      border: 1px solid black !important;
+    }
+    .active-btn {
+      background-color: #e6ffd6 !important;
+    }
+  </style>
 {% endblock %}
+
 {% block sidebar %}
   {% include './includes/sidebar.html' with active_page='home' %}
 {% endblock %}
-{% block content %}
 
+{% block content %}
+  <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="p-4 border rounded" style="border-color: #357a36 !important; max-width: 900px; width: 100%;">
+      <!-- Stay type buttons -->
+      <div class="d-flex justify-content-start gap-2 mb-3">
+        <button class="btn btns active-btn">Overnight Stays</button>
+        <button class="btn btns">Day Use Stays</button>
+      </div>
+
+      <!-- Main filter row -->
+      <div class="d-flex flex-wrap gap-2">
+        <!-- Merged Check-in/Check-out -->
+        <div class="border rounded p-3 d-flex justify-content-between align-items-center flex-fill calendars">
+          <!-- Check-in -->
+          <div class="text-center pe-3" style="flex: 1;">
+            <div>
+              <i class="bi bi-calendar"></i> <strong>20 Jun 2025</strong>
+            </div>
+            <small class="text-muted">Saturday</small>
+          </div>
+
+          <!-- Vertical Divider -->
+          <div style="width: 1px; background-color: #ccc; height: 40px;"></div>
+
+          <!-- Check-out -->
+          <div class="text-center ps-3" style="flex: 1;">
+            <div>
+              <i class="bi bi-calendar"></i> <strong>21 Jun 2025</strong>
+            </div>
+            <small class="text-muted">Sunday</small>
+          </div>
+        </div>
+
+        <!-- Guests -->
+        <div class="border rounded p-3 flex-fill d-flex justify-content-between align-items-center" style="min-width: 220px; border:1px solid black !important;">
+          <div>
+            <div>
+              <i class="bi bi-people"></i> <strong>2 Adults</strong>
+            </div>
+            <small class="text-muted">1 room</small>
+          </div>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </div>
+
+      <!-- Search Button -->
+      <div class="d-flex justify-content-center mt-4">
+        <button class="btn btn-success px-5 fw-bold">Search</button>
+      </div>
+    </div>
+  </div>
 {% endblock %}
+
 {% block extra_js %}
 
 {% endblock %}
