@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  MCQ
+{% endblock %}
+{% block extra_head %}
+  <style>
+    .mcq-card {
+      text-align: center;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      margin: auto;
+      font-family: Arial, sans-serif;
+      height: 312px !important;
+    }
+    
+    .card-image img {
+      width: 140px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+    
+    .card-title {
+      color: #13221b;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    .test-title {
+      font-size: 0.9rem;
+      color: #13221b;
+    }
+    .test-definition {
+      font-size: 0.6rem !important;
+      color: #6c757d;
+    }
+    .container {
+      display: flex;
+      justify-content: center; /* centers horizontally */
+      align-items: center;
+      height: 100vh; /* full viewport height */
+    }
+  </style>
+{% endblock %}
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-4">
+        <div class="mcq-card">
+          <div class="card-image">
+            <img src="{% static 'images/SPTT2.png' %}" alt="MCQ Icon" />
+          </div>
+          <div class="card-title">
+            Speech-to-text<br />Speed and <br />Accuracy Test
+          </div>
+        </div>
+      </div>
+
+      <div class="col-8">
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 1. Beginner’s Luck</h6>
+                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+              </div>
+              <div>
+                <button class="btn btn-sm text-success border-0"><i class="bi bi-caret-right-fill fs-5"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 2. Can you do it?</h6>
+                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+              </div>
+              <div>
+                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 3. Halfway thru!</h6>
+                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+              </div>
+              <div>
+                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 4. Fake it 'till you make it</h6>
+                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+              </div>
+              <div>
+                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 5. Final Destination</h6>
+                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+              </div>
+              <div>
+                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+
+{% endblock %}

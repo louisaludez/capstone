@@ -35,7 +35,8 @@ urlpatterns = [
     path('concierge/', include('concierge.urls')),
     path('activity/', include('activity.urls')),
     path('housekeeping/', include('housekeeping.urls')),
-    
+    path('assessment/',include('assessment.urls')),
+    path('guestbooking/', include('guestbooking.urls')),
     
 ]
 

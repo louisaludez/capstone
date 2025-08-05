@@ -53,7 +53,9 @@ INSTALLED_APPS = [
     'concierge',
     'room_service',
     'activity',
-    'housekeeping'
+    'housekeeping',
+    'assessment',
+    'guestbooking',
 ]
 
 
