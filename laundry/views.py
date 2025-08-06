@@ -10,6 +10,8 @@ import json
 from staff.models import Guest , Booking
 from laundry.models import LaundryTransaction
 from datetime import datetime
+from django.db.models import Q
+from django.template.loader import render_to_string
 
 # Helper to map general and specific roles
 def get_related_roles(role):
@@ -71,13 +73,29 @@ def staff_laundry_messages(request):
     })
 
 
+
 def staff_laundry_orders(request):
-   
-    orders = LaundryTransaction.objects.select_related('guest').order_by('-date_time')
-    
+    search_query = request.GET.get('search', '')
+    orders = LaundryTransaction.objects.select_related('guest')
+
+    if search_query:
+        orders = orders.filter(
+            Q(id__icontains=search_query) |
+            Q(guest__name__icontains=search_query) |
+            Q(service_type__icontains=search_query)
+        )
+
+    orders = orders.order_by('-date_time')
+
+    # AJAX response
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string("includes/order_rows.html", {"orders": orders})
+        return JsonResponse({'html': html})
+
     return render(request, "laundry/orders.html", {
         "orders": orders
     })
+
 def getGuest(request, guest_id):
     if request.method == 'GET':
         print(f"Fetching guest with ID: {guest_id}")

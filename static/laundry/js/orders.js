@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", (event) => {
+
+  $(document).ready(function () {
     const deleteButtons = document.querySelectorAll(".delete-order-btn");
     deleteButtons.forEach((button) => {
         button.addEventListener("click", (e) => {
@@ -31,4 +32,25 @@ document.addEventListener("DOMContentLoaded", (event) => {
             });
         });
     });
-});
+
+
+
+
+    $('.search-bar').on('keyup', function () {
+      let query = $(this).val();
+
+      $.ajax({
+        url: '/laundry/orders/',
+        type: 'GET',
+        data: {
+          'search': query
+        },
+        success: function (data) {
+          $('#orders-container').html(data.html);
+        },
+        error: function (xhr, status, error) {
+          console.error('AJAX Error:', error);
+        }
+      });
+    });
+  });
