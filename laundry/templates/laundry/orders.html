@@ -4,13 +4,91 @@
   Staff Laundry Orders
 {% endblock %}
 {% block extra_head %}
-
+  <link rel="stylesheet" href="{% static 'laundry/css/orders.css' %}" />
 {% endblock %}
 {% block sidebar %}
   {% include '../includes/sidebar.html' with active_page='orders' %}
 {% endblock %}
 {% block content %}
+  <div class="container">
+    <!-- Filters -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Orders</h2>
+      <div class="d-flex">
+        <button class="btn btn-outline-secondary me-2">Filter</button>
+        <button class="btn btn-outline-secondary me-2">Sort</button>
+        <input type="text" class="form-control w-auto search-bar" placeholder="Search" />
+      </div>
+    </div>
 
+    <!-- Table Header -->
+    <div class="row table-header py-2 text-center">
+      <div class="col-1">
+        <input type="checkbox" />
+      </div>
+      <div class="col-2">Receipt No.</div>
+      <div class="col-2">Customer</div>
+      <div class="col-2">Service Type</div>
+      <div class="col-2">Date and Time</div>
+      <div class="col-2">Status</div>
+      <div class="col-1">Actions</div>
+    </div>
+
+    <!-- Table Rows -->
+    {% for order in orders %}
+      <div class="row row-border text-center align-items-center">
+        <div class="col-1">
+          <input type="checkbox" />
+        </div>
+        <div class="col-2">{{ order.id }}</div>
+        <div class="col-2">{{ order.guest.name }}</div>
+        <div class="col-2">{{ order.service_type }}</div>
+        <div class="col-2">{{ order.created_at|date:'H:i d/m/Y' }}</div>
+        <div class="col-2">
+          <span class="status-pending">Pending</span>
+        </div>
+        <div class="col-1 actions d-flex justify-content-center g-1">
+          <button class="btn"><i class="bi bi-eye-slash"></i></button>
+          <button class="btn"><i class="bi bi-pencil-square"></i></button>
+          <button class="btn"><i class="bi bi-trash text-danger"></i></button>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center py-4">
+        <p>No laundry orders found.</p>
+      </div>
+    {% endfor %}
+    <!-- Add more rows like above with status-finished, status-cancelled, etc. -->
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between mt-4">
+      <div>
+        <label for="pages">Pages</label>
+        <select id="pages" class="form-select d-inline-block w-auto">
+          <option selected>100/100</option>
+        </select>
+      </div>
+      <nav>
+        <ul class="pagination">
+          <li class="page-item">
+            <a class="page-link" href="#">1</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="#">2</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="#">3</a>
+          </li>
+          <li class="page-item disabled">
+            <a class="page-link" href="#">...</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="#">100</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
 {% endblock %}
 {% block extra_js %}
 

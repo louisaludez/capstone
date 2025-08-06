@@ -33,7 +33,7 @@ def staff_laundry_home(request):
         'guests': guests,                                     
     })
 
-@decorator.role_required('staff_laundry')
+
 def staff_laundry_messages(request):
     receiver_role = request.GET.get('receiver_role', 'Admin')
     user_role = request.user.role
@@ -62,7 +62,7 @@ def staff_laundry_messages(request):
     except:
         receiver_username = "Unknown"
 
-    return render(request, "staff_laundry/messages.html", {
+    return render(request, "laundry/messenger.html", {
         "room_name": room_name,
         "receiver_role": receiver_role,
         "receiver_username": receiver_username,
@@ -72,10 +72,12 @@ def staff_laundry_messages(request):
 
 
 def staff_laundry_orders(request):
-    # You’ll eventually load laundry orders from your new model here
-    return render(request, "laundry/orders.html")
-
-
+   
+    orders = LaundryTransaction.objects.select_related('guest').order_by('-date_time')
+    
+    return render(request, "laundry/orders.html", {
+        "orders": orders
+    })
 def getGuest(request, guest_id):
     if request.method == 'GET':
         print(f"Fetching guest with ID: {guest_id}")
