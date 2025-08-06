@@ -15,8 +15,8 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Orders</h2>
       <div class="d-flex">
-        <button class="btn btn-outline-secondary me-2">Filter</button>
-        <button class="btn btn-outline-secondary me-2">Sort</button>
+        <button class="btn btn-outline-secondary me-2 text-black"><i class="bi bi-filter text-black"></i>Filter</button>
+        <button class="btn btn-outline-secondary me-2 text-black">Sort <i class="bi bi-sort-down text-black"></i></button>
         <input type="text" class="form-control w-auto search-bar" placeholder="Search" />
       </div>
     </div>
@@ -50,7 +50,7 @@
         <div class="col-1 actions d-flex justify-content-center g-1">
           <button class="btn"><i class="bi bi-eye-slash"></i></button>
           <button class="btn"><i class="bi bi-pencil-square"></i></button>
-          <button class="btn"><i class="bi bi-trash text-danger"></i></button>
+          <button class="btn delete-order-btn"><i class="bi bi-trash text-danger"></i></button>
         </div>
       </div>
     {% empty %}
@@ -58,7 +58,6 @@
         <p>No laundry orders found.</p>
       </div>
     {% endfor %}
-    <!-- Add more rows like above with status-finished, status-cancelled, etc. -->
 
     <!-- Pagination -->
     <div class="d-flex justify-content-between mt-4">
@@ -91,5 +90,6 @@
   </div>
 {% endblock %}
 {% block extra_js %}
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{% static 'laundry/js/orders.js' %}"></script>
 {% endblock %}
