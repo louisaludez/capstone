@@ -27,7 +27,7 @@ urlpatterns = [
     path('',include("staff.urls")),
     path('staff/', include('staff.urls')),
     path('laundry/', include('laundry.urls')),
-    path('hmsAdmin/', include('hmsAdmin.urls')),
+    path('adminNew/', include('adminNew.urls')),
     path('users/', include('users.urls')),
      path('chat/', include(('chat.urls', 'chat'), namespace='chat')),
     path('cafe/', include('cafe.urls')),

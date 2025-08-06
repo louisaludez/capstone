@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'staff',
     'laundry',
-    'hmsAdmin',
+  
     'users',
     'globals',
     'cafe',
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'housekeeping',
     'assessment',
     'guestbooking',
+    'adminNew'
 ]
 
 
