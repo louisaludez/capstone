@@ -29,7 +29,7 @@ def get_related_roles(role):
 
 def staff_laundry_home(request):
     guests = Guest.objects.all()
-    return render(request, 'staff_laundry/dd.html',{
+    return render(request, 'staff_laundry/home.html',{
         'guests': guests,                                     
     })
 
@@ -70,7 +70,7 @@ def staff_laundry_messages(request):
         "current_user_id": request.user.id,
     })
 
-@decorator.role_required('staff_laundry')
+
 def staff_laundry_orders(request):
     # You’ll eventually load laundry orders from your new model here
     return render(request, "staff_laundry/orders.html")

@@ -4,8 +4,8 @@
     <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" />
   </div>
   <div class="sidebar-menu mt-4 mb-5">
-    <a href="" class="{% if active_page == 'pos' %}active{% endif %}">POS</a>
-    <a href="" class="{% if active_page == 'orders' %}active{% endif %}">Orders</a>
+    <a href="{% url 'staff_laundry_home' %}" class="{% if active_page == 'pos' %}active{% endif %}">POS</a>
+    <a href="{% url 'staff_laundry_orders' %}" class="{% if active_page == 'orders' %}active{% endif %}">Orders</a>
     <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
     <a href="{% url 'activity_home' %}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
   </div>
