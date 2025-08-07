@@ -26,7 +26,7 @@ def login(request):
             
             # Redirect based on role
             if user.role == 'admin':
-                return redirect('HomeAdmin')  
+                return redirect('admin_home')  
             elif user.role == 'personnel':
                 return redirect('activity_home')
             elif user.role == 'supervisor_laundry':

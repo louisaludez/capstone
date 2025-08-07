@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Admin reports
+{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'admin/css/messenger.css' %}" />
+{% endblock %}
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='messenger' %}
+{% endblock %}
+{% block content %}
+
+{% endblock %}
+{% block extra_js %}
+  <script src="{% static 'admin/js/messenger.js' %}"></script>
+{% endblock %}

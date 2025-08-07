@@ -126,3 +126,7 @@ def edit_user(request, user_id):
         'role': user.role
     }
     return JsonResponse(data)
+def admin_reports(request):
+    return render(request, "adminNew/reports.html")
+def admin_messenger(request):
+    return render(request, "adminNew/messenger.html")
