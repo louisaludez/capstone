@@ -9,4 +9,10 @@ urlpatterns = [
     path("accounts/delete-user/<int:user_id>/", delete_user, name="delete_user"),
     path('reports/', admin_reports, name='admin_reports'),
     path('messenger/', admin_messenger, name='admin_messenger'),
+    path('reports/front-office/', admin_front_office_reports, name='admin_front_office_reports'),
+    path('reports/cafe/', admin_cafe_reports, name='admin_cafe_reports'),
+    path('reports/laundry/', admin_laundry_reports, name='admin_laundry_reports'),
+    path('reports/housekeeping/', admin_housekeeping_reports, name='admin_housekeeping_reports'),
+    path('reports/speech/', admin_speech_reports, name='admin_speech_reports'),
+    path('reports/mcq/', admin_mcq_reports, name='admin_mcq_reports'),
 ]

@@ -130,3 +130,15 @@ def admin_reports(request):
     return render(request, "adminNew/reports.html")
 def admin_messenger(request):
     return render(request, "adminNew/messenger.html")
+def admin_front_office_reports(request):
+    return render(request, "adminNew/front_office_reports.html")
+def admin_cafe_reports(request):
+    return render(request, "adminNew/cafe_reports.html")
+def admin_housekeeping_reports(request):
+    return render(request, "adminNew/housekeeping_reports.html")
+def admin_laundry_reports(request):
+    return render(request, "adminNew/laundry_reports.html")
+def admin_mcq_reports(request):
+    return render(request, "adminNew/mcq_reports.html")
+def admin_speech_reports(request):
+    return render(request, "adminNew/speech_reports.html")
