@@ -1,0 +1,23 @@
+{% for order in orders %}
+  <div class="row row-border text-center align-items-center">
+    <div class="col-1">
+      <input type="checkbox" />
+    </div>
+    <div class="col-2">{{ order.id }}</div>
+    <div class="col-2">{{ order.guest.name }}</div>
+    <div class="col-2">{{ order.service_type }}</div>
+    <div class="col-2">{{ order.created_at|date:'H:i d/m/Y' }}</div>
+    <div class="col-2">
+      <span class="status-pending">Pending</span>
+    </div>
+    <div class="col-1 actions d-flex justify-content-center g-1">
+      <button class="btn"><i class="bi bi-eye-slash"></i></button>
+      <button class="btn"><i class="bi bi-pencil-square"></i></button>
+      <button class="btn delete-order-btn"><i class="bi bi-trash text-danger"></i></button>
+    </div>
+  </div>
+{% empty %}
+  <div class="text-center py-4">
+    <p>No laundry orders found.</p>
+  </div>
+{% endfor %}

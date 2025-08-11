@@ -13,7 +13,7 @@
   <div class="container">
     <!-- Filters -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="mb-0">Orders</h2>
+      <h2 class="mb-0">Cafe Reports</h2>
       <div class="d-flex">
         <button class="btn btn-outline-secondary me-2 text-black"><i class="bi bi-filter text-black"></i>Filter</button>
         <button class="btn btn-outline-secondary me-2 text-black">Sort <i class="bi bi-sort-down text-black"></i></button>
@@ -22,27 +22,22 @@
     </div>
     <div class="row boxes">
       <div class="col">
-        <p class="title">Total Walk-ins</p>
+        <p class="title">Total Transactions</p>
 
         <span class="number">100</span>
       </div>
       <div class="col">
-        <p class="title">Total Walk-ins</p>
+        <p class="title">Total Item-Sold</p>
 
         <span class="number">100</span>
       </div>
       <div class="col">
-        <p class="title">Total Walk-ins</p>
+        <p class="title">Most Sold Item</p>
 
-        <span class="number">100</span>
+        <span class="number">Iced Spanish Latte</span>
       </div>
       <div class="col">
-        <p class="title">Total Walk-ins</p>
-
-        <span class="number">100</span>
-      </div>
-      <div class="col">
-        <p class="title">Total Walk-ins</p>
+        <p class="title">Total Revenue</p>
 
         <span class="number">100</span>
       </div>
@@ -62,7 +57,7 @@
 
     <!-- Table Rows -->
     <div id="orders-container">
-      {% include '../includes/order_rows.html' %}
+      {% include './includes/order_rows.html' %}
     </div>
 
     <!-- Pagination -->

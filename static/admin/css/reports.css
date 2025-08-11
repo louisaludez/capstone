@@ -57,16 +57,26 @@
      color: black !important;
  }
 
- .boxes>.col {
+ .boxes .col {
      border: 2px solid black;
      margin: 10px;
      border-radius: 10px;
+
+     flex: 0 0 185px !important;
+     height: 100px;
  }
 
  .boxes>.col p {
      font-weight: bold !important;
-     font-size: 1.2rem;
+     font-size: 0.8rem;
 
+ }
+
+ .boxes>.col .number {
+     font-size: 1.5rem;
+     font-weight: bold;
+     color: black;
+     text-align: center;
  }
 
  .boxes {
