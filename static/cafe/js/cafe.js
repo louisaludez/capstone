@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const placeOrderBtn = document.querySelector(".po-btn");
   let currentCategory = "";
   let currentSearch = "";
+  let currentSubtotalValue = 0;
+  const detailsRow = document.querySelector(".row.details");
   const selectedNames = [];
   function checkSelections() {
     const dineSelected = document.querySelector(".dt-button.active");
@@ -26,14 +28,101 @@ document.addEventListener("DOMContentLoaded", () => {
       dtButtons.forEach((b) => b.classList.remove("active"));
       this.classList.add("active");
       checkSelections();
+
     });
   });
+
+  const paymentDetailsTemplates = {
+    "Cash Payment": `
+    <div class="col-12 d-flex justify-content-between mb-2">
+      <span>Subtotal</span>
+      <input type="text" placeholder="0.00" disabled class="subtotal" id="subtotal" />
+    </div>
+    <div class="col-12 d-flex justify-content-between mb-2">
+      <span>Cash Tendered</span>
+      <input type="text" id="cash-tentered" />
+    </div>
+    <div class="col-12 d-flex justify-content-between mb-2">
+      <span>Change</span>
+      <input type="text" value="0.00" disabled id="change" />
+    </div>
+    <div class="col-12 d-flex justify-content-between mb-2 total">
+      <span>TOTAL</span>
+      <span id="total">0.00</span>
+    </div>
+  `,
+    "Card Payment": `
+    <div class="col-12 d-flex justify-content-between mb-2">
+      <span>Subtotal</span>
+      <input type="text" placeholder="0.00" disabled class="subtotal" id="subtotal" />
+    </div>
+    <div class="col-12 d-flex justify-content-between mb-2">
+      <span>Card Number</span>
+      <input type="text" id="card-number" />
+    </div>
+    <div class="col-12 d-flex justify-content-between mb-2 total">
+      <span>TOTAL</span>
+      <span id="total">0.00</span>
+    </div>
+  `,
+    "Charge to room": `
+    <div class="col-12 d-flex justify-content-between mb-2 total">
+      <span>TOTAL</span>
+      <span id="total">0.00</span>
+    </div>
+  `
+  };
+  function bindCashTendered() {
+    const cashTentered = document.getElementById("cash-tentered");
+    if (!cashTentered) return;
+    cashTentered.addEventListener("input", function () {
+      console.log('sfsdf');
+      const subtotalField = document.getElementById("subtotal");
+      const stotal = parseFloat(subtotalField ? subtotalField.value : currentSubtotalValue) || 0;
+      const tendered = parseFloat(this.value) || 0;
+      let total = tendered - stotal;
+      if (total < 0) total = 0;
+      const change = document.getElementById("change");
+      if (change) change.value = total.toFixed(2);
+
+      const totalTextEl = document.getElementById("total");
+      if (totalTextEl) totalTextEl.innerText = "P" + stotal.toFixed(2);
+    });
+  }
+  function updateSubtotal(amount) {
+    const subtotalField = document.getElementById("subtotal");
+
+    let current = parseFloat(subtotalField ? subtotalField.value : currentSubtotalValue) || 0;
+
+    let newTotal = current + amount;
+    if (newTotal < 0) newTotal = 0;
+    currentSubtotalValue = newTotal;
+
+    // Update subtotal if it exists
+    if (subtotalField) subtotalField.value = newTotal.toFixed(2);
+
+
+    const totalTextEl = document.getElementById("total");
+    if (totalTextEl) totalTextEl.innerText = "P" + newTotal.toFixed(2);
+    bindCashTendered();
+
+  }
+
   const paymentButtons = document.querySelectorAll(".pm");
   paymentButtons.forEach((btn) => {
     btn.addEventListener("click", function () {
       paymentButtons.forEach((b) => b.classList.remove("active"));
       this.classList.add("active");
       checkSelections();
+      const method = this.textContent.trim();
+      if (paymentDetailsTemplates[method]) {
+        detailsRow.innerHTML = paymentDetailsTemplates[method];
+        const subtotalField = document.getElementById("subtotal");
+        if (subtotalField) subtotalField.value = currentSubtotalValue.toFixed(2);
+        const totalTextEl = document.getElementById("total");
+        if (totalTextEl) totalTextEl.innerText = "P" + currentSubtotalValue.toFixed(2);
+        bindCashTendered();
+      }
     });
   });
   function fetchItems() {
@@ -83,9 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add new item markup
     rowItems.insertAdjacentHTML(
-      "beforeend",
-      `
-      <div class="col-6 mb-2">
+      "beforeend", `<div class="col-6 mb-2">
         <div class="border rounded px-2 py-1" style="font-size: 0.85rem;">
           <strong style="font-size: 0.5rem;">${name}</strong><br />
           <small class="text-muted" style="font-size: 0.5rem;">${category}</small>
@@ -110,13 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSubtotal(priceValue);
   }
 
-  function updateSubtotal(amount) {
-    let current = parseFloat(subtotal.value) || 0;
-    let newTotal = current + amount;
-    if (newTotal < 0) newTotal = 0;
-    subtotal.value = newTotal.toFixed(2);
-    totalText.innerText = "P" + newTotal.toFixed(2);
-  }
+
 
   function verify(myArray, myString) {
     return myArray
@@ -132,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isAdd && !isSubtract) return;
 
       const name = e.target.dataset.quantity;
-      const input = document.querySelector(`input[data-quantity="${name}"]`);
+      const input = document.querySelector(`input[data-quantity= "${name}"]`);
       if (!input) return;
 
       const price = parseFloat(input.dataset.price);
@@ -162,15 +243,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  cashTentered.addEventListener("input", function () {
-    const stotal = parseFloat(subtotal.value) || 0;
-    const tendered = parseFloat(cashTentered.value) || 0;
-    let total = tendered - stotal;
-    if (total < 0) total = 0;
-    change.value = total.toFixed(2);
-    totalText.innerText = "P" + stotal.toFixed(2);
-  });
-
   // Initial bind
   bindMenuCardEvents();
+
+  placeOrderBtn.addEventListener("click", function () {
+    const guest = document.getElementById("customer-select");
+    let dineMethod = document.querySelector(".dt-button.active")?.textContent || "";
+    let paymentMethod = document.querySelector(".pm.active")?.textContent || "";
+    const cardnumber = document.getElementById("card-number")?.value || 0;
+
+    // Place order logic here
+    const orderItems = [];
+    document.querySelectorAll('input[data-quantity]').forEach(input => {
+      orderItems.push({
+        name: input.dataset.quantity,
+        quantity: parseInt(input.value),
+        price: parseFloat(input.dataset.price)
+      });
+    });
+    $.ajax({
+      url: "/cafe/staff/create-order/",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        items: orderItems,
+        subtotal: subtotal.value,
+        cash_tendered: cashTentered.value,
+        guest: guest.value,
+        dine_type: dineMethod,
+        payment_method: paymentMethod,
+        cashTentered: cashTentered.value,
+        card: cardnumber
+
+      }),
+      success: function (response) {
+        Swal.fire({
+          icon: "success",
+          title: "Order placed successfully",
+          showConfirmButton: false,
+          timer: 1500
+        }).then(() => {
+          location.reload();
+        });
+      },
+      error: function (error) {
+
+        console.error("Error placing order:", error);
+      }
+    });
+  });
 });
