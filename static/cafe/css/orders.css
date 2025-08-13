@@ -1,17 +1,33 @@
+.left-side,
+.right-side {
+    height: calc(100vh - 100px);
+    /* Full viewport height */
+
+    padding: 10px;
+}
+
 .left-side {
     border-right: 2px dotted black;
-    height: 100%;
+
 }
 
 .container-fluid {
+    overflow-y: auto;
+    height: 100vh;
+    margin-top: 10px;
 
-    height: 100%;
 }
 
 .title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 10px;
+    background: white;
+    /* So text isn't covered by orders */
+    position: sticky;
+    top: 30px;
+    padding: 10px 0;
+    z-index: 10;
 }
 
 .col-6 {
@@ -27,15 +43,14 @@
 }
 
 .receipt-container {
-    width: 250px;
     border: 2px solid green;
     border-radius: 8px;
     padding: 10px;
     text-align: center;
     font-family: Arial, sans-serif;
     color: #043c1b;
-    margin: 0 auto;
-    height: 240px;
+    margin: 0 auto 10px auto;
+    min-width: 250px;
 }
 
 .receipt-header {

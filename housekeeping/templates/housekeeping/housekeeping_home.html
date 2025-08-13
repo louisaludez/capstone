@@ -10,21 +10,21 @@
   {% include './includes/housekeeping_sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="main">
-    <h1>Room Service | Housekeeping</h1>
+  <div class="main mx-5">
+    <h1>Room Service| Housekeeping</h1>
     <div class="room-parent" style="margin-bottom: 0;">
-      <div class="div1 vacant">R1</div>
-      <div class="div2 prog">R2</div>
-      <div class="div3 pending">R3</div>
-      <div class="div4 vacant">R4</div>
-      <div class="div5 pending">R5</div>
-      <div class="div6 prog">R6</div>
-      <div class="div7 vacant">R7</div>
-      <div class="div8 prog">R8</div>
-      <div class="div9 prog">R9</div>
-      <div class="div10 prog">R10</div>
-      <div class="div11 vacant">R11</div>
-      <div class="div12 vacant">R12</div>
+      <div class="div1 vacant room-box">R1</div>
+      <div class="div2 prog room-box">R2</div>
+      <div class="div3 pending room-box">R3</div>
+      <div class="div4 vacant room-box">R4</div>
+      <div class="div5 pending room-box">R5</div>
+      <div class="div6 prog room-box">R6</div>
+      <div class="div7 vacant room-box">R7</div>
+      <div class="div8 prog room-box">R8</div>
+      <div class="div9 prog room-box">R9</div>
+      <div class="div10 prog room-box">R10</div>
+      <div class="div11 vacant room-box">R11</div>
+      <div class="div12 vacant room-box">R12</div>
       <div class="div13">
         <div>
           <div class="box vacant"></div>
@@ -38,6 +38,21 @@
       <div class="div14">
         <div class="box pending"></div>
         <span>Pending Requests</span>
+      </div>
+    </div>
+    <div id="room-popover" class="room-popover hidden">
+      <div class="popover-arrow"></div>
+      <div class="popover-content">
+        <h4>Select Requests</h4>
+        <label><input type="radio" name="req" />Clean room.</label><br />
+        <label><input type="radio" name="req" />Refill toiletries.</label><br />
+        <label><input type="radio" name="req" />Refill convenience items.</label><br />
+        <label class="disabled"><input type="radio" name="req" disabled />Change linens. <span>(Bathrobes, Towels, Bedsheets, Pillowcases)</span></label>
+        <div class="status-buttons">
+          <button class="in-progress">In progress</button>
+          <button class="pending">Pending</button>
+          <button class="no-requests">No requests</button>
+        </div>
       </div>
     </div>
     <div style="max-width: 900px; background: #fff; border-radius: 8px;  margin-top: -130px;">
@@ -103,5 +118,27 @@
   </div>
 {% endblock %}
 {% block extra_js %}
-
+  <script>
+    const popover = document.getElementById('room-popover')
+    
+    document.querySelectorAll('.room-box').forEach((box) => {
+      box.addEventListener('click', (e) => {
+        const rect = box.getBoundingClientRect()
+    
+        // Position popover to the right of the box
+        popover.style.left = `${rect.right + window.scrollX + 10}px`
+        popover.style.top = `${rect.top + window.scrollY}px`
+    
+        // Show popover
+        popover.classList.remove('hidden')
+      })
+    })
+    
+    // Hide popover if clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.room-box') && !e.target.closest('#room-popover')) {
+        popover.classList.add('hidden')
+      }
+    })
+  </script>
 {% endblock %}

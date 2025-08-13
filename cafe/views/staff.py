@@ -183,8 +183,8 @@ def create_order(request):
 
 
 def staff_cafe_orders(request):
-    dine_in_orders = CafeOrder.objects.filter(service_type='dine_in').order_by('-order_date')[:4]
-    take_out_orders = CafeOrder.objects.filter(service_type='take_out').order_by('-order_date')[:4]
+    dine_in_orders = CafeOrder.objects.filter(service_type='dine_in').order_by('-order_date')
+    take_out_orders = CafeOrder.objects.filter(service_type='take_out').order_by('-order_date')
 
     context = {
         'dine_in_orders': dine_in_orders,
