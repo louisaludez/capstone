@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Cafe Staff Orders
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <link rel="stylesheet" href="{% static 'cafe/css/orders.css' %}" />
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='orders' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-6 left-side">
+        <span class="title">Take Out</span>
+        <div class="row">
+          {% for order in take_out_orders %}
+            <div class="col-6">
+              <div class="receipt-container">
+                <div class="receipt-header">
+                  <img src="{% static 'images/New HMS-B.png' %}" alt="Logo" class="receipt-logo" />
+                </div>
+
+                <hr class="receipt-line" />
+
+                <div class="receipt-info">
+                  <p>Date and Time: {{ order.order_date|date:'d/m/Y h:i A' }}</p>
+                  <p>Customer Name: {{ order.customer_name }}</p>
+                  <p>
+                    Receipt no. <span style="font-weight: bold !important;"><u>{{ order.id|stringformat:'05d' }}</u></span>
+                  </p>
+                </div>
+
+                <table class="receipt-table">
+                  <thead>
+                    <tr>
+                      <th>Item Type</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in order.items.all %}
+                      <tr>
+                        <td>{{ item.item.name }}</td>
+                        <td>x{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+
+                <p class="receipt-order">Order no. #{{ order.id|stringformat:'05d' }}</p>
+
+                <button class="receipt-done">Done</button>
+              </div>
+            </div>
+          {% empty %}
+            <p>No dine-in orders</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-6 right-side">
+        <span class="title">Dine In</span>
+        <div class="row">
+          {% for order in dine_in_orders %}
+            <div class="col-6">
+              <div class="receipt-container">
+                <div class="receipt-header">
+                  <img src="{% static 'images/New HMS-B.png' %}" alt="Logo" class="receipt-logo" />
+                </div>
+
+                <hr class="receipt-line" />
+
+                <div class="receipt-info">
+                  <p>Date and Time: {{ order.order_date|date:'d/m/Y h:i A' }}</p>
+                  <p>Customer Name: {{ order.customer_name }}</p>
+                  <p>
+                    Receipt no. <span style="font-weight: bold !important;"><u>{{ order.id|stringformat:'05d' }}</u></span>
+                  </p>
+                </div>
+
+                <table class="receipt-table">
+                  <thead>
+                    <tr>
+                      <th>Item Type</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in order.items.all %}
+                      <tr>
+                        <td>{{ item.item.name }}</td>
+                        <td>x{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <div class="mt-auto d-flex flex-column align-items-center">
+                  <p class="receipt-order">Order no. #{{ order.id|stringformat:'05d' }}</p>
+
+                  <button class="receipt-done">Done</button>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <p>No dine-in orders</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{% static 'cafe/js/orders.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Cafe Staff Orders
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'main.css' %}" />
+<link rel="stylesheet" href="{% static 'cafe/css/cafe.css' %}" />
+{% endblock %}
+
+{% block sidebar %}
+{% include './includes/sidebar.html' with active_page='orders' %}
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'cafe/js/cafe.js' %}"></script>
+{% endblock %}

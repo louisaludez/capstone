@@ -70,11 +70,12 @@ def create_order(request):
             total = float(data.get("total", subtotal))
             cash_tendered = float(data.get("cash_tendered") or 0)
             guest_id = data.get("guest")
+
             dine_type = data.get("dine_type")
             payment_method = data.get("payment_method")
-            customer_name = data.get("customer_name", "")
+            
             card_number = str(data.get("card", "")).strip()
-
+            print("Customer Name", guest_id)
             # Map payment and service type from frontend text to model choices
             payment_map = { 
                 "Cash Payment": "cash",
@@ -91,10 +92,10 @@ def create_order(request):
 
             # Get guest instance if provided
             guest = Guest.objects.get(id=int(guest_id)) if guest_id else None
-
+            
             # Prepare order kwargs
             order_kwargs = {
-                "customer_name": customer_name,
+                "customer_name": guest.name,
                 "guest": guest,
                 "payment_method": payment_method,
                 "service_type": dine_type,
@@ -179,3 +180,14 @@ def create_order(request):
 #             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 #     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=405)
+
+
+def staff_cafe_orders(request):
+    dine_in_orders = CafeOrder.objects.filter(service_type='dine_in').order_by('-order_date')[:4]
+    take_out_orders = CafeOrder.objects.filter(service_type='take_out').order_by('-order_date')[:4]
+
+    context = {
+        'dine_in_orders': dine_in_orders,
+        'take_out_orders': take_out_orders,
+    }
+    return render(request, 'cafe/staff/orders.html', context)
