@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Housekeeping Timeline
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <style>
+    .housekeeping-table {
+      font-size: 0.85rem;
+    }
+    .housekeeping-table th,
+    .housekeeping-table td {
+      padding: 0.35rem 0.5rem;
+    }
+    .housekeeping-table .badge {
+      font-size: 0.75rem;
+      padding: 0.25em 0.5em;
+    }
+    .housekeeping-table th {
+      background-color: #dddddd;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/housekeeping_sidebar.html' with active_page='timeline' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-2 p-5">
+    <h5>Housekeeping Timeline</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle mt-2 housekeeping-table">
+        <thead class="table-light text-center">
+          <tr>
+            <th>
+              <input type="checkbox" />
+            </th>
+            <th>Room no.</th>
+            <th>Customer</th>
+            <th>Service Type</th>
+            <th>Date and Time</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+          {% for task in housekeeping_tasks %}
+            <tr>
+              <td>
+                <input type="checkbox" value="{{ task.id }}" />
+              </td>
+              <td>{{ task.room_number }}</td>
+              <td>{{ task.guest_name }}</td>
+              <td>{{ task.request_type }}</td>
+              <td>
+                {{ task.created_at|date:'H:i' }}<br />{{ task.created_at|date:'d/m/Y' }}
+              </td>
+              <td>
+                {% if task.status == 'Pending' %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% elif task.status == 'Finished' %}
+                  <span class="badge bg-success">Finished</span>
+                {% elif task.status == 'In progress' %}
+                  <span class="badge bg-info text-dark">In progress</span>
+                {% endif %}
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center">No housekeeping tasks found</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{% static 'cafe/js/cafe.js' %}"></script>
+{% endblock %}

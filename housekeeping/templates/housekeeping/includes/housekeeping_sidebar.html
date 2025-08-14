@@ -5,15 +5,14 @@
   </div>
   <div class="sidebar-menu mt-4 mb-5">
     <a href="{% url 'housekeeping_home' %}" class="{% if active_page == 'home' %}active{% endif %}">Tasks</a>
-    <a href="" class="{% if active_page == 'messages' %}active{% endif %}">Timeline</a>
-    <a href="" class="{% if active_page == 'activities' %}active{% endif %}">Messenger</a>
-    <a href="{% url 'activity_home'%}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
+    <a href="{% url 'timeline' %}" class="{% if active_page == 'timeline' %}active{% endif %}">Timeline</a>
+    <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
+    <a href="{% url 'activity_home' %}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
   </div>
   <div class="mt-auto p-3 d-flex flex-column align-items-center">
     <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold;">
-      <em>You are logged in as <span style="text-decoration: underline;">{{ user.username }}</span></em>
+      <em>You are logged in as<span style="text-decoration: underline;">{{ user.username }}</span></em>
     </p>
-
     <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill"><em>Sign out</em></a>
   </div>
 </div>
