@@ -12,6 +12,9 @@ from laundry.models import LaundryTransaction
 from datetime import datetime
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 # Helper to map general and specific roles
 def get_related_roles(role):
@@ -73,28 +76,203 @@ def staff_laundry_messages(request):
     })
 
 
-
+@login_required
 def staff_laundry_orders(request):
+    # Get query parameters
     search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    sort_by = request.GET.get('sort', '-created_at')
+    page = request.GET.get('page', 1)
+    
+    # Base queryset
     orders = LaundryTransaction.objects.select_related('guest')
-
+    
+    # Apply search filter
     if search_query:
         orders = orders.filter(
             Q(id__icontains=search_query) |
             Q(guest__name__icontains=search_query) |
-            Q(service_type__icontains=search_query)
+            Q(service_type__icontains=search_query) |
+            Q(room_number__icontains=search_query)
         )
-
-    orders = orders.order_by('-date_time')
-
-    # AJAX response
+    
+    # Apply status filter
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # Apply sorting
+    if sort_by == 'created_at':
+        orders = orders.order_by('created_at')
+    elif sort_by == '-created_at':
+        orders = orders.order_by('-created_at')
+    elif sort_by == 'guest__name':
+        orders = orders.order_by('guest__name')
+    elif sort_by == '-guest__name':
+        orders = orders.order_by('-guest__name')
+    elif sort_by == 'status':
+        orders = orders.order_by('status')
+    elif sort_by == '-status':
+        orders = orders.order_by('-status')
+    else:
+        orders = orders.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(orders, 7)  # 7 items per page
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    # AJAX response for dynamic updates
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        html = render_to_string("includes/order_rows.html", {"orders": orders})
-        return JsonResponse({'html': html})
-
+        html = render_to_string("includes/order_rows.html", {
+            "orders": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator
+        })
+        return JsonResponse({
+            'html': html,
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+            'total_count': paginator.count
+        })
+    
     return render(request, "laundry/orders.html", {
-        "orders": orders
+        "orders": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "sort_by": sort_by
     })
+
+
+@login_required
+def view_laundry_order(request, order_id):
+    """View a single laundry order"""
+    order = get_object_or_404(LaundryTransaction, id=order_id)
+    return JsonResponse({
+        'id': order.id,
+        'guest_name': order.guest.name,
+        'room_number': order.room_number,
+        'service_type': order.service_type,
+        'no_of_bags': order.no_of_bags,
+        'specifications': order.specifications or '',
+        'date_time': order.date_time.strftime('%Y-%m-%d'),
+        'payment_method': order.payment_method,
+        'total_amount': float(order.total_amount),
+        'status': order.status,
+        'created_at': order.created_at.strftime('%Y-%m-%d %H:%M')
+    })
+
+
+@login_required
+def edit_laundry_order(request, order_id):
+    """Edit a laundry order"""
+    order = get_object_or_404(LaundryTransaction, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Update order fields
+            order.service_type = data.get('service_type', order.service_type)
+            order.no_of_bags = int(data.get('no_of_bags', order.no_of_bags))
+            order.specifications = data.get('specifications', order.specifications)
+            order.status = data.get('status', order.status)
+            order.payment_method = data.get('payment_method', order.payment_method)
+            
+            # Recalculate total amount
+            BASE_PRICE_PER_BAG = 75.00
+            order.total_amount = BASE_PRICE_PER_BAG * order.no_of_bags
+            
+            order.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Order updated successfully'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'id': order.id,
+        'guest_name': order.guest.name,
+        'room_number': order.room_number,
+        'service_type': order.service_type,
+        'no_of_bags': order.no_of_bags,
+        'specifications': order.specifications or '',
+        'date_time': order.date_time.strftime('%Y-%m-%d'),
+        'payment_method': order.payment_method,
+        'total_amount': float(order.total_amount),
+        'status': order.status
+    })
+
+
+@login_required
+def delete_laundry_order(request, order_id):
+    """Delete a laundry order"""
+    order = get_object_or_404(LaundryTransaction, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            order.delete()
+            return JsonResponse({
+                'success': True,
+                'message': 'Order deleted successfully'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    }, status=400)
+
+
+@login_required
+def update_order_status(request, order_id):
+    """Update order status"""
+    order = get_object_or_404(LaundryTransaction, id=order_id)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_status = data.get('status')
+            
+            if new_status in dict(LaundryTransaction.STATUS_CHOICES):
+                order.status = new_status
+                order.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Status updated successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid status'
+                }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    }, status=400)
+
 
 def getGuest(request, guest_id):
     if request.method == 'GET':

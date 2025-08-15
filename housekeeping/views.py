@@ -1,7 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from staff.models import Booking
 from django.http import JsonResponse
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.decorators.csrf import csrf_exempt
 def housekeeping_home(request):
     hk = Housekeeping.objects.all()[:3]
     rooms = []
@@ -14,6 +19,7 @@ def housekeeping_home(request):
             "status": status
         })
     return render(request, 'housekeeping/housekeeping_home.html', {'housekeeping': hk, 'rooms': rooms})
+@csrf_exempt
 def update_status(request):
     print("update_status view called")  # Debug
     print(f"Request method: {request.method}")  # Debug
@@ -58,6 +64,69 @@ def update_status(request):
 
     print("Request method was not POST.")  # Debug
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@login_required
 def timeline(request):
-    hk = Housekeeping.objects.all()
-    return render(request, 'housekeeping/timeline.html', {'housekeeping_tasks': hk})
+    hk_list = Housekeeping.objects.all().order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(hk_list, 5)  # Show 5 tasks per page
+    page = request.GET.get('page')
+    
+    try:
+        housekeeping_tasks = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        housekeeping_tasks = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results
+        housekeeping_tasks = paginator.page(paginator.num_pages)
+    
+    context = {
+        'housekeeping_tasks': housekeeping_tasks,
+        'paginator': paginator,
+    }
+    
+    return render(request, 'housekeeping/timeline.html', context)
+
+@login_required
+def view_task(request, task_id):
+    task = get_object_or_404(Housekeeping, id=task_id)
+    return JsonResponse({
+        'id': task.id,
+        'room_number': task.room_number,
+        'guest_name': task.guest_name,
+        'request_type': task.request_type,
+        'status': task.status,
+        'created_at': task.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+@login_required
+def edit_task(request, task_id):
+    task = get_object_or_404(Housekeeping, id=task_id)
+    
+    if request.method == 'POST':
+        task.room_number = request.POST.get('room_number')
+        task.guest_name = request.POST.get('guest_name')
+        task.request_type = request.POST.get('request_type')
+        task.status = request.POST.get('status')
+        task.save()
+        
+        messages.success(request, 'Task updated successfully!')
+        return JsonResponse({'success': True, 'message': 'Task updated successfully!'})
+    
+    return JsonResponse({
+        'id': task.id,
+        'room_number': task.room_number,
+        'guest_name': task.guest_name,
+        'request_type': task.request_type,
+        'status': task.status
+    })
+
+@login_required
+@require_POST
+def delete_task(request, task_id):
+    task = get_object_or_404(Housekeeping, id=task_id)
+    task.delete()
+    messages.success(request, 'Task deleted successfully!')
+    return JsonResponse({'success': True, 'message': 'Task deleted successfully!'})

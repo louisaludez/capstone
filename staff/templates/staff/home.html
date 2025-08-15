@@ -7,6 +7,41 @@
   <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'checkout-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'personnel.css' %}" />
+  <style>
+    /* Loading state styling */
+    .loading {
+      opacity: 0.6;
+      font-style: italic;
+      color: #6c757d !important;
+    }
+    
+    /* Smooth transitions for count updates */
+    .room-information .cont div[id$='-count'],
+    .rooms-occupied .ro-count {
+      transition: all 0.3s ease;
+    }
+    
+    /* Hover effects for better interactivity */
+    .room-information .cont div[id$='-count']:hover,
+    .rooms-occupied .ro-count:hover {
+      transform: scale(1.1);
+      cursor: pointer;
+    }
+    
+    /* Date selector improvements */
+    #date-select {
+      border: 2px solid #dee2e6;
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    #date-select:focus {
+      border-color: #0d6efd;
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+  </style>
   <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -55,31 +90,31 @@
         <div class="cont">
           <div class="col1">
             <div class="RI-vacant">
-              <div class="vacant-box vacant">3</div>
+              <div class="vacant-box vacant" id="vacant-count">3</div>
               <span>Vacant</span>
             </div>
             <div class="RI-occupied">
-              <div class="occupied-box occupied">3</div>
+              <div class="occupied-box occupied" id="occupied-count">3</div>
               <span>Occupied</span>
             </div>
           </div>
           <div class="col2">
             <div class="RI-under_maintinance">
-              <div class="under_maintinance-box maintinance">2</div>
+              <div class="under_maintinance-box maintinance" id="maintenance-count">2</div>
               <span>Under Maintenance</span>
             </div>
             <div class="RI-housekeeping">
-              <div class="housekeeping-box housekeeping">2</div>
+              <div class="housekeeping-box housekeeping" id="housekeeping-count">2</div>
               <span>Housekeeping</span>
             </div>
           </div>
           <div class="col3">
             <div class="RI-reserved">
-              <div class="reserved-box reserved">0</div>
+              <div class="reserved-box reserved" id="reserved-count">0</div>
               <span>Reserved</span>
             </div>
             <div class="total">
-              <span>Total: 100</span>
+              <span>Total: <span id="total-count">12</span></span>
             </div>
           </div>
         </div>
@@ -88,15 +123,15 @@
         <span style="text-decoration: none !important">Rooms Occupied :</span>
         <div class="ro-deluxe mt-3">
           <span>Deluxe</span>
-          <div class="ro-count" style="text-decoration: underline">3</div>
+          <div class="ro-count" style="text-decoration: underline" id="deluxe-count">3</div>
         </div>
         <div class="ro-family">
           <span>Family</span>
-          <div class="ro-count" style="text-decoration: underline">2</div>
+          <div class="ro-count" style="text-decoration: underline" id="family-count">2</div>
         </div>
         <div class="ro-standard">
           <span>Standard</span>
-          <div class="ro-count" style="text-decoration: underline">1</div>
+          <div class="ro-count" style="text-decoration: underline" id="standard-count">1</div>
         </div>
       </div>
     </div>
@@ -126,11 +161,33 @@
     $(function () {
       const $date = $('#date-select')
     
+      // Add loading state function
+      function showLoading() {
+        $('.room-information .cont div[id$="-count"]').each(function () {
+          $(this).addClass('loading').text('...')
+        })
+        $('.rooms-occupied .ro-count').each(function () {
+          $(this).addClass('loading').text('...')
+        })
+      }
+    
+      // Remove loading state function
+      function hideLoading() {
+        $('.room-information .cont div[id$="-count"], .rooms-occupied .ro-count').removeClass('loading')
+      }
+    
       function refreshRooms(date) {
         if (!date) return
+    
+        // Show loading state
+        showLoading()
+    
         $.getJSON('/staff/api/room-status/', { date })
           .done(function (data) {
             console.log('🔍 room‑status:', data)
+    
+            // Hide loading state
+            hideLoading()
     
             // Vacant everything (except maintenance)
             $('[data-room]')
@@ -148,9 +205,30 @@
                 console.warn('Missing room div for:', roomCode)
               }
             })
+    
+            // Update Room Information section
+            if (data.room_info) {
+              $('#vacant-count').text(data.room_info.vacant)
+              $('#occupied-count').text(data.room_info.occupied)
+              $('#maintenance-count').text(data.room_info.maintenance)
+              $('#housekeeping-count').text(data.room_info.housekeeping)
+              $('#reserved-count').text(data.room_info.reserved)
+              $('#total-count').text(data.room_info.total)
+            }
+    
+            // Update Rooms Occupied section
+            if (data.rooms_occupied) {
+              $('#deluxe-count').text(data.rooms_occupied.deluxe)
+              $('#family-count').text(data.rooms_occupied.family)
+              $('#standard-count').text(data.rooms_occupied.standard)
+            }
           })
           .fail(function (xhr) {
             console.error('Error loading room status:', xhr.responseText)
+            hideLoading()
+    
+            // Show error state
+            $('.room-information .cont div[id$="-count"], .rooms-occupied .ro-count').text('Error')
           })
       }
     

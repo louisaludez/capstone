@@ -10,13 +10,14 @@
   {% include '../includes/sidebar.html' with active_page='orders' %}
 {% endblock %}
 {% block content %}
-  <div class="container">
+  <div class="container p-5">
     <!-- Filters -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Orders</h2>
       <div class="d-flex">
         <button class="btn btn-outline-secondary me-2 text-black"><i class="bi bi-filter text-black"></i>Filter</button>
         <button class="btn btn-outline-secondary me-2 text-black">Sort <i class="bi bi-sort-down text-black"></i></button>
+        <button id="bulk-delete-btn" class="btn btn-danger me-2" style="display: none;"><i class="bi bi-trash"></i> Delete Selected</button>
         <input type="text" class="form-control w-auto search-bar" placeholder="Search" />
       </div>
     </div>
@@ -36,34 +37,34 @@
 
     <!-- Table Rows -->
     <div id="orders-container">
-  {% include "../includes/order_rows.html" %}
-</div>
+      {% include '../includes/order_rows.html' %}
+    </div>
 
     <!-- Pagination -->
     <div class="d-flex justify-content-between mt-4">
       <div>
         <label for="pages">Pages</label>
         <select id="pages" class="form-select d-inline-block w-auto">
-          <option selected>100/100</option>
+          <option value="1" selected>1/{{ paginator.num_pages }}</option>
         </select>
       </div>
       <nav>
         <ul class="pagination">
-          <li class="page-item">
-            <a class="page-link" href="#">1</a>
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="#" data-page="{{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+          {% endif %}
+
+          <li class="page-item active">
+            <a class="page-link" href="#" data-page="{{ page_obj.number }}">{{ page_obj.number }}</a>
           </li>
-          <li class="page-item">
-            <a class="page-link" href="#">2</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" href="#">3</a>
-          </li>
-          <li class="page-item disabled">
-            <a class="page-link" href="#">...</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" href="#">100</a>
-          </li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="#" data-page="{{ page_obj.next_page_number }}">Next</a>
+            </li>
+          {% endif %}
         </ul>
       </nav>
     </div>

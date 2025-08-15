@@ -240,7 +240,7 @@ def get_reservations_ajax(request):
 def room_status(request):
     """
     Expects ?date=YYYY-MM-DD
-    Returns JSON: { "occupied": ["R7","R4", ...] }
+    Returns JSON with comprehensive room information
     """
     date_str = request.GET.get("date")
     print(f"[DEBUG] received date_str: {date_str!r}")
@@ -252,23 +252,62 @@ def room_status(request):
         print(f"[DEBUG] date parsing error: {e}")
         return JsonResponse({"error": "invalid or missing date"}, status=400)
 
-    # Match bookings where the selected date falls within check-in and check-out
+    # Get occupied rooms for the selected date
     occupied_qs = Booking.objects.filter(
         check_in_date__lte=d,
         check_out_date__gte=d
     ).values_list("room", flat=True)
 
     occupied_rooms = list(occupied_qs)
-
-    # Prefix "R" if needed
     occupied_rooms = [
         f"R{room}" if not str(room).startswith("R") else str(room)
         for room in occupied_rooms
     ]
 
-    print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
+    # Calculate actual total rooms based on what exists in the system
+    # Based on your template, you have rooms R1-R12 (12 rooms total)
+    total_rooms = 12
+    
+    # Count rooms by type based on your actual room layout
+    # Adjust these ranges based on your actual room numbering
+    room_types = {
+        'deluxe': 4,      # R1, R2, R3, R4
+        'family': 4,      # R5, R6, R7, R8  
+        'standard': 4     # R9, R10, R11, R12
+    }
+    
+    # Count occupied rooms by type (adjust ranges based on your actual room layout)
+    occupied_by_type = {
+        'deluxe': len([r for r in occupied_rooms if r in ['R1', 'R2', 'R3', 'R4']]),
+        'family': len([r for r in occupied_rooms if r in ['R5', 'R6', 'R7', 'R8']]),
+        'standard': len([r for r in occupied_rooms if r in ['R9', 'R10', 'R11', 'R12']])
+    }
+    
+    # Calculate other statuses
+    vacant_count = total_rooms - len(occupied_rooms)
+    maintenance_count = 2  # R6, R11 (based on your template)
+    housekeeping_count = 0  # You can make this dynamic based on your housekeeping system
+    reserved_count = 0  # You can make this dynamic based on your reservation system
 
-    return JsonResponse({"occupied": occupied_rooms})
+    print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
+    print(f"[DEBUG] room counts: total={total_rooms}, vacant={vacant_count}, occupied={len(occupied_rooms)}, maintenance={maintenance_count}")
+
+    return JsonResponse({
+        "occupied": occupied_rooms,
+        "room_info": {
+            "total": total_rooms,
+            "vacant": vacant_count,
+            "occupied": len(occupied_rooms),
+            "maintenance": maintenance_count,
+            "housekeeping": housekeeping_count,
+            "reserved": reserved_count
+        },
+        "rooms_occupied": {
+            "deluxe": occupied_by_type['deluxe'],
+            "family": occupied_by_type['family'],
+            "standard": occupied_by_type['standard']
+        }
+    })
 
 
 
