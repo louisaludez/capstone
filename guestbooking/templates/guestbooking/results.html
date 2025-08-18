@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Search Results
+{% endblock %}
+{% block extra_head %}
+  <style>
+    .custom-tabs {
+      border: 1px solid;
+      border-color: linear-gradient(90deg, #1a2d1a, #0b440c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px;
+    }
+    .nav-tabs {
+      border-bottom: none;
+    }
+    .nav-tabs .nav-link {
+      border: none;
+      color: #000;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: #d9fdd3;
+      border-color: linear-gradient(90deg, #1a2d1a, #0b440c);
+      border: 1px solid;
+      color: #000;
+    }
+    .btn-custom {
+      background-color: #7eb455;
+      color: white;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+    }
+    .room-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Rooms list UI */
+    .rooms-section .room-card {
+      border: 1px solid #cddcc9;
+      border-left: 4px solid #7eb455;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .rooms-section .room-img {
+      width: 160px;
+      height: 100px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .rooms-section .room-title {
+      font-weight: 700;
+      color: #26442a;
+    }
+    .rooms-section .room-meta {
+      font-size: 12px;
+      color: #222;
+      line-height: 1.2;
+    }
+    .rooms-section .policy {
+      font-size: 11px;
+      color: #222;
+    }
+    .rooms-section .policy small {
+      display: block;
+      color: #2d662e;
+      font-weight: 600;
+    }
+    .rooms-section .price {
+      color: #2d662e;
+      font-weight: 800;
+      font-size: 20px;
+    }
+    .rooms-section .free-cancel {
+      color: #2d662e;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .rooms-section .btn-book {
+      background: #7eb455;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+    
+    p {
+      font-size: 14px;
+    }
+  </style>
+{% endblock %}
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container p-5">
+    <div class="row mb-4">
+      <div class="col-6">
+        <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+      </div>
+      <div class="col-6">
+        <div class="row g-1">
+          <div class="col-6">
+            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+          </div>
+          <div class="col-6">
+            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+          </div>
+          <div class="col-6">
+            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+          </div>
+          <div class="col-6">
+            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-4">
+      <div class="custom-tabs px-2 w-100">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="results-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" data-target="#overview-section">Overview</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-target="#rooms-section">Rooms</a>
+          </li>
+        </ul>
+
+        <!-- Button -->
+        <button class="btn btn-custom" id="view-rooms-btn">View Rooms</button>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="row" id="overview-section">
+      <p>Welcome to ACPI Hotel, where comfort meets sophistication in the heart of the city. Whether you're traveling for business or leisure, our hotel offers a seamless blend of modern amenities and warm hospitality to make your stay exceptional.</p>
+      <p>Each of our thoughtfully designed rooms and suites features plush bedding, high-speed Wi-Fi, flat-screen Smart TVs, and spacious bathrooms with premium toiletries.</p>
+      <p>Conveniently located near key attractions, shopping centers, and business districts, ACPI Hotel offers the perfect base for exploring the city or getting work done. With its inviting ambiance, attentive staff, and top-tier amenities, our hotel ensures a memorable stay from check-in to check-out.</p>
+    </div>
+
+    <!-- Rooms List -->
+    <div class="rooms-section" id="rooms-section" style="display: none;">
+      <div class="room-card">
+        <div class="d-flex gap-3 align-items-center">
+          <img src="{% static 'images/room.png' %}" alt="Deluxe Room" class="room-img" />
+          <div class="flex-grow-1">
+            <div class="room-title">Deluxe Room</div>
+            <div class="room-meta">Good for 2 - 4 persons</div>
+            <div class="room-meta">Free cancellation before June 21, 2025.</div>
+            <div class="room-meta">Pay nothing before June 21, 2025.</div>
+            <div class="room-meta">Free WiFi</div>
+            <div class="room-meta">Parking</div>
+          </div>
+          <div class="px-3" style="max-width: 250px;">
+            <div class="policy">Your reservation shall be automatically cancelled once you fail to come in on your check-in date. This reservation is non-refundable.</div>
+          </div>
+          <div class="text-end" style="min-width: 170px;">
+            <div class="price">₱ 3500.00</div>
+            <div class="free-cancel">FREE cancellation</div>
+            <div class="policy">before check-in date.</div>
+            <button class="btn btn-book mt-1">Book now!</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="room-card">
+        <div class="d-flex gap-3 align-items-center">
+          <img src="{% static 'images/room.png' %}" alt="Deluxe Room" class="room-img" />
+          <div class="flex-grow-1">
+            <div class="room-title">Deluxe Room</div>
+            <div class="room-meta">Good for 2 - 4 persons</div>
+            <div class="room-meta">Free cancellation before June 21, 2025.</div>
+            <div class="room-meta">Pay nothing before June 21, 2025.</div>
+            <div class="room-meta">Free WiFi</div>
+            <div class="room-meta">Parking</div>
+          </div>
+          <div class="px-3" style="max-width: 250px;">
+            <div class="policy">Your reservation shall be automatically cancelled once you fail to come in on your check-in date. This reservation is non-refundable.</div>
+          </div>
+          <div class="text-end" style="min-width: 170px;">
+            <div class="price">₱ 3500.00</div>
+            <div class="free-cancel">FREE cancellation</div>
+            <div class="policy">before check-in date.</div>
+            <button class="btn btn-book mt-1">Book now!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    // Tabs switching
+    document.addEventListener('DOMContentLoaded', function () {
+      const tabs = document.querySelectorAll('#results-tabs .nav-link')
+      const overview = document.getElementById('overview-section')
+      const rooms = document.getElementById('rooms-section')
+      const viewRoomsBtn = document.getElementById('view-rooms-btn')
+    
+      function showSection(section) {
+        if (section === 'rooms') {
+          rooms.style.display = ''
+          overview.style.display = 'none'
+          tabs.forEach((t) => t.classList.remove('active'))
+          document.querySelector('#results-tabs .nav-link[data-target="#rooms-section"]').classList.add('active')
+        } else {
+          overview.style.display = ''
+          rooms.style.display = 'none'
+          tabs.forEach((t) => t.classList.remove('active'))
+          document.querySelector('#results-tabs .nav-link[data-target="#overview-section"]').classList.add('active')
+        }
+      }
+    
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', function () {
+          const target = this.getAttribute('data-target')
+          showSection(target === '#rooms-section' ? 'rooms' : 'overview')
+        })
+      })
+    
+      if (viewRoomsBtn) {
+        viewRoomsBtn.addEventListener('click', function () {
+          showSection('rooms')
+        })
+      }
+    })
+  </script>
+{% endblock %}

@@ -115,16 +115,231 @@
     .search-btn:hover {
       background-color: #689f38;
     }
+    
     .btns {
       width: 200px;
       border: 1px solid black;
     }
+    
     .calendars {
       width: 110px;
       border: 1px solid black !important;
+      cursor: pointer;
+      position: relative;
     }
+    
     .active-btn {
       background-color: #e6ffd6 !important;
+    }
+    
+    /* Calendar Popup Styles */
+    .calendar-popup {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 300px;
+      display: none;
+    }
+    
+    .calendar-popup.show {
+      display: block;
+    }
+    
+    .calendar-header {
+      background: #2e7d32;
+      color: white;
+      padding: 10px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .calendar-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .calendar-nav button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .calendar-body {
+      padding: 15px;
+    }
+    
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .calendar-weekday {
+      text-align: center;
+      font-weight: bold;
+      color: #666;
+      font-size: 12px;
+    }
+    
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    
+    .calendar-day {
+      text-align: center;
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .calendar-day:hover {
+      background: #f0f0f0;
+    }
+    
+    .calendar-day.selected {
+      background: #2e7d32;
+      color: white;
+    }
+    
+    .calendar-day.range {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .calendar-day.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    /* Guest Popup Styles */
+    .guest-popup {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 200px;
+      display: none;
+    }
+    
+    .guest-popup::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid white;
+    }
+    
+    .guest-popup::after {
+      content: '';
+      position: absolute;
+      top: -9px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #ddd;
+    }
+    
+    .guest-popup.show {
+      display: block;
+    }
+    
+    .guest-section {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .guest-section:last-child {
+      border-bottom: none;
+    }
+    
+    .guest-section h6 {
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .guest-counter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .guest-counter button {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .guest-counter button:hover {
+      background: #e0e0e0;
+    }
+    
+    .guest-counter button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .guest-counter span {
+      font-weight: bold;
+      min-width: 30px;
+      text-align: center;
+    }
+    
+    .child-age-select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+    
+    .guest-info {
+      font-size: 10px;
+      color: #666;
+      margin-top: 6px;
+      font-style: italic;
+    }
+    
+    /* Hide check-out calendar for overnight stays */
+    .overnight-mode .checkout-calendar,
+    .overnight-mode #checkout-calendar-popup {
+      display: none !important;
+    }
+    
+    .overnight-mode .calendars {
+      justify-content: center !important;
     }
   </style>
 {% endblock %}
@@ -138,8 +353,8 @@
     <div class="p-4 border rounded" style="border-color: #357a36 !important; max-width: 900px; width: 100%;">
       <!-- Stay type buttons -->
       <div class="d-flex justify-content-start gap-2 mb-3">
-        <button class="btn btns active-btn">Overnight Stays</button>
-        <button class="btn btns">Day Use Stays</button>
+        <button class="btn btns active-btn" data-stay-type="overnight">Overnight Stays</button>
+        <button class="btn btns" data-stay-type="dayuse">Day Use Stays</button>
       </div>
 
       <!-- Main filter row -->
@@ -147,45 +362,569 @@
         <!-- Merged Check-in/Check-out -->
         <div class="border rounded p-3 d-flex justify-content-between align-items-center flex-fill calendars">
           <!-- Check-in -->
-          <div class="text-center pe-3" style="flex: 1;">
+          <div class="text-center pe-3 checkin-calendar" style="flex: 1; cursor: pointer;">
             <div>
-              <i class="bi bi-calendar"></i> <strong>20 Jun 2025</strong>
+              <i class="bi bi-calendar"></i> <strong id="checkin-date">20 Jun 2025</strong>
             </div>
-            <small class="text-muted">Saturday</small>
+            <small class="text-muted" id="checkin-day">Saturday</small>
           </div>
 
           <!-- Vertical Divider -->
           <div style="width: 1px; background-color: #ccc; height: 40px;"></div>
 
           <!-- Check-out -->
-          <div class="text-center ps-3" style="flex: 1;">
+          <div class="text-center ps-3 checkout-calendar" style="flex: 1; cursor: pointer;">
             <div>
-              <i class="bi bi-calendar"></i> <strong>21 Jun 2025</strong>
+              <i class="bi bi-calendar"></i> <strong id="checkout-date">21 Jun 2025</strong>
             </div>
-            <small class="text-muted">Sunday</small>
+            <small class="text-muted" id="checkout-day">Sunday</small>
+          </div>
+
+          <!-- Check-in Calendar Popup -->
+          <div class="calendar-popup" id="checkin-calendar-popup">
+            <div class="calendar-header">
+              <div class="calendar-nav">
+                <button><i class="bi bi-chevron-left"></i></button>
+                <span id="checkin-calendar-month">June 2025</span>
+                <button><i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="calendar-body">
+              <div class="calendar-weekdays">
+                <div class="calendar-weekday">Mo</div>
+                <div class="calendar-weekday">Tu</div>
+                <div class="calendar-weekday">We</div>
+                <div class="calendar-weekday">Th</div>
+                <div class="calendar-weekday">Fr</div>
+                <div class="calendar-weekday">Sa</div>
+                <div class="calendar-weekday">Su</div>
+              </div>
+              <div class="calendar-days" id="checkin-calendar-days">
+                <!-- Calendar days will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Check-out Calendar Popup -->
+          <div class="calendar-popup" id="checkout-calendar-popup">
+            <div class="calendar-header">
+              <div class="calendar-nav">
+                <button><i class="bi bi-chevron-left"></i></button>
+                <span id="checkout-calendar-month">June 2025</span>
+                <button><i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="calendar-body">
+              <div class="calendar-weekdays">
+                <div class="calendar-weekday">Mo</div>
+                <div class="calendar-weekday">Tu</div>
+                <div class="calendar-weekday">We</div>
+                <div class="calendar-weekday">Th</div>
+                <div class="calendar-weekday">Fr</div>
+                <div class="calendar-weekday">Sa</div>
+                <div class="calendar-weekday">Su</div>
+              </div>
+              <div class="calendar-days" id="checkout-calendar-days">
+                <!-- Calendar days will be populated by JavaScript -->
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Guests -->
-        <div class="border rounded p-3 flex-fill d-flex justify-content-between align-items-center" style="min-width: 220px; border:1px solid black !important;">
+        <div class="border rounded p-3 flex-fill d-flex justify-content-between align-items-center guest-container" style="min-width: 220px; border:1px solid black !important; cursor: pointer; position: relative;">
           <div>
             <div>
-              <i class="bi bi-people"></i> <strong>2 Adults</strong>
+              <i class="bi bi-people"></i> <strong id="guest-summary">2 Adults</strong>
             </div>
-            <small class="text-muted">1 room</small>
+            <small class="text-muted" id="room-summary">1 room</small>
           </div>
           <i class="bi bi-chevron-down"></i>
+
+          <!-- Guest Popup -->
+          <div class="guest-popup" id="guest-popup">
+            <div class="guest-section">
+              <h6>Rooms</h6>
+              <div class="guest-counter">
+                <button id="rooms-minus">-</button>
+                <span id="rooms-count">1</span>
+                <button id="rooms-plus">+</button>
+              </div>
+            </div>
+
+            <div class="guest-section">
+              <h6>Adults</h6>
+              <div class="guest-counter">
+                <button id="adults-minus">-</button>
+                <span id="adults-count">2</span>
+                <button id="adults-plus">+</button>
+              </div>
+            </div>
+
+            <div class="guest-section">
+              <h6>Children (Ages 0-17)</h6>
+              <div class="guest-counter">
+                <button id="children-minus">-</button>
+                <span id="children-count">0</span>
+                <button id="children-plus">+</button>
+              </div>
+              <div id="children-ages" style="display: none;">
+                <!-- Child age selectors will be added here -->
+              </div>
+              <div class="guest-info">For pricing accuracy, make sure to enter the correct age of your children.</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Search Button -->
       <div class="d-flex justify-content-center mt-4">
-        <button class="btn btn-success px-5 fw-bold">Search</button>
+        <button class="btn btn-success px-5 fw-bold" id="search-btn">Search</button>
       </div>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_js %}
-
+  <script>
+    // Global variables
+    let currentCheckinDate = new Date(2025, 5, 20) // June 20, 2025
+    let currentCheckoutDate = new Date(2025, 5, 21) // June 21, 2025
+    let selectedCheckin = new Date(2025, 5, 20) // June 20, 2025
+    let selectedCheckout = new Date(2025, 5, 21) // June 21, 2025
+    let rooms = 1
+    let adults = 2
+    let children = 0
+    let childAges = []
+    let stayType = 'overnight' // Default to overnight stays
+    const resultsUrl = "{% url 'guest_booking_results' %}"
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function () {
+      renderCheckinCalendar()
+      renderCheckoutCalendar()
+      updateGuestSummary()
+      setupEventListeners()
+      updateCalendarDisplay() // Set initial calendar display
+    })
+    
+    // Setup all event listeners
+    function setupEventListeners() {
+      // Stay type toggle
+      document.querySelectorAll('.btns').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.btns').forEach((b) => b.classList.remove('active-btn'))
+          this.classList.add('active-btn')
+    
+          // Get stay type and update calendar display
+          stayType = this.getAttribute('data-stay-type')
+          updateCalendarDisplay()
+        })
+      })
+    
+      // Check-in calendar toggle
+      document.querySelector('.checkin-calendar').addEventListener('click', function (e) {
+        if (!e.target.closest('.calendar-popup')) {
+          toggleCheckinCalendar()
+        }
+      })
+    
+      // Check-out calendar toggle
+      document.querySelector('.checkout-calendar').addEventListener('click', function (e) {
+        if (!e.target.closest('.calendar-popup')) {
+          toggleCheckoutCalendar()
+        }
+      })
+    
+      // Guest toggle
+      document.querySelector('.guest-container').addEventListener('click', function (e) {
+        if (!e.target.closest('.guest-popup')) {
+          toggleGuestPopup()
+        }
+      })
+    
+      // Check-in calendar navigation
+      document.getElementById('checkin-calendar-popup').addEventListener('click', function (e) {
+        if (e.target.closest('button:first-child')) {
+          e.preventDefault()
+          e.stopPropagation()
+          previousCheckinMonth()
+        } else if (e.target.closest('button:last-child')) {
+          e.preventDefault()
+          e.stopPropagation()
+          nextCheckinMonth()
+        }
+      })
+    
+      // Check-out calendar navigation
+      document.getElementById('checkout-calendar-popup').addEventListener('click', function (e) {
+        if (e.target.closest('button:first-child')) {
+          e.preventDefault()
+          e.stopPropagation()
+          previousCheckoutMonth()
+        } else if (e.target.closest('button:last-child')) {
+          e.preventDefault()
+          e.stopPropagation()
+          nextCheckoutMonth()
+        }
+      })
+    
+      // Guest controls
+      document.getElementById('guest-popup').addEventListener('click', function (e) {
+        if (e.target.closest('#rooms-minus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeRooms(-1)
+        } else if (e.target.closest('#rooms-plus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeRooms(1)
+        } else if (e.target.closest('#adults-minus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeAdults(-1)
+        } else if (e.target.closest('#adults-plus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeAdults(1)
+        } else if (e.target.closest('#children-minus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeChildren(-1)
+        } else if (e.target.closest('#children-plus')) {
+          e.preventDefault()
+          e.stopPropagation()
+          changeChildren(1)
+        }
+      })
+    
+      // Search button
+      document.getElementById('search-btn').addEventListener('click', searchRooms)
+    
+      // Close popups when clicking outside
+      document.addEventListener('click', function (event) {
+        const checkinCalendarPopup = document.getElementById('checkin-calendar-popup')
+        const checkoutCalendarPopup = document.getElementById('checkout-calendar-popup')
+        const guestPopup = document.getElementById('guest-popup')
+        const checkinCalendarContainer = document.querySelector('.checkin-calendar')
+        const checkoutCalendarContainer = document.querySelector('.checkout-calendar')
+        const guestContainer = document.querySelector('.guest-container')
+    
+        // Check if click is inside check-in calendar popup or its container
+        const isCheckinCalendarClick = checkinCalendarContainer.contains(event.target) || checkinCalendarPopup.contains(event.target)
+    
+        // Check if click is inside check-out calendar popup or its container
+        const isCheckoutCalendarClick = checkoutCalendarContainer.contains(event.target) || checkoutCalendarPopup.contains(event.target)
+    
+        // Check if click is inside guest popup or its container
+        const isGuestClick = guestContainer.contains(event.target) || guestPopup.contains(event.target)
+    
+        // Close check-in calendar popup if click is outside
+        if (!isCheckinCalendarClick) {
+          checkinCalendarPopup.classList.remove('show')
+        }
+    
+        // Close check-out calendar popup if click is outside
+        if (!isCheckoutCalendarClick) {
+          checkoutCalendarPopup.classList.remove('show')
+        }
+    
+        // Close guest popup if click is outside
+        if (!isGuestClick) {
+          guestPopup.classList.remove('show')
+        }
+      })
+    }
+    
+    // Update calendar display based on stay type
+    function updateCalendarDisplay() {
+      const calendarContainer = document.querySelector('.calendars')
+    
+      if (stayType === 'overnight') {
+        // For overnight stays, hide check-out calendar and center check-in
+        calendarContainer.classList.add('overnight-mode')
+        // Set checkout to same as checkin for overnight stays
+        selectedCheckout = new Date(selectedCheckin)
+        updateDateDisplay()
+      } else {
+        // For day use stays, show both calendars
+        calendarContainer.classList.remove('overnight-mode')
+        // Ensure checkout is at least one day after checkin
+        if (selectedCheckout <= selectedCheckin) {
+          selectedCheckout = new Date(selectedCheckin)
+          selectedCheckout.setDate(selectedCheckout.getDate() + 1)
+          updateDateDisplay()
+        }
+      }
+    
+      // Re-render calendars to reflect changes
+      renderCheckinCalendar()
+      renderCheckoutCalendar()
+    }
+    
+    // Calendar functions
+    function toggleCheckinCalendar() {
+      const popup = document.getElementById('checkin-calendar-popup')
+      popup.classList.toggle('show')
+    
+      // Close other popups if open
+      document.getElementById('checkout-calendar-popup').classList.remove('show')
+      document.getElementById('guest-popup').classList.remove('show')
+    }
+    
+    function toggleCheckoutCalendar() {
+      const popup = document.getElementById('checkout-calendar-popup')
+      popup.classList.toggle('show')
+    
+      // Close other popups if open
+      document.getElementById('checkin-calendar-popup').classList.remove('show')
+      document.getElementById('guest-popup').classList.remove('show')
+    }
+    
+    function renderCheckinCalendar() {
+      const month = currentCheckinDate.getMonth()
+      const year = currentCheckinDate.getFullYear()
+      const firstDay = new Date(year, month, 1)
+      const lastDay = new Date(year, month + 1, 0)
+      const startDate = new Date(firstDay)
+      startDate.setDate(startDate.getDate() - firstDay.getDay() + 1)
+    
+      const calendarDays = document.getElementById('checkin-calendar-days')
+      const monthDisplay = document.getElementById('checkin-calendar-month')
+    
+      monthDisplay.textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    
+      calendarDays.innerHTML = ''
+    
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate)
+        date.setDate(startDate.getDate() + i)
+    
+        const dayElement = document.createElement('div')
+        dayElement.className = 'calendar-day'
+        dayElement.textContent = date.getDate()
+    
+        if (date.getMonth() !== month) {
+          dayElement.classList.add('disabled')
+        } else {
+          dayElement.addEventListener('click', function (e) {
+            e.preventDefault()
+            e.stopPropagation()
+            selectCheckinDate(date)
+          })
+    
+          if (date.getTime() === selectedCheckin.getTime()) {
+            dayElement.classList.add('selected')
+          } else if (date > selectedCheckin && date < selectedCheckout) {
+            dayElement.classList.add('range')
+          }
+        }
+    
+        calendarDays.appendChild(dayElement)
+      }
+    }
+    
+    function renderCheckoutCalendar() {
+      const month = currentCheckoutDate.getMonth()
+      const year = currentCheckoutDate.getFullYear()
+      const firstDay = new Date(year, month, 1)
+      const lastDay = new Date(year, month + 1, 0)
+      const startDate = new Date(firstDay)
+      startDate.setDate(startDate.getDate() - firstDay.getDay() + 1)
+    
+      const calendarDays = document.getElementById('checkout-calendar-days')
+      const monthDisplay = document.getElementById('checkout-calendar-month')
+    
+      monthDisplay.textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    
+      calendarDays.innerHTML = ''
+    
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate)
+        date.setDate(startDate.getDate() + i)
+    
+        const dayElement = document.createElement('div')
+        dayElement.className = 'calendar-day'
+        dayElement.textContent = date.getDate()
+    
+        if (date.getMonth() !== month) {
+          dayElement.classList.add('disabled')
+        } else {
+          dayElement.addEventListener('click', function (e) {
+            e.preventDefault()
+            e.stopPropagation()
+            selectCheckoutDate(date)
+          })
+    
+          if (date.getTime() === selectedCheckout.getTime()) {
+            dayElement.classList.add('selected')
+          } else if (date > selectedCheckin && date < selectedCheckout) {
+            dayElement.classList.add('range')
+          }
+        }
+    
+        calendarDays.appendChild(dayElement)
+      }
+    }
+    
+    function selectCheckinDate(date) {
+      selectedCheckin = new Date(date)
+    
+      if (stayType === 'overnight') {
+        // For overnight stays, checkout is same as checkin
+        selectedCheckout = new Date(date)
+      } else {
+        // For day use stays, ensure checkout is at least one day after checkin
+        if (selectedCheckout <= selectedCheckin) {
+          selectedCheckout = new Date(date)
+          selectedCheckout.setDate(selectedCheckout.getDate() + 1)
+        }
+      }
+    
+      updateDateDisplay()
+      renderCheckinCalendar()
+      renderCheckoutCalendar()
+    }
+    
+    function selectCheckoutDate(date) {
+      // For overnight stays, checkout selection is disabled
+      if (stayType === 'overnight') {
+        return
+      }
+    
+      if (date > selectedCheckin) {
+        selectedCheckout = new Date(date)
+        updateDateDisplay()
+        renderCheckinCalendar()
+        renderCheckoutCalendar()
+      }
+    }
+    
+    function updateDateDisplay() {
+      document.getElementById('checkin-date').textContent = selectedCheckin.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      document.getElementById('checkout-date').textContent = selectedCheckout.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      document.getElementById('checkin-day').textContent = selectedCheckin.toLocaleDateString('en-US', { weekday: 'long' })
+      document.getElementById('checkout-day').textContent = selectedCheckout.toLocaleDateString('en-US', { weekday: 'long' })
+    }
+    
+    function previousCheckinMonth() {
+      currentCheckinDate.setMonth(currentCheckinDate.getMonth() - 1)
+      renderCheckinCalendar()
+    }
+    
+    function nextCheckinMonth() {
+      currentCheckinDate.setMonth(currentCheckinDate.getMonth() + 1)
+      renderCheckinCalendar()
+    }
+    
+    function previousCheckoutMonth() {
+      currentCheckoutDate.setMonth(currentCheckoutDate.getMonth() - 1)
+      renderCheckoutCalendar()
+    }
+    
+    function nextCheckoutMonth() {
+      currentCheckoutDate.setMonth(currentCheckoutDate.getMonth() + 1)
+      renderCheckoutCalendar()
+    }
+    
+    // Guest functions
+    function toggleGuestPopup() {
+      const popup = document.getElementById('guest-popup')
+      popup.classList.toggle('show')
+    
+      // Close calendar popups if open
+      document.getElementById('checkin-calendar-popup').classList.remove('show')
+      document.getElementById('checkout-calendar-popup').classList.remove('show')
+    }
+    
+    function changeRooms(delta) {
+      rooms = Math.max(1, Math.min(10, rooms + delta))
+      document.getElementById('rooms-count').textContent = rooms
+      updateGuestSummary()
+    }
+    
+    function changeAdults(delta) {
+      adults = Math.max(1, Math.min(20, adults + delta))
+      document.getElementById('adults-count').textContent = adults
+      updateGuestSummary()
+    }
+    
+    function changeChildren(delta) {
+      children = Math.max(0, Math.min(10, children + delta))
+      document.getElementById('children-count').textContent = children
+    
+      if (children > 0) {
+        document.getElementById('children-ages').style.display = 'block'
+        renderChildAges()
+      } else {
+        document.getElementById('children-ages').style.display = 'none'
+      }
+    
+      updateGuestSummary()
+    }
+    
+    function renderChildAges() {
+      const container = document.getElementById('children-ages')
+      container.innerHTML = ''
+    
+      for (let i = 0; i < children; i++) {
+        if (!childAges[i]) childAges[i] = 1
+    
+        const select = document.createElement('select')
+        select.className = 'child-age-select'
+        select.innerHTML = '<option value="">Age of Child ' + (i + 1) + '</option>'
+    
+        for (let age = 0; age <= 17; age++) {
+          const option = document.createElement('option')
+          option.value = age
+          option.textContent = age === 1 ? '1 year old' : age + ' years old'
+          option.selected = childAges[i] === age
+          select.appendChild(option)
+        }
+    
+        select.addEventListener('change', function (e) {
+          childAges[i] = parseInt(e.target.value)
+        })
+    
+        container.appendChild(select)
+      }
+    }
+    
+    function updateGuestSummary() {
+      let summary = adults + ' Adult' + (adults > 1 ? 's' : '')
+      if (children > 0) {
+        summary += ', ' + children + ' Child' + (children > 1 ? 'ren' : '')
+      }
+      document.getElementById('guest-summary').textContent = summary
+      document.getElementById('room-summary').textContent = rooms + ' room' + (rooms > 1 ? 's' : '')
+    }
+    
+    // Search function
+    function searchRooms() {
+      const searchData = {
+        checkin: selectedCheckin,
+        checkout: selectedCheckout,
+        rooms: rooms,
+        adults: adults,
+        children: children,
+        childAges: childAges
+      }
+    
+      console.log('Searching with data:', searchData)
+    
+      // Build query params and navigate to results page
+      const toIsoDate = (d) => new Date(d).toISOString().split('T')[0]
+      const params = new URLSearchParams({
+        stayType: stayType,
+        checkin: toIsoDate(selectedCheckin),
+        checkout: toIsoDate(stayType === 'overnight' ? selectedCheckin : selectedCheckout),
+        rooms: String(rooms),
+        adults: String(adults),
+        children: String(children),
+        childAges: childAges.filter((age) => age !== undefined).join(',')
+      })
+    
+      window.location.href = `${resultsUrl}?${params.toString()}`
+    }
+  </script>
 {% endblock %}
