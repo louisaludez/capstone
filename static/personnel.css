@@ -72,6 +72,22 @@
     background-color: #d86500 !important;
 }
 
+/* New CSS rules for Room model status values */
+.available {
+    background-color: #216216 !important;
+    /* Same as vacant - green */
+}
+
+.maintenance {
+    background-color: #d4c21a !important;
+    /* Same as maintinance - yellow */
+}
+
+.cleaning {
+    background-color: #0f3f86 !important;
+    /* Same as housekeeping - blue */
+}
+
 .main {
     display: flex;
     flex-direction: column;
@@ -357,10 +373,18 @@
     color: black;
 }
 
-.my-confirm-btn-booking, .my-deny-btn-booking, .my-confirm-btn-walkin, .my-confirm-btn-checkin, .my-deny-btn-checkin, .my-deny-btn-checkout,.my-confirm-btn-checkout{
-   background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
-  
+.my-confirm-btn-booking,
+.my-deny-btn-booking,
+.my-confirm-btn-walkin,
+.my-confirm-btn-checkin,
+.my-deny-btn-checkin,
+.my-deny-btn-checkout,
+.my-confirm-btn-checkout {
+    background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
+
 }
-.my-title-booking, .my-text-booking {
+
+.my-title-booking,
+.my-text-booking {
     color: #1a2d1e !important;
 }

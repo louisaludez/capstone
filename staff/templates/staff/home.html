@@ -3,31 +3,8 @@
 {% endblock %} {% block extra_head %}
   <!-- CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <link rel="stylesheet" href="{% static 'walkin-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'checkout-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'personnel.css' %}" />
+
   <style>
-    /* Loading state styling */
-    .loading {
-      opacity: 0.6;
-      font-style: italic;
-      color: #6c757d !important;
-    }
-    
-    /* Smooth transitions for count updates */
-    .room-information .cont div[id$='-count'],
-    .rooms-occupied .ro-count {
-      transition: all 0.3s ease;
-    }
-    
-    /* Hover effects for better interactivity */
-    .room-information .cont div[id$='-count']:hover,
-    .rooms-occupied .ro-count:hover {
-      transform: scale(1.1);
-      cursor: pointer;
-    }
-    
     /* Date selector improvements */
     #date-select {
       border: 2px solid #dee2e6;
@@ -41,7 +18,14 @@
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
     }
+    .available {
+      background-color: #216216 !important;
+    }
   </style>
+  <link rel="stylesheet" href="{% static 'walkin-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'checkout-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'personnel.css' %}" />
   <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -52,22 +36,22 @@
   <div class="main">
     <h2 style="margin-left: 30px; margin-top: 20px">Front Office</h2>
     <div class="row">
-      <div class="div1 vacant" data-room="R1">R1</div>
-      <div class="div2 vacant" data-room="R2">R2</div>
+      <div class="div1 {{ room_1.status }}" data-room="1">1</div>
+      <div class="div2 {{ room_2.status }}" data-room="2">2</div>
       <div class="div3">
         <span>View Logs</span>
         <input class="form-control" type="date" id="date-select" />
       </div>
-      <div class="div6 maintinance" data-room="R6">R6</div>
-      <div class="div7 occupied" data-room="R7">R7</div>
-      <div class="div8 vacant" data-room="R3">R3</div>
-      <div class="div9 occupied" data-room="R4">R4</div>
-      <div class="div10 occupied" data-room="R5">R5</div>
-      <div class="div11 vacant" data-room="R8">R8</div>
-      <div class="div12 vacant" data-room="R9">R9</div>
-      <div class="div13 occupied" data-room="R10">R10</div>
-      <div class="div14 maintinance" data-room="R11">R11</div>
-      <div class="div15 vacant" data-room="R12">R12</div>
+      <div class="div6 {{ room_6.status }}" data-room="6">6</div>
+      <div class="div7 {{ room_7.status }}" data-room="7">7</div>
+      <div class="div8 {{ room_3.status }}" data-room="3">3</div>
+      <div class="div9 {{ room_4.status }}" data-room="4">4</div>
+      <div class="div10 {{ room_5.status }}" data-room="5">5</div>
+      <div class="div11 {{ room_8.status }}" data-room="8">8</div>
+      <div class="div12 {{ room_9.status }}" data-room="9">9</div>
+      <div class="div13 {{ room_10.status }}" data-room="10">10</div>
+      <div class="div14 {{ room_11.status }}" data-room="11">11</div>
+      <div class="div15 {{ room_12.status }}" data-room="12">12</div>
     </div>
     <div class="row2">
       <div class="walk-in">
@@ -90,31 +74,31 @@
         <div class="cont">
           <div class="col1">
             <div class="RI-vacant">
-              <div class="vacant-box vacant" id="vacant-count">3</div>
+              <div class="vacant-box vacant" id="vacant-count">{{ room_status_counts.available }}</div>
               <span>Vacant</span>
             </div>
             <div class="RI-occupied">
-              <div class="occupied-box occupied" id="occupied-count">3</div>
+              <div class="occupied-box occupied" id="occupied-count">{{ room_status_counts.occupied }}</div>
               <span>Occupied</span>
             </div>
           </div>
           <div class="col2">
             <div class="RI-under_maintinance">
-              <div class="under_maintinance-box maintinance" id="maintenance-count">2</div>
+              <div class="under_maintinance-box maintinance" id="maintenance-count">{{ room_status_counts.maintenance }}</div>
               <span>Under Maintenance</span>
             </div>
             <div class="RI-housekeeping">
-              <div class="housekeeping-box housekeeping" id="housekeeping-count">2</div>
+              <div class="housekeeping-box housekeeping" id="housekeeping-count">{{ room_status_counts.cleaning }}</div>
               <span>Housekeeping</span>
             </div>
           </div>
           <div class="col3">
             <div class="RI-reserved">
-              <div class="reserved-box reserved" id="reserved-count">0</div>
+              <div class="reserved-box reserved" id="reserved-count">{{ room_status_counts.reserved }}</div>
               <span>Reserved</span>
             </div>
             <div class="total">
-              <span>Total: <span id="total-count">12</span></span>
+              <span>Total: <span id="total-count">{{ rooms.count }}</span></span>
             </div>
           </div>
         </div>
@@ -123,15 +107,15 @@
         <span style="text-decoration: none !important">Rooms Occupied :</span>
         <div class="ro-deluxe mt-3">
           <span>Deluxe</span>
-          <div class="ro-count" style="text-decoration: underline" id="deluxe-count">3</div>
+          <div class="ro-count" style="text-decoration: underline" id="deluxe-count">{{ room_type_counts.deluxe }}</div>
         </div>
         <div class="ro-family">
           <span>Family</span>
-          <div class="ro-count" style="text-decoration: underline" id="family-count">2</div>
+          <div class="ro-count" style="text-decoration: underline" id="family-count">{{ room_type_counts.family }}</div>
         </div>
         <div class="ro-standard">
           <span>Standard</span>
-          <div class="ro-count" style="text-decoration: underline" id="standard-count">1</div>
+          <div class="ro-count" style="text-decoration: underline" id="standard-count">{{ room_type_counts.standard }}</div>
         </div>
       </div>
     </div>
@@ -242,7 +226,6 @@
       $date.val(today).trigger('change')
     })
   </script>
-
   <script>
     const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
     const logoURLCheckin = "{% static 'images/new HMS-B.png' %}"

@@ -924,7 +924,10 @@
         childAges: childAges.filter((age) => age !== undefined).join(',')
       })
     
-      window.location.href = `${resultsUrl}?${params.toString()}`
+      const updatedUrl = `${resultsUrl}?${params.toString()}`
+      console.log('Navigating to URL:', updatedUrl)
+    
+      window.location.href = updatedUrl
     }
   </script>
 {% endblock %}

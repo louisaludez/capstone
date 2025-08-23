@@ -153,51 +153,31 @@
 
     <!-- Rooms List -->
     <div class="rooms-section" id="rooms-section" style="display: none;">
-      <div class="room-card">
-        <div class="d-flex gap-3 align-items-center">
-          <img src="{% static 'images/room.png' %}" alt="Deluxe Room" class="room-img" />
-          <div class="flex-grow-1">
-            <div class="room-title">Deluxe Room</div>
-            <div class="room-meta">Good for 2 - 4 persons</div>
-            <div class="room-meta">Free cancellation before June 21, 2025.</div>
-            <div class="room-meta">Pay nothing before June 21, 2025.</div>
-            <div class="room-meta">Free WiFi</div>
-            <div class="room-meta">Parking</div>
-          </div>
-          <div class="px-3" style="max-width: 250px;">
-            <div class="policy">Your reservation shall be automatically cancelled once you fail to come in on your check-in date. This reservation is non-refundable.</div>
-          </div>
-          <div class="text-end" style="min-width: 170px;">
-            <div class="price">₱ 3500.00</div>
-            <div class="free-cancel">FREE cancellation</div>
-            <div class="policy">before check-in date.</div>
-            <button class="btn btn-book mt-1">Book now!</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="room-card">
-        <div class="d-flex gap-3 align-items-center">
-          <img src="{% static 'images/room.png' %}" alt="Deluxe Room" class="room-img" />
-          <div class="flex-grow-1">
-            <div class="room-title">Deluxe Room</div>
-            <div class="room-meta">Good for 2 - 4 persons</div>
-            <div class="room-meta">Free cancellation before June 21, 2025.</div>
-            <div class="room-meta">Pay nothing before June 21, 2025.</div>
-            <div class="room-meta">Free WiFi</div>
-            <div class="room-meta">Parking</div>
-          </div>
-          <div class="px-3" style="max-width: 250px;">
-            <div class="policy">Your reservation shall be automatically cancelled once you fail to come in on your check-in date. This reservation is non-refundable.</div>
-          </div>
-          <div class="text-end" style="min-width: 170px;">
-            <div class="price">₱ 3500.00</div>
-            <div class="free-cancel">FREE cancellation</div>
-            <div class="policy">before check-in date.</div>
-            <button class="btn btn-book mt-1">Book now!</button>
+      {% for room in rooms %}
+        <div class="room-card">
+          <div class="d-flex gap-3 align-items-center">
+            <img src="{% static 'images/room.png' %}" alt="{{ room.name }}" class="room-img" />
+            <div class="flex-grow-1">
+              <div class="room-title">{{ room.name }}</div>
+              <div class="room-meta">Good for {{ room.capacity }} persons</div>
+              <div class="room-meta">{{ room.description }}</div>
+              <div class="room-meta">Free WiFi</div>
+              <div class="room-meta">Parking</div>
+            </div>
+            <div class="px-3" style="max-width: 250px;">
+              <div class="policy">{{ room.policy }}</div>
+            </div>
+            <div class="text-end" style="min-width: 170px;">
+              <div class="price">₱ {{ room.price_per_night }}</div>
+              <div class="free-cancel">FREE cancellation</div>
+              <div class="policy">before check-in date.</div>
+              <button class="btn btn-book mt-1">Book now!</button>
+            </div>
           </div>
         </div>
-      </div>
+      {% empty %}
+        <p>No rooms available matching your search criteria.</p>
+      {% endfor %}
     </div>
   </div>
 {% endblock %}

@@ -17,14 +17,59 @@ def home(request):
     guest = Guest.objects.all()
     booking = Booking.objects.all() 
     payment = Payment.objects.all()
+    
+    # Get all rooms for dynamic counts
+    all_rooms = Room.objects.all().order_by('room_number')
+    
+    # Get individual rooms for specific room numbers (1-12)
+    room_1 = Room.objects.filter(room_number='1').first()
+    room_2 = Room.objects.filter(room_number='2').first()
+    room_3 = Room.objects.filter(room_number='3').first()
+    room_4 = Room.objects.filter(room_number='4').first()
+    room_5 = Room.objects.filter(room_number='5').first()
+    room_6 = Room.objects.filter(room_number='6').first()
+    room_7 = Room.objects.filter(room_number='7').first()
+    room_8 = Room.objects.filter(room_number='8').first()
+    room_9 = Room.objects.filter(room_number='9').first()
+    room_10 = Room.objects.filter(room_number='10').first()
+    room_11 = Room.objects.filter(room_number='11').first()
+    room_12 = Room.objects.filter(room_number='12').first()
+    
+    # Count rooms by status
+    room_status_counts = {
+        'available': all_rooms.filter(status='available').count(),
+        'occupied': all_rooms.filter(status='occupied').count(),
+        'maintenance': all_rooms.filter(status='maintenance').count(),
+        'cleaning': all_rooms.filter(status='cleaning').count(),
+        'reserved': all_rooms.filter(status='reserved').count(),
+    }
+    
+    # Count rooms by type
+    room_type_counts = {
+        'deluxe': all_rooms.filter(room_type='deluxe').exclude(status='available').count(),
+        'family': all_rooms.filter(room_type='family').exclude(status='available').count(),
+        'standard': all_rooms.filter(room_type='standard').exclude(status='available').count(),
+    }
 
     return render(request, "staff/home.html", {
-        
-       'guest': guest,
-       'booking': booking,
-       'payment': payment,
-       'today': date.today().strftime('%Y-%m-%d')          
-        
+        'guest': guest,
+        'booking': booking,
+        'payment': payment,
+        'room_1': room_1,
+        'room_2': room_2,
+        'room_3': room_3,
+        'room_4': room_4,
+        'room_5': room_5,
+        'room_6': room_6,
+        'room_7': room_7,
+        'room_8': room_8,
+        'room_9': room_9,
+        'room_10': room_10,
+        'room_11': room_11,
+        'room_12': room_12,
+        'room_status_counts': room_status_counts,
+        'room_type_counts': room_type_counts,
+        'today': date.today().strftime('%Y-%m-%d')          
     })
 
 def message(request):
@@ -40,18 +85,6 @@ def message(request):
         "receiver_role": receiver_role,
         "messages": messages_qs,
         "current_user_id": request.user.id,
-    })
-
-@decorator.role_required('personnel')
-def check_in(request):
-    if request.method == 'POST':
-        # You'll plug in Guest, Booking, Payment creation here
-        messages.success(request, "Check-in functionality is under development.")
-        return redirect('HomeStaff')
-    
-    return render(request, "staff/check_in.html", {
-        'available_rooms': Room.objects.filter(status='available'),
-        'today': date.today().strftime('%Y-%m-%d')
     })
 
 
@@ -77,11 +110,10 @@ def view_reservations(request):
 def book_room(request):
     if request.method == 'POST':
         try:
-            print("Booking request received")
-            for key, value in request.POST.items():
-                print(f"{key}: {value}")
+            print("[DEBUG] Received POST request for booking room")
 
             # Create guest
+            print("[DEBUG] Creating guest")
             guest = Guest.objects.create(
                 name=request.POST.get('guest_name'),
                 address=request.POST.get('guest_address'),
@@ -89,19 +121,47 @@ def book_room(request):
                 email=request.POST.get('guest_email'),
                 date_of_birth=request.POST.get('guest_birth')
             )
+            print(f"[DEBUG] Guest created: {guest}")
+
+            # Fetch room number and dates
+            room_number = request.POST.get('room')
+            check_in_date = request.POST.get('check_in')
+            check_out_date = request.POST.get('check_out')
+            print(f"[DEBUG] Room number: {room_number}, Check-in: {check_in_date}, Check-out: {check_out_date}")
+
+            # Validate dates
+            if not check_in_date or not check_out_date:
+                print("[DEBUG] Missing check-in or check-out dates")
+                return JsonResponse({'success': False, 'message': 'Check-in and check-out dates are required.'}, status=400)
+
+            # Parse dates
+            check_in_date = datetime.strptime(check_in_date, '%Y-%m-%d').date()
+            check_out_date = datetime.strptime(check_out_date, '%Y-%m-%d').date()
+            print(f"[DEBUG] Parsed dates - Check-in: {check_in_date}, Check-out: {check_out_date}")
 
             # Create booking
+            print("[DEBUG] Creating booking")
             booking = Booking.objects.create(
                 guest=guest,
-                check_in_date=request.POST.get('check_in'),
-                check_out_date=request.POST.get('check_out'),
-                room=request.POST.get('room'),
+                check_in_date=check_in_date,
+                check_out_date=check_out_date,
+                room=room_number,
                 total_of_guests=request.POST.get('total_guests'),
                 num_of_adults=request.POST.get('adults'),
                 num_of_children=request.POST.get('children'),
+                status='Checked-in'
             )
+            print(f"[DEBUG] Booking created: {booking}")
+
+            # Update room status to 'occupied'
+            print(f"[DEBUG] Updating room {room_number} status to 'occupied'")
+            room = Room.objects.get(room_number=room_number)
+            room.status = 'occupied'
+            room.save()
+            print(f"[DEBUG] Room status updated: {room}")
 
             # Create payment
+            print("[DEBUG] Creating payment")
             Payment.objects.create(
                 booking=booking,
                 method=request.POST.get('payment_method'),
@@ -111,13 +171,19 @@ def book_room(request):
                 billing_address=request.POST.get('billing_address'),
                 total_balance=Decimal(request.POST.get('current_balance') or 0)
             )
+            print("[DEBUG] Payment created")
 
-            return JsonResponse({'success': True, 'message': 'Room successfully booked!'}, status=200)
+            return JsonResponse({'success': True, 'message': f'Room {room_number} successfully booked and checked in from {check_in_date} to {check_out_date}.'}, status=200)
+
+        except Room.DoesNotExist:
+            print(f"[DEBUG] Room {room_number} does not exist")
+            return JsonResponse({'success': False, 'message': 'Room not found.'}, status=404)
 
         except Exception as e:
-            print(f"Error booking room: {str(e)}")
+            print(f"[DEBUG] Unexpected error: {str(e)}")
             return JsonResponse({'success': False, 'message': f"Error: {str(e)}"}, status=500)
 
+    print("[DEBUG] Invalid request method")
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 
@@ -240,7 +306,7 @@ def get_reservations_ajax(request):
 def room_status(request):
     """
     Expects ?date=YYYY-MM-DD
-    Returns JSON with comprehensive room information
+    Returns JSON with comprehensive room information based on actual Room model data
     """
     date_str = request.GET.get("date")
     print(f"[DEBUG] received date_str: {date_str!r}")
@@ -252,55 +318,78 @@ def room_status(request):
         print(f"[DEBUG] date parsing error: {e}")
         return JsonResponse({"error": "invalid or missing date"}, status=400)
 
+    # Get all rooms from the Room model
+    all_rooms = Room.objects.all()
+    total_rooms = all_rooms.count()
+    print(f"[DEBUG] Total rooms: {total_rooms}")
+
+    # Print all room statuses for debugging
+    room_statuses = list(all_rooms.values('room_number', 'status'))
+    print(f"[DEBUG] Room statuses: {room_statuses}")
+
     # Get occupied rooms for the selected date
-    occupied_qs = Booking.objects.filter(
-        check_in_date__lte=d,
-        check_out_date__gte=d
-    ).values_list("room", flat=True)
+    try:
+        occupied_qs = Booking.objects.filter(
+            check_in_date__lte=d,
+            check_out_date__gte=d,
+            status='Checked-in'  # Only count actually checked-in bookings
+        ).values_list("room", flat=True)
+        print(f"[DEBUG] occupied_qs: {list(occupied_qs)}")
+    except Exception as e:
+        print(f"[DEBUG] Error querying 'room' field: {e}")
+        occupied_qs = []
 
     occupied_rooms = list(occupied_qs)
-    occupied_rooms = [
-        f"R{room}" if not str(room).startswith("R") else str(room)
-        for room in occupied_rooms
-    ]
+    print(f"[DEBUG] Occupied rooms: {occupied_rooms}")
 
-    # Calculate actual total rooms based on what exists in the system
-    # Based on your template, you have rooms R1-R12 (12 rooms total)
-    total_rooms = 12
-    
-    # Count rooms by type based on your actual room layout
-    # Adjust these ranges based on your actual room numbering
-    room_types = {
-        'deluxe': 4,      # R1, R2, R3, R4
-        'family': 4,      # R5, R6, R7, R8  
-        'standard': 4     # R9, R10, R11, R12
+    # Count rooms by status dynamically
+    room_status_counts = {
+        'available': total_rooms - len(occupied_rooms),  # Total rooms minus occupied rooms
+        'occupied': len(occupied_rooms),
+        'maintenance': all_rooms.filter(status='maintenance').count(),
+        'cleaning': all_rooms.filter(status='cleaning').count(),
+        'reserved': all_rooms.filter(status='reserved').count(),
+        'out_of_order': all_rooms.filter(status='out_of_order').count(),
     }
-    
-    # Count occupied rooms by type (adjust ranges based on your actual room layout)
+    print(f"[DEBUG] Room status counts: {room_status_counts}")
+
+    # Count rooms by type from the Room model
+    room_type_counts = {
+        'deluxe': all_rooms.filter(room_type='deluxe').count(),
+        'family': all_rooms.filter(room_type='family').count(),
+        'standard': all_rooms.filter(room_type='standard').count(),
+    }
+
+    # Count occupied rooms by type (based on actual room data)
     occupied_by_type = {
-        'deluxe': len([r for r in occupied_rooms if r in ['R1', 'R2', 'R3', 'R4']]),
-        'family': len([r for r in occupied_rooms if r in ['R5', 'R6', 'R7', 'R8']]),
-        'standard': len([r for r in occupied_rooms if r in ['R9', 'R10', 'R11', 'R12']])
+        'deluxe': 0,
+        'family': 0,
+        'standard': 0
     }
-    
-    # Calculate other statuses
-    vacant_count = total_rooms - len(occupied_rooms)
-    maintenance_count = 2  # R6, R11 (based on your template)
-    housekeeping_count = 0  # You can make this dynamic based on your housekeeping system
-    reserved_count = 0  # You can make this dynamic based on your reservation system
+
+    # Get the actual room types for occupied rooms
+    for room_number in occupied_rooms:
+        room_num = room_number.replace('R', '')
+        try:
+            room = Room.objects.get(room_number=room_num)
+            if room.room_type in occupied_by_type:
+                occupied_by_type[room.room_type] += 1
+        except Room.DoesNotExist:
+            print(f"[DEBUG] Room {room_num} not found in Room model")
+            continue
 
     print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
-    print(f"[DEBUG] room counts: total={total_rooms}, vacant={vacant_count}, occupied={len(occupied_rooms)}, maintenance={maintenance_count}")
+    print(f"[DEBUG] room counts: total={total_rooms}, available={room_status_counts['available']}, occupied={room_status_counts['occupied']}, maintenance={room_status_counts['maintenance']}")
 
     return JsonResponse({
         "occupied": occupied_rooms,
         "room_info": {
             "total": total_rooms,
-            "vacant": vacant_count,
-            "occupied": len(occupied_rooms),
-            "maintenance": maintenance_count,
-            "housekeeping": housekeeping_count,
-            "reserved": reserved_count
+            "vacant": room_status_counts['available'],
+            "occupied": room_status_counts['occupied'],
+            "maintenance": room_status_counts['maintenance'],
+            "housekeeping": room_status_counts['cleaning'],
+            "reserved": room_status_counts['reserved']
         },
         "rooms_occupied": {
             "deluxe": occupied_by_type['deluxe'],
@@ -308,9 +397,6 @@ def room_status(request):
             "standard": occupied_by_type['standard']
         }
     })
-
-
-
 
 def perform_checkout(request):
     if request.method == 'POST':
@@ -407,3 +493,13 @@ def perform_checkout(request):
 
     print("Invalid request method (not POST).")
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
+@decorator.role_required('personnel')
+def room_list(request):
+    """Display all rooms with their current status"""
+    rooms = Room.objects.all().order_by('room_number')
+    
+    return render(request, "staff/room_list.html", {
+        'rooms': rooms,
+        'today': date.today().strftime('%Y-%m-%d')
+    })

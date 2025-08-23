@@ -142,3 +142,8 @@ def admin_mcq_reports(request):
     return render(request, "adminNew/mcq_reports.html")
 def admin_speech_reports(request):
     return render(request, "adminNew/speech_reports.html")
+def admin_training(request):
+    return render(request, "adminNew/training.html")
+
+def admin_activity_materials(request):
+    return render(request, "adminNew/activity_materials.html")

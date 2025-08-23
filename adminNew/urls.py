@@ -15,4 +15,6 @@ urlpatterns = [
     path('reports/housekeeping/', admin_housekeeping_reports, name='admin_housekeeping_reports'),
     path('reports/speech/', admin_speech_reports, name='admin_speech_reports'),
     path('reports/mcq/', admin_mcq_reports, name='admin_mcq_reports'),
+    path('training/', admin_training, name='admin_training'),
+    path('activity-materials/', admin_activity_materials, name='admin_activity_materials'),
 ]
