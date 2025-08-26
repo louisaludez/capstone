@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from staff.models import *
 import locale
+from decimal import Decimal
 
 # Create your views here.
 def admin_home(request):
@@ -131,13 +132,52 @@ def admin_reports(request):
 def admin_messenger(request):
     return render(request, "adminNew/messenger.html")
 def admin_front_office_reports(request):
-    return render(request, "adminNew/front_office_reports.html")
+    guests = Guest.objects.all()
+
+    total = 0
+    for g in guests:
+        total += (
+            int(g.billing or 0) +
+            int(g.room_service_billing or 0) +
+            int(g.laundry_billing or 0) +
+            int(g.cafe_billing or 0) +
+            int(g.excess_pax_billing or 0) +
+            int(g.additional_charge_billing or 0)
+        )
+    context = {'total_revenue': total}
+    return render(request, "adminNew/front_office_reports.html", context)
 def admin_cafe_reports(request):
-    return render(request, "adminNew/cafe_reports.html")
+    guests = Guest.objects.all()
+
+    total = 0
+    for g in guests:
+        total += (
+            int(g.cafe_billing or 0)
+        )
+    context = {'total_revenue': total}
+    return render(request, "adminNew/cafe_reports.html", context)
 def admin_housekeeping_reports(request):
-    return render(request, "adminNew/housekeeping_reports.html")
+    guests = Guest.objects.all()
+
+    total = 0
+    for g in guests:
+        total += (
+            int(g.housekeeping_billing or 0)
+        )
+    context = {'total_revenue': total}
+    return render(request, "adminNew/housekeeping_reports.html", context)
 def admin_laundry_reports(request):
-    return render(request, "adminNew/laundry_reports.html")
+    guests = Guest.objects.all()
+
+    total = 0
+   
+
+    total = Decimal(0)
+    for g in guests:
+     total += Decimal(g.laundry_billing or 0)
+
+    context = {'total_revenue': total}
+    return render(request, "adminNew/laundry_reports.html", context)
 def admin_mcq_reports(request):
     return render(request, "adminNew/mcq_reports.html")
 def admin_speech_reports(request):

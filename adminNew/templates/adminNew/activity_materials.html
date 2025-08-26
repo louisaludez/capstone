@@ -7,270 +7,181 @@
 
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
   <style>
-    .activity-materials-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
+    * {
+      border-radius: 13px;
     }
-    
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    
-    .page-title {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #333;
-      margin: 0;
-    }
-    
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-    }
-    
-    .btn-add {
-      color: #28a745;
-      background: none;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    
-    .btn-add:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .btn-remove {
-      color: #dc3545;
-      background: none;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    
-    .btn-remove:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .btn-edit {
-      color: #333;
-      background: none;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .btn-edit:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .main-content {
-      display: flex;
-      gap: 30px;
-      align-items: flex-start;
-    }
-    
-    .left-section {
-      flex: 1;
-      max-width: 400px;
-    }
-    
-    .activity-type-card {
-      border: 2px solid #6f42c1;
-      border-radius: 12px;
-      padding: 30px;
-      background: white;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .activity-type-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15);
-    }
-    
-    .activity-type-icon {
-      margin-bottom: 20px;
+    .header-buttons {
+      border: 1px solid gray;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 80px;
+      width: 300px;
+      border-radius: 13px;
     }
-    
-    .choice-squares {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-bottom: 15px;
-    }
-    
-    .choice-square {
-      width: 30px;
-      height: 30px;
-      border: 2px solid #28a745;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #28a745;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    
-    .hand-pointer {
-      width: 24px;
-      height: 24px;
-      position: relative;
-      margin-left: 10px;
-    }
-    
-    .hand-pointer::before {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 0;
-      border-left: 10px solid #28a745;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    
-    .activity-type-title {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #333;
-      line-height: 1.3;
-    }
-    
-    .right-section {
-      flex: 2;
-    }
-    
-    .activity-form {
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .form-row {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      margin-bottom: 25px;
-    }
-    
-    .form-group {
-      flex: 1;
-    }
-    
-    .form-group label {
-      display: block;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 8px;
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      transition: border-color 0.2s;
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: #28a745;
-      box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
-    }
-    
-    .add-activity-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 0.2s;
-    }
-    
-    .add-activity-btn:hover {
-      background: #218838;
-    }
-    
-    .content-area {
-      border: 2px solid #28a745;
-      border-radius: 8px;
-      min-height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f8f9fa;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    
-    .content-area:hover {
-      background: #e9ecef;
-    }
-    
-    .content-placeholder {
+    .activity-box {
       display: flex;
       flex-direction: column;
       align-items: center;
-      color: #28a745;
-      font-size: 18px;
+      justify-content: center;
+      border: 1px solid black;
+      border-radius: 13px;
+      height: 100%;
+      width: 310px !important;
     }
-    
-    .plus-icon {
-      font-size: 32px;
+    .activity-box img {
+      width: 150px;
+      height: 150px;
       margin-bottom: 10px;
     }
-    
-    .save-changes-btn {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
+    .activity-box span {
+      text-align: center;
       font-weight: bold;
-      cursor: pointer;
+      font-size: 24px;
+      display: block;
+    }
+    .input-container {
+      border: 1px solid black;
+      margin-bottom: 10px;
+      height: 60px;
+      padding-bottom: 10px !important;
+      position: relative;
+    }
+    .input-container input {
+      border: none;
+      background-color: transparent;
+      font-size: 12px;
+      margin-top: 0 !important;
+      margin-bottom: 10px !important;
+      height: 10px;
+    }
+    .input-container input::placeholder {
+      color: #bababa;
+      font-style: italic;
+      font-size: 12px;
+    }
+    .input-container input:focus {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      background-color: transparent !important;
+    }
+    .input-header {
+      font-weight: bold;
+      font-size: 12px;
+      margin-left: 10px;
+      margin-bottom: 0 !important;
+    }
+    .timer {
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: background-color 0.2s;
-      margin-top: 20px;
+      justify-content: center;
+      border: 1px solid black;
+      padding: 10px;
+      position: relative;
+    }
+    .timer button {
+      margin-right: 10px;
+      width: 100px;
+      height: 35px;
+      border: 1px solid gray;
+      border-radius: 4px;
+      font-size: 12px;
+      background-color: transparent;
     }
     
-    .save-changes-btn:hover {
-      background: #0056b3;
+    .group-input {
+      border: 1px solid black;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .add {
+      color: #73b455;
+    }
+    .remove {
+      color: #ad0908;
+    }
+    .edit {
+      color: #141311;
+    }
+    .group-input {
+      padding: 10px;
+    }
+    .group-header {
+      font-weight: bolder;
+      font-size: 16px;
+      margin-right: 10px !important;
+      white-space: nowrap;
+    }
+    .group-input input {
+      height: 90px;
+      margin-right: 10px;
+      width: 120px;
+      border: 1px solid black;
+    }
+    .groups {
+      display: flex;
+      gap: 15px;
+      flex-direction: row;
+      justify-self: center;
+      align-items: center;
+    }
+    .groups button {
+      position: relative;
+    }
+    .addbuttons button {
+      border: 1px solid black;
+      font-size: 12px;
+      height: 40px;
+      width: 100px;
+      border-radius: 4px;
+    }
+    .note {
+      font-size: 12px;
+      color: gray;
+      font-style: italic;
+      margin-left: 120px;
+    }
+    .footer {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .footer button {
+      width: 150px;
+      height: 30px;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid gray;
+      border-radius: 4px;
+      background-color: #ffffff;
+    }
+    .corner-checkbox {
+      position: absolute;
+      top: -5px; /* adjust spacing */
+      right: -5px;
+      transform: scale(2); /* make it a bit bigger (optional) */
+      cursor: pointer;
+    }
+    .corner-checkbox-timer {
+      position: absolute;
+      top: -5px; /* adjust spacing */
+      right: -345px;
+      transform: scale(1.5); /* make it a bit bigger (optional) */
+      cursor: pointer;
+    }
+    .corner-checkbox-btn {
+      position: absolute;
+      top: -45px;
+      right: -65px;
+      transform: scale(0.2);
+      cursor: pointer;
+      border: 1px solid black !important;
     }
   </style>
 {% endblock %}
@@ -280,100 +191,95 @@
 {% endblock %}
 
 {% block content %}
-  <div class="activity-materials-container">
-    <div class="page-header">
-      <h1 class="page-title">Activity Materials</h1>
-      <div class="action-buttons">
-        <button class="btn-add">+ Add</button>
-        <button class="btn-remove">- Remove</button>
-        <button class="btn-edit">
-          <i class="bi bi-check-square"></i>
-          Edit
-        </button>
+  <div class="container-fluid p-5">
+    <div class="row header mt-3 mb-2">
+      <div class="col-6">
+        <h1>Activity Materials</h1>
+      </div>
+      <div class="col-6 d-flex justify-content-end align-items-center">
+        <div class="header-buttons">
+          <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
+          <span>|</span>
+          <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
+          <span>|</span>
+          <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
+        </div>
       </div>
     </div>
-
-    <div class="main-content">
-      <!-- Left Section - Activity Type Selection -->
-      <div class="left-section">
-        <div class="activity-type-card">
-          <div class="activity-type-icon">
-            <div class="choice-squares">
-              <div class="choice-square">A</div>
-              <div class="choice-square">B</div>
-              <div class="choice-square">C</div>
-            </div>
-            <div class="hand-pointer"></div>
+    <div class="row body">
+      <div class="col-4">
+        <div class="activity-box">
+          <img src="{% static 'images/type.png' %}" alt="" />
+          <span class="text">Multiple Choice <br /> Scenario Based <br /> Test</span>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="row">
+          <div class="input-container">
+            <span class="input-header">Test 1. Test Title</span>
+            <input type="text" class="form-control" placeholder="Description" />
+            <input type="checkbox" class="corner-checkbox" />
           </div>
-          <div class="activity-type-title">
-            Multiple Choice<br />Scenario Based Test
+        </div>
+        <div class="row">
+          <div class="input-container">
+            <span class="input-header">Scenario</span>
+            <input type="text" class="form-control" placeholder="Type Scenario" />
+            <input type="checkbox" class="corner-checkbox" />
+          </div>
+        </div>
+        <div class="row timer">
+          <span class="col-2">Set Timer:</span>
+          <button class="col-2">3 mins</button>
+          <button class="col-2">5 mins</button>
+          <button class="col-2">10 mins</button>
+          <button class="col-2">20 mins</button>
+          <button class="col-2">Set Your time</button>
+          <input type="checkbox" class="corner-checkbox-timer" />
+        </div>
+        <div class="row">
+          <div class="group-input">
+            <div class="row">
+              <div class="col-2">
+                <span class="group-header">Input Choices:</span>
+              </div>
+              <div class="col-8 groups">
+                <input type="text" placeholder="Type text here" />
+                <input type="text" placeholder="Type text here" />
+                <input type="text" placeholder="Type text here" />
+                <input type="text" placeholder="Type text here" />
+              </div>
+            </div>
+            <div class="row addbuttons mt-3">
+              <div class="col-2">
+                <span class="group-header">Add Buttons:</span>
+              </div>
+              <div class="col-2 position-relative">
+                <button>Block</button>
+                <input type="checkbox" class="corner-checkbox-btn" />
+              </div>
+              <div class="col-2">
+                <button>Reserve</button>
+              </div>
+              <div class="col-2">
+                <button>Cash Payment</button>
+              </div>
+              <div class="col-2">
+                <button>Customize button</button>
+              </div>
+            </div>
+            <span class="note">All Choices are limited to 4 only</span>
           </div>
         </div>
       </div>
-
-      <!-- Right Section - Activity Details/Creation -->
-      <div class="right-section">
-        <div class="activity-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="activity-title">Activity title</label>
-              <input type="text" id="activity-title" class="form-control" placeholder="Enter activity title" />
-            </div>
-            <div class="form-group">
-              <label for="description">Description</label>
-              <input type="text" id="description" class="form-control" placeholder="Enter description" />
-            </div>
-            <div class="form-group" style="flex: 0 0 auto;">
-              <button class="add-activity-btn">
-                <i class="bi bi-arrow-up"></i>
-                Add Activity
-              </button>
-            </div>
-          </div>
-
-          <div class="content-area">
-            <div class="content-placeholder">
-              <div class="plus-icon">+</div>
-              <div>Click to add content or questions</div>
-            </div>
-          </div>
-
-          <div style="text-align: right;">
-            <button class="save-changes-btn">
-              <i class="bi bi-save"></i>
-              Save changes
-            </button>
-          </div>
-        </div>
-      </div>
+    </div>
+    <div class="row footer">
+      <button>Add Next Item <i class="bi bi-play-fill"></i></button>
+      <button><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_js %}
-  <script>
-    // Add click event for content area
-    document.querySelector('.content-area').addEventListener('click', function () {
-      // Add functionality to add content or questions
-      console.log('Content area clicked - add content functionality here')
-    })
-    
-    // Add click event for activity type card
-    document.querySelector('.activity-type-card').addEventListener('click', function () {
-      // Add functionality for activity type selection
-      console.log('Activity type selected')
-    })
-    
-    // Add click event for add activity button
-    document.querySelector('.add-activity-btn').addEventListener('click', function () {
-      // Add functionality to add new activity
-      console.log('Add activity clicked')
-    })
-    
-    // Add click event for save changes button
-    document.querySelector('.save-changes-btn').addEventListener('click', function () {
-      // Add functionality to save changes
-      console.log('Save changes clicked')
-    })
-  </script>
+
 {% endblock %}
