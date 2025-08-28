@@ -186,4 +186,4 @@ def admin_training(request):
     return render(request, "adminNew/training.html")
 
 def admin_activity_materials(request):
-    return render(request, "adminNew/activity_materials.html")
+    return render(request, "adminNew/addmt.html")

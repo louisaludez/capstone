@@ -183,6 +183,11 @@
       cursor: pointer;
       border: 1px solid black !important;
     }
+    .div {
+      position: absolute;
+      top: 5px;
+      left: 540px;
+    }
   </style>
 {% endblock %}
 
@@ -214,65 +219,14 @@
         </div>
       </div>
       <div class="col-8">
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Test 1. Test Title</span>
-            <input type="text" class="form-control" placeholder="Description" />
-            <input type="checkbox" class="corner-checkbox" />
+        <div class="input-container">
+          <span class="input-header">Activity Title</span>
+          <input type="text" class="form-control" placeholder="Description" />
+          <div class="div">
+            <span>Icon</span>
+            <span>AddActivity</span>
           </div>
-        </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Scenario</span>
-            <input type="text" class="form-control" placeholder="Type Scenario" />
-            <input type="checkbox" class="corner-checkbox" />
-          </div>
-        </div>
-        <div class="row timer">
-          <span class="col-2">Set Timer:</span>
-          <button class="col-2">3 mins</button>
-          <button class="col-2">5 mins</button>
-          <button class="col-2">10 mins</button>
-          <button class="col-2">20 mins</button>
-          <button class="col-2">Set Your time</button>
-          <input type="checkbox" class="corner-checkbox-timer" />
-        </div>
-        <div class="row">
-          <div class="group-input">
-            <div class="row">
-              <div class="col-2">
-                <span class="group-header">Input Choices:</span>
-              </div>
-              <div class="col-8 groups">
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-              </div>
-            </div>
-            <div class="row addbuttons mt-3">
-              <div class="col-2">
-                <span class="group-header">Add Buttons:</span>
-              </div>
-              <div class="col-2 position-relative">
-                <button>Block</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
-              </div>
-              <div class="col-2">
-                <button>Reserve</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
-              </div>
-              <div class="col-2">
-                <button>Cash Payment</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
-              </div>
-              <div class="col-2">
-                <button>Customize button</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
-              </div>
-            </div>
-            <span class="note">All Choices are limited to 4 only</span>
-          </div>
+          <input type="checkbox" class="corner-checkbox" />
         </div>
       </div>
     </div>
