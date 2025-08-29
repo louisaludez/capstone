@@ -187,3 +187,8 @@ def admin_training(request):
 
 def admin_activity_materials(request):
     return render(request, "adminNew/addmt.html")
+def add_activity(request):
+    if request.method == "POST":
+        # Handle the form submission
+        pass
+    return render(request, "adminNew/activity_materials.html")

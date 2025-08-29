@@ -187,6 +187,31 @@
       position: absolute;
       top: 5px;
       left: 540px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    /* Plus box styles */
+    .plus-box {
+      position: absolute;
+      top: 80px;
+      left: 0;
+      width: 100%;
+      height: 35px;
+      border: 1px solid black;
+      border-radius: 13px;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .plus-icon {
+      font-size: 24px;
+      color: black;
+      font-weight: bold;
     }
   </style>
 {% endblock %}
@@ -223,15 +248,19 @@
           <span class="input-header">Activity Title</span>
           <input type="text" class="form-control" placeholder="Description" />
           <div class="div">
-            <span>Icon</span>
+            <a href="{% url 'add_activity' %}"><span><i class="bi bi-upload"></i></span></a>
             <span>AddActivity</span>
           </div>
           <input type="checkbox" class="corner-checkbox" />
+
+          <!-- Plus box below Add Activity button -->
+          <div class="plus-box">
+            <div class="plus-icon">+</div>
+          </div>
         </div>
       </div>
     </div>
     <div class="row footer">
-      <button>Add Next Item <i class="bi bi-play-fill"></i></button>
       <button><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
