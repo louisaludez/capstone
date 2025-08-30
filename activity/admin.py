@@ -1,3 +1,3 @@
 from django.contrib import admin
 
-# Register your models here.
+# Admin registrations moved to adminNew app per request.

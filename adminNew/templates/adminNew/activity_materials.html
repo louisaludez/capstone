@@ -91,6 +91,13 @@
       font-size: 12px;
       background-color: transparent;
     }
+    .timer button.selected {
+      border-color: #0d6efd;
+      background-color: #e6f0ff;
+      color: #0d6efd;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
     
     .group-input {
       border: 1px solid black;
@@ -121,6 +128,7 @@
       width: 120px;
       border: 1px solid black;
     }
+    
     .groups {
       display: flex;
       gap: 15px;
@@ -183,6 +191,19 @@
       cursor: pointer;
       border: 1px solid black !important;
     }
+    /* Header button reveal animations */
+    .hidden-control {
+      display: none !important;
+    }
+    .anim-enter {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+    }
+    .anim-enter-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
   </style>
 {% endblock %}
 
@@ -216,25 +237,25 @@
       <div class="col-8">
         <div class="row">
           <div class="input-container">
-            <span class="input-header">Test 1. Test Title</span>
-            <input type="text" class="form-control" placeholder="Description" />
+            <span class="input-header">{{ activity.title|default:'Activity title' }}</span>
+            <input type="text" class="form-control" placeholder="{{ activity.description|default:'Description' }}" />
             <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
           <div class="input-container">
             <span class="input-header">Scenario</span>
-            <input type="text" class="form-control" placeholder="Type Scenario" />
+            <input type="text" class="form-control" placeholder="{{ activity.scenario|default:'Type scenario' }}" />
             <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
-        <div class="row timer">
+        <div class="row timer" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
           <span class="col-2">Set Timer:</span>
-          <button class="col-2">3 mins</button>
-          <button class="col-2">5 mins</button>
-          <button class="col-2">10 mins</button>
-          <button class="col-2">20 mins</button>
-          <button class="col-2">Set Your time</button>
+          <button class="col-2 timer-btn" data-seconds="180">3 mins</button>
+          <button class="col-2 timer-btn" data-seconds="300">5 mins</button>
+          <button class="col-2 timer-btn" data-seconds="600">10 mins</button>
+          <button class="col-2 timer-btn" data-seconds="1200">20 mins</button>
+          <button class="col-2 timer-btn timer-custom" data-seconds="0">Set Your time</button>
           <input type="checkbox" class="corner-checkbox-timer" />
         </div>
         <div class="row">
@@ -244,31 +265,16 @@
                 <span class="group-header">Input Choices:</span>
               </div>
               <div class="col-8 groups">
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-                <input type="text" placeholder="Type text here" />
-              </div>
-            </div>
-            <div class="row addbuttons mt-3">
-              <div class="col-2">
-                <span class="group-header">Add Buttons:</span>
-              </div>
-              <div class="col-2 position-relative">
-                <button>Block</button>
-                <input type="checkbox" class="corner-checkbox-btn" style="accent-color: black !important; border: 2px solid black !important ;" />
-              </div>
-              <div class="col-2 position-relative">
-                <button>Reserve</button>
-                <input style="border: 1px solid black !important;" type="checkbox" class="corner-checkbox-btn" />
-              </div>
-              <div class="col-2 position-relative">
-                <button>Cash Payment</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
-              </div>
-              <div class="col-2 position-relative">
-                <button>Customize button</button>
-                <input type="checkbox" class="corner-checkbox-btn" />
+                {% if choices %}
+                  {% for c in choices %}
+                    <input type="text" placeholder="{{ c }}" />
+                  {% endfor %}
+                {% else %}
+                  <input type="text" placeholder="Type text here" />
+                  <input type="text" placeholder="Type text here" />
+                  <input type="text" placeholder="Type text here" />
+                  <input type="text" placeholder="Type text here" />
+                {% endif %}
               </div>
             </div>
             <span class="note">All Choices are limited to 4 only</span>
@@ -278,11 +284,157 @@
     </div>
     <div class="row footer">
       <button>Add Next Item <i class="bi bi-play-fill"></i></button>
-      <button><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+      <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_js %}
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Hide header controls and checkboxes until Edit is clicked
+      var hb = document.querySelector('.header-buttons')
+      if (hb) {
+        var addBtn = hb.querySelector('.btn.add')
+        var removeBtn = hb.querySelector('.btn.remove')
+        var editBtn = hb.querySelector('.btn.edit')
+        var sepAfterAdd = addBtn ? addBtn.nextElementSibling : null
+        var sepBeforeEdit = removeBtn ? removeBtn.nextElementSibling : null
+    
+        function getControls() {
+          var cbs = Array.from(document.querySelectorAll('.corner-checkbox, .corner-checkbox-timer, .corner-checkbox-btn'))
+          return [addBtn, removeBtn, sepAfterAdd, sepBeforeEdit].concat(cbs).filter(Boolean)
+        }
+    
+        getControls().forEach(function (el) {
+          el.classList.add('hidden-control')
+        })
+        var shown = false
+    
+        function showControls() {
+          var ctrls = getControls()
+          ctrls.forEach(function (el) {
+            el.classList.remove('hidden-control')
+            el.classList.add('anim-enter')
+            requestAnimationFrame(function () {
+              el.classList.add('anim-enter-active')
+              el.classList.remove('anim-enter')
+            })
+            el.addEventListener(
+              'transitionend',
+              function h() {
+                el.classList.remove('anim-enter-active')
+                el.removeEventListener('transitionend', h)
+              },
+              { once: true }
+            )
+          })
+          shown = true
+        }
+    
+        function hideControls() {
+          getControls().forEach(function (el) {
+            el.classList.add('hidden-control')
+          })
+          shown = false
+        }
+    
+        if (editBtn) {
+          editBtn.addEventListener('click', function (e) {
+            e.preventDefault()
+            if (!shown) showControls()
+            else hideControls()
+          })
+        }
+      }
+      var saveBtn = document.getElementById('saveActivityBtn')
+      if (!saveBtn) return
+    
+      // Timer selection
+      var timerRow = document.querySelector('.row.timer')
+      var selectedSeconds = 0
+      if (timerRow) {
+        var initial = parseInt(timerRow.getAttribute('data-initial-seconds') || '0', 10) || 0
+        selectedSeconds = initial
+        var buttons = Array.from(timerRow.querySelectorAll('.timer-btn'))
+    
+        function applySelected() {
+          buttons.forEach(function (b) {
+            var sec = parseInt(b.getAttribute('data-seconds') || '0', 10) || 0
+            if (sec === selectedSeconds) b.classList.add('selected')
+            else b.classList.remove('selected')
+          })
+        }
+        applySelected()
+    
+        buttons.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            if (btn.classList.contains('timer-custom')) {
+              Swal.fire({
+                title: 'Set custom time (minutes)',
+                input: 'number',
+                inputAttributes: { min: 1, step: 1 },
+                showCancelButton: true
+              }).then(function (res) {
+                if (!res.isConfirmed) return
+                var mins = parseInt(res.value || '0', 10) || 0
+                if (mins <= 0) return
+                selectedSeconds = mins * 60
+                applySelected()
+              })
+            } else {
+              selectedSeconds = parseInt(btn.getAttribute('data-seconds') || '0', 10) || 0
+              applySelected()
+            }
+          })
+        })
+      }
+    
+      saveBtn.addEventListener('click', function (e) {
+        e.preventDefault()
+    
+        Swal.fire({
+          title: 'Save activity changes?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Save'
+        }).then(function (res) {
+          if (!res.isConfirmed) return
+    
+          var title = (document.querySelector('.row .input-container .input-header')?.textContent || '').trim()
+          var desc = (document.querySelectorAll('.row .input-container input.form-control')[0]?.value || document.querySelectorAll('.row .input-container input.form-control')[0]?.getAttribute('placeholder') || '').trim()
+          var scenario = (document.querySelectorAll('.row .input-container input.form-control')[1]?.value || document.querySelectorAll('.row .input-container input.form-control')[1]?.getAttribute('placeholder') || '').trim()
+          var choices = Array.from(document.querySelectorAll('.groups input')).map(function (el) {
+            return el.value || el.getAttribute('placeholder') || ''
+          })
+    
+          var params = new URLSearchParams(window.location.search)
+          var id = params.get('id')
+    
+          fetch(window.location.pathname + (id ? '?id=' + encodeURIComponent(id) : ''), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+            },
+            body: JSON.stringify({ id: id, description: desc, scenario: scenario, choices: choices, timer_seconds: selectedSeconds })
+          })
+            .then(function (r) {
+              return r.json()
+            })
+            .then(function (data) {
+              if (data && data.ok) {
+                Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
+              } else {
+                Swal.fire({ icon: 'error', title: 'Save failed', text: data && data.error ? data.error : 'Unknown error' })
+              }
+            })
+            .catch(function (err) {
+              Swal.fire({ icon: 'error', title: 'Save failed', text: String(err) })
+            })
+        })
+      })
+    })
+  </script>
 {% endblock %}

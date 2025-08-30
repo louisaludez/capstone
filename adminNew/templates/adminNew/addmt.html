@@ -8,6 +8,7 @@
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'main.css' %}" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     * {
@@ -28,7 +29,7 @@
       justify-content: center;
       border: 1px solid black;
       border-radius: 13px;
-      height: 100%;
+      height: 380px;
       width: 310px !important;
     }
     .activity-box img {
@@ -47,6 +48,7 @@
       margin-bottom: 10px;
       height: 60px;
       padding-bottom: 10px !important;
+      padding-right: 28px; /* room for corner checkbox */
       position: relative;
     }
     .input-container input {
@@ -138,6 +140,12 @@
       width: 100px;
       border-radius: 4px;
     }
+    .input-list {
+      max-height: 350px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+    }
     .note {
       font-size: 12px;
       color: gray;
@@ -160,12 +168,15 @@
       border: 1px solid gray;
       border-radius: 4px;
       background-color: #ffffff;
+      margin-top: 10px;
+      margin-right: 10px;
     }
     .corner-checkbox {
       position: absolute;
-      top: -5px; /* adjust spacing */
-      right: -5px;
+      top: -2px;
+      right: -7px;
       transform: scale(2);
+      transform-origin: top right;
       cursor: pointer;
     }
     .corner-checkbox-timer {
@@ -194,9 +205,6 @@
     
     /* Plus box styles */
     .plus-box {
-      position: absolute;
-      top: 80px;
-      left: 0;
       width: 100%;
       height: 35px;
       border: 1px solid black;
@@ -206,12 +214,27 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
+      margin-top: 10px;
     }
     
     .plus-icon {
       font-size: 24px;
       color: black;
       font-weight: bold;
+    }
+    
+    /* Header button reveal animations */
+    .hidden-control {
+      display: none !important;
+    }
+    .anim-enter {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+    }
+    .anim-enter-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity 200ms ease, transform 200ms ease;
     }
   </style>
 {% endblock %}
@@ -244,28 +267,300 @@
         </div>
       </div>
       <div class="col-8">
-        <div class="input-container">
-          <span class="input-header">Activity Title</span>
-          <input type="text" class="form-control" placeholder="Description" />
-          <div class="div">
-            <a href="{% url 'add_activity' %}"><span><i class="bi bi-upload"></i></span></a>
-            <span>AddActivity</span>
-          </div>
-          <input type="checkbox" class="corner-checkbox" />
-
-          <!-- Plus box below Add Activity button -->
-          <div class="plus-box">
-            <div class="plus-icon">+</div>
-          </div>
+        <div class="row"></div>
+        <div class="input-list">
+          {% if activities %}
+            {% for a in activities %}
+              <div class="input-container" data-id="{{ a.id }}">
+                <span class="input-header">{{ a.title }}</span>
+                <input type="text" class="form-control" placeholder="{{ a.description|default:'Description' }}" />
+                <div class="div">
+                  <a href="{% url 'add_activity' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
+                  <span>AddActivity</span>
+                </div>
+                <input type="checkbox" class="corner-checkbox" />
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="input-container">
+              <span class="input-header">Activity Title</span>
+              <input type="text" class="form-control" placeholder="Description" />
+              <div class="div">
+                <a href="{% url 'add_activity' %}"><span><i class="bi bi-upload"></i></span></a>
+                <span>AddActivity</span>
+              </div>
+              <input type="checkbox" class="corner-checkbox" />
+            </div>
+          {% endif %}
+        </div>
+        <div class="plus-box">
+          <div class="plus-icon">+</div>
+        </div>
+        <div class="row footer">
+          <button id="saveChangesBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
         </div>
       </div>
-    </div>
-    <div class="row footer">
-      <button><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_js %}
-
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var container = document.querySelector('.header-buttons')
+      if (!container) return
+    
+      var addBtn = container.querySelector('.btn.add')
+      var removeBtn = container.querySelector('.btn.remove')
+      var editBtn = container.querySelector('.btn.edit')
+    
+      var sepAfterAdd = addBtn ? addBtn.nextElementSibling : null
+      var sepBeforeEdit = removeBtn ? removeBtn.nextElementSibling : null
+    
+      function getControls() {
+        var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox'))
+        return [addBtn, removeBtn, sepAfterAdd, sepBeforeEdit].concat(checkboxes).filter(Boolean)
+      }
+    
+      getControls().forEach(function (el) {
+        el.classList.add('hidden-control')
+      })
+    
+      var shown = false
+    
+      function showControls() {
+        var controls = getControls()
+        controls.forEach(function (el) {
+          el.classList.remove('hidden-control')
+          el.classList.add('anim-enter')
+          requestAnimationFrame(function () {
+            el.classList.add('anim-enter-active')
+            el.classList.remove('anim-enter')
+          })
+          el.addEventListener(
+            'transitionend',
+            function handler() {
+              el.classList.remove('anim-enter-active')
+              el.removeEventListener('transitionend', handler)
+            },
+            { once: true }
+          )
+        })
+        shown = true
+      }
+    
+      function hideControls() {
+        var controls = getControls()
+        controls.forEach(function (el) {
+          el.classList.add('hidden-control')
+        })
+        shown = false
+      }
+    
+      if (editBtn) {
+        editBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          if (!shown) {
+            showControls()
+          } else {
+            hideControls()
+          }
+        })
+      }
+    
+      // Remove selected rows when Remove is clicked (with confirmation)
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var list = document.querySelector('.input-list')
+          if (!list) return
+          var rows = Array.from(list.querySelectorAll('.input-container'))
+    
+          if (rows.length <= 1) {
+            Swal.fire({ icon: 'info', title: 'Nothing to remove', text: 'At least one row is required.' })
+            return
+          }
+    
+          Swal.fire({
+            title: 'Remove selected rows?',
+            text: 'Rows with checked corner boxes will be removed. This only applies after Save.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Remove',
+            cancelButtonText: 'Cancel'
+          }).then(function (result) {
+            if (!result.isConfirmed) return
+    
+            var deleteIds = []
+            rows.forEach(function (row) {
+              var cb = row.querySelector('.corner-checkbox')
+              if (cb && cb.checked) {
+                var idAttr = row.getAttribute('data-id')
+                if (idAttr) deleteIds.push(parseInt(idAttr, 10))
+                row.remove()
+              }
+            })
+    
+            // store delete ids on save button dataset
+            var saveBtnEl = document.getElementById('saveChangesBtn')
+            if (saveBtnEl) {
+              var existing = saveBtnEl.getAttribute('data-delete-ids')
+              var arr = existing
+                ? existing
+                    .split(',')
+                    .filter(Boolean)
+                    .map(function (x) {
+                      return parseInt(x, 10)
+                    })
+                : []
+              arr = arr.concat(deleteIds)
+              var dedupe = Array.from(new Set(arr)).filter(function (x) {
+                return !isNaN(x)
+              })
+              saveBtnEl.setAttribute('data-delete-ids', dedupe.join(','))
+            }
+          })
+        })
+      }
+    
+      // Add new row when clicking the plus box (append to list, keep single plus)
+      document.addEventListener('click', function (e) {
+        var plus = e.target.closest('.plus-box')
+        if (!plus) return
+        var list = document.querySelector('.input-list')
+        if (!list) return
+        var template = list.querySelector('.input-container')
+        if (!template) return
+    
+        var clone = template.cloneNode(true)
+    
+        // reset header/title, input value and placeholder, and checkbox in the clone
+        var header = clone.querySelector('.input-header')
+        if (header) header.textContent = 'Activity Title'
+        var input = clone.querySelector('input.form-control')
+        if (input) {
+          input.value = ''
+          input.setAttribute('placeholder', 'Description')
+        }
+        var cb = clone.querySelector('.corner-checkbox')
+        if (cb) cb.checked = false
+        // ensure AddActivity link is generic (no ?id= carried over)
+        var link = clone.querySelector('.div a')
+        if (link && link.getAttribute('href')) {
+          var href = link.getAttribute('href')
+          var baseHref = href.split('?')[0]
+          link.setAttribute('href', baseHref)
+        }
+    
+        // append to the list
+        list.appendChild(clone)
+    
+        // animate the new row
+        clone.classList.add('anim-enter')
+        requestAnimationFrame(function () {
+          clone.classList.add('anim-enter-active')
+          clone.classList.remove('anim-enter')
+        })
+        clone.addEventListener(
+          'transitionend',
+          function handler() {
+            clone.classList.remove('anim-enter-active')
+            clone.removeEventListener('transitionend', handler)
+          },
+          { once: true }
+        )
+    
+        // ensure checkbox visibility matches current Edit toggle
+        var newCb = clone.querySelector('.corner-checkbox')
+        if (newCb) {
+          if (!shown) {
+            newCb.classList.add('hidden-control')
+          } else {
+            newCb.classList.remove('hidden-control')
+            newCb.classList.add('anim-enter')
+            requestAnimationFrame(function () {
+              newCb.classList.add('anim-enter-active')
+              newCb.classList.remove('anim-enter')
+            })
+            newCb.addEventListener(
+              'transitionend',
+              function handler2() {
+                newCb.classList.remove('anim-enter-active')
+                newCb.removeEventListener('transitionend', handler2)
+              },
+              { once: true }
+            )
+          }
+        }
+      })
+    
+      // Save Changes with confirmation and POST to server
+      var saveBtn = document.getElementById('saveChangesBtn')
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var deleteIdsStr = saveBtn.getAttribute('data-delete-ids') || ''
+          var deleteIds = deleteIdsStr
+            ? deleteIdsStr
+                .split(',')
+                .filter(Boolean)
+                .map(function (x) {
+                  return parseInt(x, 10)
+                })
+            : []
+    
+          Swal.fire({
+            title: 'Save changes?',
+            text: 'This will update the activities in the database.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel'
+          }).then(function (resSwal) {
+            if (!resSwal.isConfirmed) return
+    
+            var list = document.querySelector('.input-list')
+            if (!list) return
+            var rows = Array.from(list.querySelectorAll('.input-container'))
+            var activities = rows.map(function (row) {
+              var title = (row.querySelector('.input-header')?.textContent || '').trim()
+              var desc = (row.querySelector('input.form-control')?.value || row.querySelector('input.form-control')?.getAttribute('placeholder') || '').trim()
+              var idAttr = row.getAttribute('data-id')
+              var idVal = idAttr ? parseInt(idAttr, 10) : null
+              return { id: idVal, title: title, description: desc }
+            })
+    
+            fetch('{% url "save_activities" %}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+              },
+              body: JSON.stringify({ activities: activities, delete_ids: deleteIds })
+            })
+              .then(function (res) {
+                return res.json()
+              })
+              .then(function (data) {
+                if (data && data.ok) {
+                  Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
+                  // update data-id on rows with returned IDs
+                  var rowsNow = Array.from(document.querySelectorAll('.input-list .input-container'))
+                  data.saved &&
+                    data.saved.forEach(function (item, idx) {
+                      if (rowsNow[idx]) rowsNow[idx].setAttribute('data-id', item.id)
+                    })
+                  saveBtn.setAttribute('data-delete-ids', '')
+                } else {
+                  Swal.fire({ icon: 'error', title: 'Save failed', text: data && data.error ? data.error : 'Unknown error' })
+                }
+              })
+              .catch(function (err) {
+                Swal.fire({ icon: 'error', title: 'Save failed', text: String(err) })
+              })
+          })
+        })
+      }
+    })
+  </script>
 {% endblock %}

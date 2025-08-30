@@ -18,4 +18,5 @@ urlpatterns = [
     path('training/', admin_training, name='admin_training'),
     path('activity-materials/', admin_activity_materials, name='admin_activity_materials'),
     path('activity-materials/add-activity/', add_activity, name='add_activity'),
+    path('activity-materials/save/', save_activities, name='save_activities'),
 ]

@@ -9,6 +9,7 @@ from users.models import CustomUser
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from staff.models import *
+from .models import Activity, ActivityChoice
 import locale
 from decimal import Decimal
 
@@ -186,9 +187,125 @@ def admin_training(request):
     return render(request, "adminNew/training.html")
 
 def admin_activity_materials(request):
-    return render(request, "adminNew/addmt.html")
+    print("[admin_activity_materials] method=GET user=", request.user if request.user.is_authenticated else "anonymous")
+    activities = Activity.objects.order_by("-created_at")
+    try:
+        count = activities.count()
+    except Exception:
+        count = len(list(activities))
+    print(f"[admin_activity_materials] activities_count={count}")
+    return render(request, "adminNew/addmt.html", {"activities": activities})
 def add_activity(request):
+    print("[add_activity] method=", request.method)
     if request.method == "POST":
-        # Handle the form submission
-        pass
-    return render(request, "adminNew/activity_materials.html")
+        try:
+            import json
+            data = request.POST or {}
+            if not data:
+                data = json.loads(request.body.decode("utf-8")) if request.body else {}
+            print("[add_activity][POST] payload_keys=", list(data.keys()))
+            activity_id = data.get("id") or request.GET.get("id")
+            activity = get_object_or_404(Activity, id=activity_id)
+            print(f"[add_activity][POST] target_activity_id={activity.id}")
+            activity.description = data.get("description", activity.description or "")
+            activity.scenario = data.get("scenario", activity.scenario or "")
+            timer_val = data.get("timer_seconds")
+            if timer_val is not None and str(timer_val).isdigit():
+                activity.timer_seconds = int(timer_val)
+            activity.save()
+            print(
+                f"[add_activity][POST] saved activity: id={activity.id} timer_seconds={activity.timer_seconds} "
+                f"desc_len={len(activity.description or '')} scenario_len={len(activity.scenario or '')}"
+            )
+            # Update choices: replace with provided list
+            choices = data.get("choices", [])
+            if isinstance(choices, str):
+                try:
+                    choices = json.loads(choices)
+                except Exception:
+                    choices = []
+            print(f"[add_activity][POST] incoming_choices_count={len(choices) if isinstance(choices, list) else 'n/a'}")
+            activity.choices.all().delete()
+            bulk = []
+            order = 0
+            for text in choices[:4]:
+                text_str = (text or "").strip()
+                if not text_str:
+                    continue
+                bulk.append(ActivityChoice(activity=activity, text=text_str, display_order=order))
+                order += 1
+            if bulk:
+                ActivityChoice.objects.bulk_create(bulk)
+            print(f"[add_activity][POST] saved_choices_count={len(bulk)}")
+
+            return JsonResponse({"ok": True, "id": activity.id})
+        except Exception as e:
+            print("[add_activity][POST][error]", e)
+            return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+    # GET: render activity details from DB
+    activity = None
+    activity_id = request.GET.get("id") or request.GET.get("activity_id")
+    if activity_id:
+        activity = get_object_or_404(Activity, id=activity_id)
+        print(f"[add_activity][GET] load_by_id id={activity_id}")
+    else:
+        activity = Activity.objects.order_by("-created_at").first()
+        print("[add_activity][GET] load_latest id=", getattr(activity, "id", None))
+
+    choices = []
+    if activity is not None:
+        choices = list(activity.choices.order_by("display_order", "id").values_list("text", flat=True))
+    print(f"[add_activity][GET] choices_count={len(choices)}")
+
+    context = {
+        "activity": activity,
+        "choices": choices,
+    }
+    return render(request, "adminNew/activity_materials.html", context)
+
+
+@csrf_exempt
+def save_activities(request):
+    print("[save_activities] method=", request.method)
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Invalid method"}, status=405)
+
+    try:
+        # Expect JSON payload: { activities: [{title, description}], delete_ids: [] }
+        import json
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+        items = data.get("activities", [])
+        delete_ids = data.get("delete_ids", [])
+        print(f"[save_activities] payload activities={len(items)} delete_ids={len(delete_ids)} user={'auth' if request.user.is_authenticated else 'anon'}")
+
+        # Optionally delete
+        if delete_ids:
+            Activity.objects.filter(id__in=delete_ids).delete()
+            print(f"[save_activities] deleted_count={len(delete_ids)}")
+
+        saved = []
+        for item in items:
+            act_id = item.get("id")
+            title = (item.get("title") or "").strip()
+            description = (item.get("description") or "").strip()
+            if not title:
+                continue
+            if act_id:
+                act = Activity.objects.filter(id=act_id).first()
+                if not act:
+                    act = Activity(id=act_id)
+            else:
+                act = Activity()
+            act.title = title
+            act.description = description
+            if request.user.is_authenticated:
+                act.created_by = request.user
+            act.save()
+            saved.append({"id": act.id, "title": act.title})
+            print(f"[save_activities] saved id={act.id} title='{act.title}'")
+
+        return JsonResponse({"ok": True, "saved": saved})
+    except Exception as e:
+        print("[save_activities][error]", e)
+        return JsonResponse({"ok": False, "error": str(e)}, status=400)
