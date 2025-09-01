@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  MCQ Simulation
+{% endblock %}
+{% block extra_head %}
+  <style>
+    .mcq-compact-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 0 0 0;
+    }
+    .mcq-row {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      min-height: 420px;
+    }
+    .mcq-left {
+      flex: 0 0 270px;
+      text-align: center;
+      padding: 18px 10px 10px 10px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      background: #fff;
+      min-height: 350px;
+    }
+    .mcq-left img {
+      height: 55px;
+    }
+    .mcq-left h4 {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      margin-bottom: 0;
+      line-height: 1.3;
+    }
+    .mcq-right {
+      flex: 1;
+      padding: 10px 0 0 0;
+    }
+    .sim-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .sim-instructions {
+      font-size: 1rem;
+      color: #444;
+      margin-bottom: 0.7rem;
+    }
+    .sim-scenario {
+      border: 1.5px solid #4caf50;
+      border-radius: 5px;
+      padding: 7px 12px;
+      margin-bottom: 12px;
+      background: #fff;
+      font-size: 1.05rem;
+      text-align: left;
+    }
+    .sim-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .sim-choice-row {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid #4caf50;
+      border-radius: 5px;
+      background: #fff;
+      padding: 6px 12px;
+      font-size: 1.05rem;
+      cursor: pointer;
+    }
+    .sim-choice-row input[type='checkbox'] {
+      margin-right: 16px;
+      width: 22px;
+      height: 22px;
+      accent-color: #4caf50;
+      cursor: pointer;
+    }
+    .sim-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      float: right;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #388e3c;
+    }
+    .sim-timer .timer-icon {
+      font-size: 2.2rem;
+      color: #388e3c;
+    }
+    .sim-next-btn {
+      float: right;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+    }
+  </style>
+{% endblock %}
+{% block sidebar %}
+  {% include 'assessment/mcq/includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+{% block content %}
+  <div class="mcq-compact-container">
+    <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">Training Simulation</h2>
+    <div class="mcq-row">
+      <div class="mcq-left mt-5 p-5">
+        <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+        <h4 class="fw-bold mt-2 mb-5">Multiple Choice<br />Scenario Based<br />Test</h4>
+        <a href="{% url 'mcq_home' %}" class="btn btn-success mt-5">MCQ Test</a>
+      </div>
+      <div class="mcq-right">
+        <div class="sim-title">Test {{ attempt.attempt_number }}. {{ activity.title }}</div>
+        <div class="sim-instructions">Instructions: Check the box of the right answer.</div>
+        <div class="sim-scenario">
+          <b>Scenario:</b><br />{{ activity.scenario }}
+        </div>
+        <div class="sim-choices">
+          {% for c in choices %}
+            <label class="sim-choice-row">
+              <input type="checkbox" name="choice" />
+              {{ c }}
+            </label>
+          {% endfor %}
+        </div>
+        <div class="sim-timer">
+          <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
+          {% if activity.timer_seconds and activity.timer_seconds > 0 %}
+            {% widthratio activity.timer_seconds 60 1 %}mins
+          {% else %}
+            5 mins
+          {% endif %}
+        </div>
+        <button class="sim-next-btn">Proceed to next item <span class="test-icon">▶</span></button>
+      </div>
+    </div>
+  </div>
+{% endblock %}

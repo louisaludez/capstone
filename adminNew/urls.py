@@ -16,7 +16,9 @@ urlpatterns = [
     path('reports/speech/', admin_speech_reports, name='admin_speech_reports'),
     path('reports/mcq/', admin_mcq_reports, name='admin_mcq_reports'),
     path('training/', admin_training, name='admin_training'),
-    path('activity-materials/', admin_activity_materials, name='admin_activity_materials'),
-    path('activity-materials/add-activity/', add_activity, name='add_activity'),
+   
+    path('activity-materials/add-activity-mcq/', add_activity_mcq, name='add_activity_mcq'),
     path('activity-materials/save/', save_activities, name='save_activities'),
+    path('addmt-speech-to-text/', addmt_speech_to_text, name='addmt_speech_to_text'),
+    path('addmt-mcq/', addmt_mcq, name='addmt_mcq')
 ]

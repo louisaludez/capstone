@@ -62,64 +62,76 @@
           </div>
         </div>
       </div>
-      {% comment %}this is from jobit{% endcomment %}
-      {% comment %}this is from ken{% endcomment %}
-      {% comment %}jobet{% endcomment %}
       <div class="col-8">
         <div class="row g-2">
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 1. Beginner’s Luck</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 1. {{ activities5.0.title|default:'Beginner’s Luck' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.0.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-caret-right-fill fs-5"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12">
-            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
-              <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 2. Can you do it?</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
-              </div>
-              <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                <button class="btn btn-sm text-success border-0 start-btn" data-idx="0"><i class="bi bi-caret-right-fill fs-5"></i></button>
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 3. Halfway thru!</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 2. {{ activities5.1.title|default:'Can you do it?' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.1.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if rest_locked %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="1"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 4. Fake it 'till you make it</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 3. {{ activities5.2.title|default:'Halfway thru!' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.2.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if rest_locked %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="2"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 5. Final Destination</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 4. {{ activities5.3.title|default:"Fake it 'till you make it" }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.3.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if rest_locked %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="3"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 5. {{ activities5.4.title|default:'Final Destination' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.4.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
+              </div>
+              <div>
+                {% if rest_locked %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="4"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -129,5 +141,61 @@
   </div>
 {% endblock %}
 {% block extra_js %}
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var acts = JSON.parse('{{ acts_json|escapejs }}')
+    
+      document.querySelectorAll('.start-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.getAttribute('data-idx') || '0', 10)
+          var actId = acts[idx]
+          if (!actId) {
+            Swal.fire({ icon: 'info', title: 'Not available', text: 'No activity linked for this test.' })
+            return
+          }
+          Swal.fire({
+            title: 'Enter Name, Section, and Year Level:',
+            input: 'text',
+            inputPlaceholder: 'ex. Last name, First Name MI, BSTM 3A',
+            showCancelButton: true,
+            confirmButtonText: 'Start Activity'
+          }).then(function (res) {
+            if (!res.isConfirmed || !res.value) return
+            var formData = new FormData()
+            formData.append('participant', res.value)
+            fetch('{% url "mcq_start" 0 %}'.replace('/0/', '/' + actId + '/'), {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+              },
+              body: formData
+            })
+              .then(function (r) {
+                return r.json()
+              })
+              .then(function (data) {
+                if (data && data.ok) {
+                  if (data.resumed) {
+                    Swal.fire({ icon: 'info', title: 'Resumed previous attempt', timer: 1200, showConfirmButton: false })
+                  } else {
+                    Swal.fire({ icon: 'success', title: 'Started', timer: 1200, showConfirmButton: false })
+                  }
+                  if (data.redirect) {
+                    setTimeout(function () {
+                      window.location.href = data.redirect
+                    }, 300)
+                  }
+                } else {
+                  Swal.fire({ icon: 'error', title: 'Failed to start', text: data && data.error ? data.error : 'Unknown error' })
+                }
+              })
+              .catch(function (err) {
+                Swal.fire({ icon: 'error', title: 'Failed to start', text: String(err) })
+              })
+          })
+        })
+      })
+    })
+  </script>
 {% endblock %}

@@ -186,16 +186,9 @@ def admin_speech_reports(request):
 def admin_training(request):
     return render(request, "adminNew/training.html")
 
-def admin_activity_materials(request):
-    print("[admin_activity_materials] method=GET user=", request.user if request.user.is_authenticated else "anonymous")
-    activities = Activity.objects.order_by("-created_at")
-    try:
-        count = activities.count()
-    except Exception:
-        count = len(list(activities))
-    print(f"[admin_activity_materials] activities_count={count}")
-    return render(request, "adminNew/addmt.html", {"activities": activities})
-def add_activity(request):
+
+   
+def add_activity_mcq(request):
     print("[add_activity] method=", request.method)
     if request.method == "POST":
         try:
@@ -262,7 +255,7 @@ def add_activity(request):
         "activity": activity,
         "choices": choices,
     }
-    return render(request, "adminNew/activity_materials.html", context)
+    return render(request, "adminNew/add_activity_mcq.html", context)
 
 
 @csrf_exempt
@@ -289,15 +282,15 @@ def save_activities(request):
             act_id = item.get("id")
             title = (item.get("title") or "").strip()
             description = (item.get("description") or "").strip()
-            if not title:
+            if not description:
+                print("[save_activities] skip: empty description")
                 continue
+            # Create new or update existing
             if act_id:
-                act = Activity.objects.filter(id=act_id).first()
-                if not act:
-                    act = Activity(id=act_id)
+                act = Activity.objects.filter(id=act_id).first() or Activity(id=act_id)
             else:
                 act = Activity()
-            act.title = title
+            act.title = title or (act.title or "Activity Title")
             act.description = description
             if request.user.is_authenticated:
                 act.created_by = request.user
@@ -309,3 +302,21 @@ def save_activities(request):
     except Exception as e:
         print("[save_activities][error]", e)
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+def addmt_mcq(request):
+    print("[admin_activity_materials] method=GET user=", request.user if request.user.is_authenticated else "anonymous")
+    activities = Activity.objects.order_by("-created_at")
+    try:
+        count = activities.count()
+    except Exception:
+        count = len(list(activities))
+    print(f"[admin_activity_materials] activities_count={count}")
+    return render(request, "adminNew/addmt_mcq.html", {"activities": activities})
+def addmt_speech_to_text(request):
+    print("[addmt_speech_to_text] method=", request.method)
+    if request.method == "POST":
+        # Handle the POST request for adding a new Speech-to-Text activity
+        return JsonResponse({"ok": True})
+    else:
+        # Render the form for adding a new Speech-to-Text activity
+        return render(request, "adminNew/addmt_speech.html")

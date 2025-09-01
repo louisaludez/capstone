@@ -236,6 +236,13 @@
       transform: translateY(0) scale(1);
       transition: opacity 200ms ease, transform 200ms ease;
     }
+    /* Show AddActivity link only when persisted (has data-id) */
+    .input-container .div {
+      display: none;
+    }
+    .input-container[data-id] .div {
+      display: flex;
+    }
   </style>
 {% endblock %}
 
@@ -275,7 +282,7 @@
                 <span class="input-header">{{ a.title }}</span>
                 <input type="text" class="form-control" placeholder="{{ a.description|default:'Description' }}" />
                 <div class="div">
-                  <a href="{% url 'add_activity' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
+                  <a href="{% url 'add_activity_mcq' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
                   <span>AddActivity</span>
                 </div>
                 <input type="checkbox" class="corner-checkbox" />
@@ -368,6 +375,42 @@
         })
       }
     
+      // Hide AddActivity link if description is empty
+      function hasDescription(row) {
+        var input = row.querySelector('input.form-control')
+        if (!input) return false
+        var val = (input.value || '').trim()
+        var ph = (input.getAttribute('placeholder') || '').trim()
+        // Treat default placeholder as empty description
+        if (!val && (!ph || ph.toLowerCase() === 'description')) return false
+        return !!(val || ph)
+      }
+    
+      function updateRowAddLink(row) {
+        var linkWrap = row.querySelector('.div')
+        if (!linkWrap) return
+        var hasId = !!row.getAttribute('data-id')
+        // Only show when activity exists in DB (has id)
+        linkWrap.style.display = hasId ? 'flex' : 'none'
+      }
+    
+      function bindRowInput(row) {
+        var input = row.querySelector('input.form-control')
+        if (!input) return
+        input.addEventListener('input', function () {
+          updateRowAddLink(row)
+        })
+      }
+    
+      function updateAllAddLinks() {
+        var rows = Array.from(document.querySelectorAll('.input-list .input-container'))
+        rows.forEach(function (row) {
+          updateRowAddLink(row)
+          bindRowInput(row)
+        })
+      }
+      updateAllAddLinks()
+    
       // Remove selected rows when Remove is clicked (with confirmation)
       if (removeBtn) {
         removeBtn.addEventListener('click', function (e) {
@@ -442,6 +485,8 @@
           input.value = ''
           input.setAttribute('placeholder', 'Description')
         }
+        // ensure cloned row is treated as new (no id)
+        clone.removeAttribute('data-id')
         var cb = clone.querySelector('.corner-checkbox')
         if (cb) cb.checked = false
         // ensure AddActivity link is generic (no ?id= carried over)
@@ -454,6 +499,10 @@
     
         // append to the list
         list.appendChild(clone)
+    
+        // ensure AddActivity link visibility is correct and input changes are tracked
+        updateRowAddLink(clone)
+        bindRowInput(clone)
     
         // animate the new row
         clone.classList.add('anim-enter')
@@ -524,10 +573,15 @@
             var rows = Array.from(list.querySelectorAll('.input-container'))
             var activities = rows.map(function (row) {
               var title = (row.querySelector('.input-header')?.textContent || '').trim()
-              var desc = (row.querySelector('input.form-control')?.value || row.querySelector('input.form-control')?.getAttribute('placeholder') || '').trim()
+              var desc = (row.querySelector('input.form-control')?.value || '').trim()
               var idAttr = row.getAttribute('data-id')
               var idVal = idAttr ? parseInt(idAttr, 10) : null
               return { id: idVal, title: title, description: desc }
+            })
+            // Allow update of existing activities and also allow creating a new one
+            // Only send rows with a non-empty description
+            activities = activities.filter(function (a) {
+              return a.description && a.description.length > 0
             })
     
             fetch('{% url "save_activities" %}', {
@@ -551,6 +605,8 @@
                       if (rowsNow[idx]) rowsNow[idx].setAttribute('data-id', item.id)
                     })
                   saveBtn.setAttribute('data-delete-ids', '')
+                  // re-evaluate AddActivity link visibility now that IDs are set
+                  updateAllAddLinks()
                 } else {
                   Swal.fire({ icon: 'error', title: 'Save failed', text: data && data.error ? data.error : 'Unknown error' })
                 }

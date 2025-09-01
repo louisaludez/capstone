@@ -215,40 +215,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     function startSpeechToTextTest() {
-      Swal.fire({
-        title: 'Speech-to-text Test',
-        text: 'This will start the speech-to-text speed and accuracy test.',
-        icon: 'info',
-        confirmButtonText: 'Start Test',
-        showCancelButton: true,
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Redirect to speech-to-text test page
-          window.location.href = '/admin/speech-to-text-test/'
-        }
-      })
+      window.location.href = '/admin/addmt-speech-to-text/'
     }
     
     function startMultipleChoiceTest() {
-      Swal.fire({
-        title: 'Multiple Choice Test',
-        text: 'This will start the scenario-based multiple choice test.',
-        icon: 'info',
-        confirmButtonText: 'Start Test',
-        showCancelButton: true,
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Redirect to Activity Materials page
-          window.location.href = '/adminNew/activity-materials/'
-        }
-      })
+      window.location.href = '/adminNew/addmt-mcq/'
     }
-    
-    // Close button functionality
-    document.querySelector('.close-button').addEventListener('click', function () {
-      window.history.back()
-    })
   </script>
 {% endblock %}
