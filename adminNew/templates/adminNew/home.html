@@ -10,100 +10,102 @@
   {% include './includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <h1 class="mb-2" style="font-size: 2rem">Dashboard</h1>
-  <div class="row g-2">
-    <div class="col-lg-8 col-md-7 col-12">
-      <div class="card mb-2 shadow-sm">
-        <div class="card-body p-2">
-          <canvas id="statsChart" height="80"></canvas>
-          <div class="d-flex flex-wrap justify-content-between mt-2 gap-2">
-            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
-            <div>
-              <span class="text-success">+8.8%</span><span class="text-muted ms-2">All Time High</span>
-            </div>
-            <div>
-              <span class="h6">{{ total_guests }}</span><span class="text-muted ms-2">Total No. of Guests</span>
-            </div>
-            <div>
-              <span class="text-muted">Month of {{ peak_month }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg col-md-5 col-12 mb-2">
-      <div class="row g-2">
-        <div class="col-12">
-          <div class="card shadow-sm">
-            <div class="card-body p-2">
-              <h6 class="text-muted mb-1" style="font-size: 0.9rem">Total No. of Guests</h6>
-              <div class="d-flex align-items-center">
-                <h4 class="mb-0">{{ total_guests }}</h4>
+  <div class="container p-5">
+    <h1 class="mb-2" style="font-size: 2rem">Dashboard</h1>
+    <div class="row g-2">
+      <div class="col-lg-8 col-md-7 col-12">
+        <div class="card mb-2 shadow-sm">
+          <div class="card-body p-2">
+            <canvas id="statsChart" height="80"></canvas>
+            <div class="d-flex flex-wrap justify-content-between mt-2 gap-2">
+              <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
+              <div>
+                <span class="text-success">+8.8%</span><span class="text-muted ms-2">All Time High</span>
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="card shadow-sm">
-            <div class="card-body p-2">
-              <h6 class="text-muted mb-1" style="font-size: 0.9rem">Peak Month</h6>
-              <div class="d-flex align-items-center">
-                <h4 class="mb-0">{{ peak_month }}</h4>
+              <div>
+                <span class="h6">{{ total_guests }}</span><span class="text-muted ms-2">Total No. of Guests</span>
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="card shadow-sm">
-            <div class="card-body p-2">
-              <h6 class="text-muted mb-1" style="font-size: 0.9rem">Overall Revenue</h6>
-              <div class="d-flex align-items-center">
-                <h4 class="mb-0">₱ {{ total_revenue }}</h4>
+              <div>
+                <span class="text-muted">Month of {{ peak_month }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <div class="col-lg col-md-5 col-12 mb-2">
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="card shadow-sm">
+              <div class="card-body p-2">
+                <h6 class="text-muted mb-1" style="font-size: 0.9rem">Total No. of Guests</h6>
+                <div class="d-flex align-items-center">
+                  <h4 class="mb-0">{{ total_guests }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card shadow-sm">
+              <div class="card-body p-2">
+                <h6 class="text-muted mb-1" style="font-size: 0.9rem">Peak Month</h6>
+                <div class="d-flex align-items-center">
+                  <h4 class="mb-0">{{ peak_month }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card shadow-sm">
+              <div class="card-body p-2">
+                <h6 class="text-muted mb-1" style="font-size: 0.9rem">Overall Revenue</h6>
+                <div class="d-flex align-items-center">
+                  <h4 class="mb-0">₱ {{ total_revenue }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <h3 class="mb-2" style="font-size: 1.2rem">Registered HMS Users</h3>
-  <div class="card shadow-sm">
-    <div class="card-body table-responsive p-2">
-      <table id="usersTable" class="table table-hover table-sm mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 30px; padding: 2px 8px">
-              <input type="checkbox" />
-            </th>
-            <th style="padding: 2px 8px">User ID</th>
-            <th style="padding: 2px 8px">Username</th>
-            <th style="padding: 2px 8px">Role</th>
-            <th style="padding: 2px 8px">Registration Date</th>
-
-            <th style="padding: 2px 8px">Last Login</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
+    <h3 class="mb-2" style="font-size: 1.2rem">Registered HMS Users</h3>
+    <div class="card shadow-sm">
+      <div class="card-body table-responsive p-2">
+        <table id="usersTable" class="table table-hover table-sm mb-0">
+          <thead class="table-light">
             <tr>
-              <td style="padding: 2px 8px">
+              <th style="width: 30px; padding: 2px 8px">
                 <input type="checkbox" />
-              </td>
-              <td style="padding: 2px 8px">{{ user.id }}</td>
-              <td style="padding: 2px 8px">{{ user.username }}</td>
-              <td style="padding: 2px 8px">{{ user.role }}</td>
-              <td style="padding: 2px 8px">{{ user.date_joined|date:'Y-m-d' }}</td>
+              </th>
+              <th style="padding: 2px 8px">User ID</th>
+              <th style="padding: 2px 8px">Username</th>
+              <th style="padding: 2px 8px">Role</th>
+              <th style="padding: 2px 8px">Registration Date</th>
 
-              <td style="padding: 2px 8px">{{ user.last_login|date:'Y-m-d H:i'|default:'Never' }}</td>
+              <th style="padding: 2px 8px">Last Login</th>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="7" class="text-center" style="padding: 2px 8px">No users found.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr>
+                <td style="padding: 2px 8px">
+                  <input type="checkbox" />
+                </td>
+                <td style="padding: 2px 8px">{{ user.id }}</td>
+                <td style="padding: 2px 8px">{{ user.username }}</td>
+                <td style="padding: 2px 8px">{{ user.role }}</td>
+                <td style="padding: 2px 8px">{{ user.date_joined|date:'Y-m-d' }}</td>
+
+                <td style="padding: 2px 8px">{{ user.last_login|date:'Y-m-d H:i'|default:'Never' }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center" style="padding: 2px 8px">No users found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 {% endblock %}

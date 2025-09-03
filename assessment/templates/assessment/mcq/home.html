@@ -50,7 +50,7 @@
   {% include './includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="container">
+  <div class="container px-5">
     <div class="row">
       <div class="col-4">
         <div class="mcq-card">
@@ -82,8 +82,8 @@
                 <p class="text-muted small mb-0 test-definition">{{ activities5.1.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                {% if rest_locked %}
-                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.1 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
                 {% else %}
                   <button class="btn btn-sm text-success border-0 start-btn" data-idx="1"><i class="bi bi-caret-right-fill fs-5"></i></button>
                 {% endif %}
@@ -97,8 +97,8 @@
                 <p class="text-muted small mb-0 test-definition">{{ activities5.2.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                {% if rest_locked %}
-                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.2 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
                 {% else %}
                   <button class="btn btn-sm text-success border-0 start-btn" data-idx="2"><i class="bi bi-caret-right-fill fs-5"></i></button>
                 {% endif %}
@@ -112,8 +112,8 @@
                 <p class="text-muted small mb-0 test-definition">{{ activities5.3.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                {% if rest_locked %}
-                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.3 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
                 {% else %}
                   <button class="btn btn-sm text-success border-0 start-btn" data-idx="3"><i class="bi bi-caret-right-fill fs-5"></i></button>
                 {% endif %}
@@ -127,8 +127,8 @@
                 <p class="text-muted small mb-0 test-definition">{{ activities5.4.description|default:'An assessment format where participants are presented with realistic situations and must choose the best response.' }}</p>
               </div>
               <div>
-                {% if rest_locked %}
-                  <button class="btn btn-sm text-success border-0" disabled title="Complete Test 1 first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.4 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
                 {% else %}
                   <button class="btn btn-sm text-success border-0 start-btn" data-idx="4"><i class="bi bi-caret-right-fill fs-5"></i></button>
                 {% endif %}

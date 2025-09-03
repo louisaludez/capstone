@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Activity Materials
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <style>
+    * {
+      border-radius: 13px;
+    }
+    .header-buttons {
+      border: 1px solid gray;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 300px;
+      border-radius: 13px;
+    }
+    .activity-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid black;
+      border-radius: 13px;
+      height: 100%;
+      width: 310px !important;
+    }
+    .activity-box img {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 10px;
+    }
+    .activity-box span {
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      display: block;
+    }
+    .input-container {
+      border: 1px solid black;
+      margin-bottom: 10px;
+      height: 60px;
+      padding-bottom: 10px !important;
+      position: relative;
+    }
+    .input-container input {
+      border: none;
+      background-color: transparent;
+      font-size: 12px;
+      margin-top: 0 !important;
+      margin-bottom: 10px !important;
+      height: 10px;
+    }
+    .input-container input::placeholder {
+      color: #bababa;
+      font-style: italic;
+      font-size: 12px;
+    }
+    .input-container input:focus {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      background-color: transparent !important;
+    }
+    .input-header {
+      font-weight: bold;
+      font-size: 12px;
+      margin-left: 10px;
+      margin-bottom: 0 !important;
+    }
+    .timer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid black;
+      padding: 10px;
+      position: relative;
+    }
+    .timer button {
+      margin-right: 10px;
+      width: 100px;
+      height: 35px;
+      border: 1px solid gray;
+      border-radius: 4px;
+      font-size: 12px;
+      background-color: transparent;
+    }
+    .timer button.selected {
+      border-color: #0d6efd;
+      background-color: #e6f0ff;
+      color: #0d6efd;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
+    
+    .group-input {
+      border: 1px solid black;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .add {
+      color: #73b455;
+    }
+    .remove {
+      color: #ad0908;
+    }
+    .edit {
+      color: #141311;
+    }
+    .group-input {
+      padding: 10px;
+    }
+    .group-header {
+      font-weight: bolder;
+      font-size: 16px;
+      margin-right: 10px !important;
+      white-space: nowrap;
+    }
+    .group-input input {
+      height: 90px;
+      margin-right: 10px;
+      width: 120px;
+      border: 1px solid black;
+    }
+    
+    .groups {
+      display: flex;
+      gap: 15px;
+      flex-direction: row;
+      justify-self: center;
+      align-items: center;
+    }
+    .groups button {
+      position: relative;
+    }
+    .addbuttons button {
+      border: 1px solid black !important;
+      font-size: 12px;
+      height: 40px;
+      width: 100px;
+      border-radius: 4px;
+    }
+    .note {
+      font-size: 12px;
+      color: gray;
+      font-style: italic;
+      margin-left: 120px;
+    }
+    .footer {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .footer button {
+      width: 150px;
+      height: 30px;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid gray;
+      border-radius: 4px;
+      background-color: #ffffff;
+    }
+    .footer button:disabled {
+      background-color: #f8f9fa;
+      color: #6c757d;
+      border-color: #dee2e6;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .corner-checkbox {
+      position: absolute;
+      top: -5px; /* adjust spacing */
+      right: -5px;
+      transform: scale(2);
+      cursor: pointer;
+    }
+    .corner-checkbox-timer {
+      position: absolute;
+      top: -5px; /* adjust spacing */
+      right: -345px;
+      transform: scale(1.5);
+      cursor: pointer;
+    }
+    .corner-checkbox-btn {
+      position: absolute;
+      top: -45px;
+      right: -65px;
+      transform: scale(0.2);
+      cursor: pointer;
+      border: 1px solid black !important;
+    }
+    .input-list {
+      max-height: 350px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+    }
+    .div {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+    }
+    /* Show eye button for all items */
+    .input-container .div {
+      display: flex;
+    }
+    /* Header button reveal animations */
+    .hidden-control {
+      display: none !important;
+    }
+    .anim-enter {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+    }
+    .anim-enter-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='training' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid p-5">
+    <div class="row header mt-3 mb-2">
+      <div class="col-6">
+        <h1>Activity Materials</h1>
+      </div>
+      <div class="col-6 d-flex justify-content-end align-items-center">
+        <div class="header-buttons">
+          <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
+          <span>|</span>
+          <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
+          <span>|</span>
+          <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
+        </div>
+      </div>
+    </div>
+    <div class="row body">
+      <div class="col-4">
+        <div class="activity-box">
+          <img src="{% static 'images/SPTT2.png' %}" alt="" />
+          <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="row"></div>
+        <div class="input-list">
+          <div class="input-container">
+            <span class="input-header">Item no. 1</span>
+            <input type="text" class="form-control" value="{{ current_item.scenario|default:'An assessment designed to measure how accurately a person or a system can convert spoken language into written text.' }}" readonly style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" />
+            <div class="div">
+              <button class="btn btn-sm btn-outline-success" onclick="editItem(1)"><i class="bi bi-eye"></i></button>
+            </div>
+            <input type="checkbox" class="corner-checkbox" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row footer">
+      <button id="addNewItemBtn"><i class="bi bi-plus-lg"></i> Add New Item</button>
+      <button id="backToEditBtn"><i class="bi bi-pencil-square"></i> Back to Edit</button>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Hide header controls and checkboxes until Edit is clicked
+      var hb = document.querySelector('.header-buttons')
+      if (hb) {
+        var addBtn = hb.querySelector('.btn.add')
+        var removeBtn = hb.querySelector('.btn.remove')
+        var editBtn = hb.querySelector('.btn.edit')
+        var sepAfterAdd = addBtn ? addBtn.nextElementSibling : null
+        var sepBeforeEdit = removeBtn ? removeBtn.nextElementSibling : null
+    
+        function getControls() {
+          var cbs = Array.from(document.querySelectorAll('.corner-checkbox, .corner-checkbox-timer, .corner-checkbox-btn'))
+          return [addBtn, removeBtn, sepAfterAdd, sepBeforeEdit].concat(cbs).filter(Boolean)
+        }
+    
+        getControls().forEach(function (el) {
+          el.classList.add('hidden-control')
+        })
+        var shown = false
+    
+        function showControls() {
+          var ctrls = getControls()
+          ctrls.forEach(function (el) {
+            el.classList.remove('hidden-control')
+            el.classList.add('anim-enter')
+            requestAnimationFrame(function () {
+              el.classList.add('anim-enter-active')
+              el.classList.remove('anim-enter')
+            })
+            el.addEventListener(
+              'transitionend',
+              function h() {
+                el.classList.remove('anim-enter-active')
+                el.removeEventListener('transitionend', h)
+              },
+              { once: true }
+            )
+          })
+          shown = true
+        }
+    
+        function hideControls() {
+          getControls().forEach(function (el) {
+            el.classList.add('hidden-control')
+          })
+          shown = false
+        }
+    
+        if (editBtn) {
+          editBtn.addEventListener('click', function (e) {
+            e.preventDefault()
+            if (!shown) showControls()
+            else hideControls()
+          })
+        }
+      }
+    
+      // Add New Item button
+      var addNewBtn = document.getElementById('addNewItemBtn')
+      if (addNewBtn) {
+        addNewBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var urlParams = new URLSearchParams(window.location.search)
+          var activityId = urlParams.get('id')
+          var nextItemNumber = 2 // Speech activities typically have one item, so next would be 2
+          window.location.href = '{% url "add_activity_speech" %}?id=' + activityId + '&item=' + nextItemNumber
+        })
+      }
+    
+      // Back to Edit button
+      var backToEditBtn = document.getElementById('backToEditBtn')
+      if (backToEditBtn) {
+        backToEditBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var urlParams = new URLSearchParams(window.location.search)
+          var activityId = urlParams.get('id')
+          window.location.href = '{% url "add_activity_speech" %}?id=' + activityId
+        })
+      }
+    })
+    
+    // Function to edit a specific item
+    function editItem(itemNumber) {
+      var urlParams = new URLSearchParams(window.location.search)
+      var activityId = urlParams.get('id')
+      window.location.href = '{% url "add_activity_speech" %}?id=' + activityId + '&item=' + itemNumber
+    }
+  </script>
+{% endblock %}

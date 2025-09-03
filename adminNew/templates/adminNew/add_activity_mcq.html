@@ -154,8 +154,9 @@
     }
     .footer {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
       gap: 10px;
     }
     .footer button {
@@ -168,6 +169,13 @@
       border: 1px solid gray;
       border-radius: 4px;
       background-color: #ffffff;
+    }
+    .footer button:disabled {
+      background-color: #f8f9fa;
+      color: #6c757d;
+      border-color: #dee2e6;
+      cursor: not-allowed;
+      opacity: 0.6;
     }
     .corner-checkbox {
       position: absolute;
@@ -237,19 +245,26 @@
       <div class="col-8">
         <div class="row">
           <div class="input-container">
-            <span class="input-header">{{ activity.title|default:'Activity title' }}</span>
-            <input type="text" class="form-control" placeholder="{{ activity.description|default:'Description' }}" />
+            <span class="input-header">Activity Title:</span>
+            <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
             <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
           <div class="input-container">
-            <span class="input-header">Scenario</span>
-            <input type="text" class="form-control" placeholder="{{ activity.scenario|default:'Type scenario' }}" />
+            <span class="input-header">Description:</span>
+            <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
             <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
-        <div class="row timer" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
+        <div class="row">
+          <div class="input-container">
+            <span class="input-header">Item {{ item_number }} - Scenario</span>
+            <input type="text" class="form-control" id="scenario" placeholder="{{ current_item.scenario|default:'Type scenario' }}" value="{{ current_item.scenario|default:'' }}" />
+            <input type="checkbox" class="corner-checkbox" />
+          </div>
+        </div>
+        <div class="row timer" data-initial-seconds="{{ current_item.timer_seconds|default:0 }}">
           <span class="col-2">Set Timer:</span>
           <button class="col-2 timer-btn" data-seconds="180">3 mins</button>
           <button class="col-2 timer-btn" data-seconds="300">5 mins</button>
@@ -267,23 +282,26 @@
               <div class="col-8 groups">
                 {% if choices %}
                   {% for c in choices %}
-                    <input type="text" placeholder="{{ c }}" />
+                    <input type="text" class="choice-input" placeholder="{{ c }}" value="{{ c }}" />
                   {% endfor %}
                 {% else %}
-                  <input type="text" placeholder="Type text here" />
-                  <input type="text" placeholder="Type text here" />
-                  <input type="text" placeholder="Type text here" />
-                  <input type="text" placeholder="Type text here" />
+                  <input type="text" class="choice-input" placeholder="Type text here (Correct Answer)" />
+                  <input type="text" class="choice-input" placeholder="Type text here" />
+                  <input type="text" class="choice-input" placeholder="Type text here" />
+                  <input type="text" class="choice-input" placeholder="Type text here" />
                 {% endif %}
               </div>
             </div>
-            <span class="note">All Choices are limited to 4 only</span>
+            <span class="note">All Choices are limited to 4 only. The first choice is automatically marked as the correct answer.</span>
           </div>
         </div>
       </div>
     </div>
     <div class="row footer">
-      <button>Add Next Item <i class="bi bi-play-fill"></i></button>
+      <button id="prevItemBtn" {% if item_number <= 1 %}disabled{% endif %}>
+        <i class="bi bi-arrow-left"></i> Previous Item
+      </button>
+      <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
       <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
@@ -391,50 +409,115 @@
         })
       }
     
+      // Save button functionality
       saveBtn.addEventListener('click', function (e) {
         e.preventDefault()
+        saveCurrentItem('save')
+      })
     
-        Swal.fire({
-          title: 'Save activity changes?',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonText: 'Save'
-        }).then(function (res) {
-          if (!res.isConfirmed) return
-    
-          var title = (document.querySelector('.row .input-container .input-header')?.textContent || '').trim()
-          var desc = (document.querySelectorAll('.row .input-container input.form-control')[0]?.value || document.querySelectorAll('.row .input-container input.form-control')[0]?.getAttribute('placeholder') || '').trim()
-          var scenario = (document.querySelectorAll('.row .input-container input.form-control')[1]?.value || document.querySelectorAll('.row .input-container input.form-control')[1]?.getAttribute('placeholder') || '').trim()
-          var choices = Array.from(document.querySelectorAll('.groups input')).map(function (el) {
-            return el.value || el.getAttribute('placeholder') || ''
-          })
-    
+      // Add Next Item button functionality
+      var addNextBtn = document.getElementById('addNextItemBtn')
+      if (addNextBtn) {
+        addNextBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          saveCurrentItem('add_next')
+        })
+      }
+
+      // Previous Item button functionality
+      var prevBtn = document.getElementById('prevItemBtn')
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          if (prevBtn.disabled) return
+          
           var params = new URLSearchParams(window.location.search)
           var id = params.get('id')
-    
-          fetch(window.location.pathname + (id ? '?id=' + encodeURIComponent(id) : ''), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
-            },
-            body: JSON.stringify({ id: id, description: desc, scenario: scenario, choices: choices, timer_seconds: selectedSeconds })
-          })
-            .then(function (r) {
-              return r.json()
-            })
-            .then(function (data) {
-              if (data && data.ok) {
-                Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
-              } else {
-                Swal.fire({ icon: 'error', title: 'Save failed', text: data && data.error ? data.error : 'Unknown error' })
-              }
-            })
-            .catch(function (err) {
-              Swal.fire({ icon: 'error', title: 'Save failed', text: String(err) })
-            })
+          var currentItem = parseInt(params.get('item') || '1')
+          
+          if (currentItem > 1) {
+            var prevItem = currentItem - 1
+            var redirectUrl = window.location.pathname + '?id=' + encodeURIComponent(id) + '&item=' + prevItem
+            window.location.href = redirectUrl
+          }
         })
-      })
+      }
+    
+      function saveCurrentItem(action) {
+        var title = document.getElementById('activityTitle')?.value || ''
+        var desc = document.getElementById('activityDescription')?.value || ''
+        var scenario = document.getElementById('scenario')?.value || ''
+        var choices = Array.from(document.querySelectorAll('.choice-input'))
+          .map(function (el) {
+            return el.value || ''
+          })
+          .filter(function (choice) {
+            return choice.trim() !== ''
+          })
+    
+        var params = new URLSearchParams(window.location.search)
+        var id = params.get('id')
+        var item = params.get('item') || '1'
+    
+        var payload = {
+          id: id,
+          title: title,
+          description: desc,
+          scenario: scenario,
+          choices: choices,
+          timer_seconds: selectedSeconds,
+          item_number: parseInt(item),
+          action: action
+        }
+    
+        if (action === 'save') {
+          Swal.fire({
+            title: 'Save activity changes?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Save'
+          }).then(function (res) {
+            if (!res.isConfirmed) return
+            performSave(payload)
+          })
+        } else {
+          performSave(payload)
+        }
+      }
+    
+      function performSave(payload) {
+        fetch(window.location.pathname, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+          },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) {
+            return r.json()
+          })
+          .then(function (data) {
+            if (data && data.ok) {
+              if (data.redirect) {
+                Swal.fire({ icon: 'success', title: 'Item saved! Moving to next item...', timer: 1200, showConfirmButton: false }).then(function () {
+                  window.location.href = window.location.pathname + data.redirect
+                })
+              } else if (data.redirect_to_view) {
+                Swal.fire({ icon: 'success', title: 'Saved! Redirecting to view items...', timer: 1500, showConfirmButton: false }).then(function () {
+                  window.location.href = data.redirect_to_view
+                })
+              } else {
+                Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
+              }
+            } else {
+              Swal.fire({ icon: 'error', title: 'Save failed', text: data && data.error ? data.error : 'Unknown error' })
+            }
+          })
+          .catch(function (err) {
+            Swal.fire({ icon: 'error', title: 'Save failed', text: String(err) })
+          })
+      }
     })
   </script>
 {% endblock %}

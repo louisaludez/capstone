@@ -19,29 +19,42 @@
     .mcq-left {
       flex: 0 0 270px;
       text-align: center;
-      padding: 18px 10px 10px 10px;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
       background: #fff;
-      min-height: 350px;
+      min-height: 312px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    .mcq-left img {
-      height: 55px;
+    .card-image img {
+      width: 140px;
+      height: auto;
+      margin-bottom: 15px;
     }
-    .mcq-left h4 {
-      font-size: 1.1rem;
-      margin-top: 10px;
-      margin-bottom: 0;
-      line-height: 1.3;
+    .card-title {
+      color: #13221b;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.4;
     }
     .mcq-right {
       flex: 1;
       padding: 10px 0 0 0;
     }
+    .sim-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
     .sim-title {
       font-size: 1.2rem;
       font-weight: bold;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0;
     }
     .sim-instructions {
       font-size: 1rem;
@@ -49,7 +62,7 @@
       margin-bottom: 0.7rem;
     }
     .sim-scenario {
-      border: 1.5px solid #4caf50;
+      border: 1.5px solid #000;
       border-radius: 5px;
       padding: 7px 12px;
       margin-bottom: 12px;
@@ -60,85 +73,283 @@
     .sim-choices {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 18px;
     }
     .sim-choice-row {
       display: flex;
       align-items: center;
-      border: 1.5px solid #4caf50;
+      border: 1.5px solid #000;
       border-radius: 5px;
       background: #fff;
-      padding: 6px 12px;
-      font-size: 1.05rem;
+      padding: 4px 10px;
+      font-size: 0.95rem;
       cursor: pointer;
     }
     .sim-choice-row input[type='checkbox'] {
-      margin-right: 16px;
-      width: 22px;
-      height: 22px;
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
       accent-color: #4caf50;
       cursor: pointer;
+    }
+    .sim-choices-row {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      align-items: start;
+      column-gap: 16px;
+      margin-bottom: 12px;
     }
     .sim-timer {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
-      float: right;
       font-size: 1.1rem;
       font-weight: 500;
       color: #388e3c;
+      justify-content: center;
+      align-self: center;
+      justify-self: center;
     }
     .sim-timer .timer-icon {
       font-size: 2.2rem;
       color: #388e3c;
     }
     .sim-next-btn {
-      float: right;
       background: #4caf50;
       color: #fff;
       border: none;
       padding: 8px 14px;
       border-radius: 6px;
     }
+    .sim-prev-btn,
+    .sim-prev-link {
+      background: #9e9e9e;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .sim-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
   </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const checkboxes = document.querySelectorAll('.sim-choice')
+      const preselected = '{{ selected_choice_id|default:""|escapejs }}'
+      const nextBtn = document.getElementById('btn-next')
+    
+      // Timer setup
+      const timerEl = document.querySelector('.sim-timer')
+      const timerText = document.getElementById('timer-text')
+      let remaining = 0
+      if (timerEl) {
+        const total = parseInt(timerEl.getAttribute('data-seconds') || '0', 10)
+        remaining = isNaN(total) || total <= 0 ? 5 * 60 : total
+        function renderTime(s) {
+          const m = Math.floor(s / 60)
+          const sec = s % 60
+          if (timerText) timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+        }
+        renderTime(remaining)
+        setInterval(function () {
+          if (remaining <= 0) return
+          remaining -= 1
+          renderTime(remaining)
+          if (remaining === 0) {
+            // Auto-submit current selection (if any)
+            const selected = Array.from(checkboxes).find((cb) => cb.checked)
+            if (selected) {
+              nextBtn && nextBtn.click()
+            } else {
+              // Submit empty to record timeout
+              const formData = new FormData()
+              fetch('{% url "mcq_submit" attempt.id %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
+                body: formData
+              }).finally(function () {
+                window.location.href = '{% url "mcq_home" %}'
+              })
+            }
+          }
+        }, 1000)
+      }
+    
+      function updateNextState() {
+        const anyChecked = Array.from(checkboxes).some((cb) => cb.checked)
+        if (nextBtn) nextBtn.disabled = !anyChecked
+      }
+    
+      checkboxes.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          if (cb.checked) {
+            checkboxes.forEach(function (other) {
+              if (other !== cb) {
+                other.checked = false
+              }
+            })
+            // autosave selection
+            const fd = new FormData()
+            fd.append('choice_id', cb.value)
+            fetch('{% url "mcq_save" attempt.id %}', {
+              method: 'POST',
+              headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
+              body: fd
+            }).catch(function () {})
+          }
+          updateNextState()
+        })
+      })
+    
+      if (preselected) {
+        Array.from(checkboxes).forEach(function (cb) {
+          if (String(cb.value) === String(preselected)) {
+            cb.checked = true
+          }
+        })
+      }
+      updateNextState()
+    
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          const selected = Array.from(checkboxes).find((cb) => cb.checked)
+          if (!selected) return
+          const formData = new FormData()
+          formData.append('choice_id', selected.value)
+          fetch('{% url "mcq_submit" attempt.id %}', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+            },
+            body: formData
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data && data.ok) {
+                if (data.next) {
+                  // Start next activity via POST to mcq_start using the same participant info
+                  const fd2 = new FormData()
+                  fd2.append('participant', '{{ attempt.participant_info|escapejs }}')
+                  fetch(data.next, {
+                    method: 'POST',
+                    headers: {
+                      'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+                    },
+                    body: fd2
+                  })
+                    .then((r2) => r2.json())
+                    .then((d2) => {
+                      if (d2 && d2.ok && d2.redirect) {
+                        window.location.href = d2.redirect
+                      } else if (d2 && d2.ok && d2.attempt_id) {
+                        window.location.href = '/assessment/mcq/take/' + d2.attempt_id + '/'
+                      } else {
+                        window.location.href = '{% url "mcq_home" %}'
+                      }
+                    })
+                    .catch((err2) => alert('Failed to start next: ' + String(err2)))
+                } else {
+                  window.location.href = '{% url "mcq_home" %}'
+                }
+              } else {
+                alert(data && data.error ? data.error : 'Submit failed')
+              }
+            })
+            .catch((err) => alert('Submit failed: ' + String(err)))
+        })
+      }
+    
+      var prevBtn = document.getElementById('btn-prev')
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          if (prevBtn.hasAttribute('disabled')) return
+          var url = prevBtn.getAttribute('data-url') || ''
+          if (url) {
+            const fd = new FormData()
+            fd.append('participant', '{{ attempt.participant_info|escapejs }}')
+            fetch(url, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
+              body: fd
+            })
+              .then((r) => r.json())
+              .then((d) => {
+                if (d && d.ok && d.redirect) {
+                  window.location.href = d.redirect
+                } else if (d && d.ok && d.attempt_id) {
+                  window.location.href = '/assessment/mcq/take/' + d.attempt_id + '/'
+                } else {
+                  var pf = document.getElementById('prev-form')
+                  if (pf) pf.submit()
+                }
+              })
+              .catch(function () {
+                var pf = document.getElementById('prev-form')
+                if (pf) pf.submit()
+              })
+          } else {
+            var pf = document.getElementById('prev-form')
+            if (pf) pf.submit()
+          }
+        })
+      }
+    })
+  </script>
 {% endblock %}
 {% block sidebar %}
   {% include 'assessment/mcq/includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="mcq-compact-container">
-    <h2 class="fw-bold mb-3" style="color: #1a1a1a; font-size: 2rem">Training Simulation</h2>
+  <div class="mcq-compact-container p-5">
     <div class="mcq-row">
-      <div class="mcq-left mt-5 p-5">
-        <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
-        <h4 class="fw-bold mt-2 mb-5">Multiple Choice<br />Scenario Based<br />Test</h4>
-        <a href="{% url 'mcq_home' %}" class="btn btn-success mt-5">MCQ Test</a>
+      <div class="mcq-left mt-5">
+        <div class="card-image">
+          <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+        </div>
+        <div class="card-title">
+          Multiple Choice<br />Scenario Based<br />Test
+        </div>
+        <a href="{% url 'mcq_home' %}" class="btn btn-success mt-3">MCQ Test</a>
       </div>
-      <div class="mcq-right">
-        <div class="sim-title">Test {{ attempt.attempt_number }}. {{ activity.title }}</div>
+      <div class="mcq-right mt-5">
+        <div class="sim-header">
+          <div class="sim-title">Test {{ attempt.attempt_number }}. {{ activity.title }}</div>
+        </div>
         <div class="sim-instructions">Instructions: Check the box of the right answer.</div>
         <div class="sim-scenario">
           <b>Scenario:</b><br />{{ activity.scenario }}
         </div>
-        <div class="sim-choices">
-          {% for c in choices %}
-            <label class="sim-choice-row">
-              <input type="checkbox" name="choice" />
-              {{ c }}
-            </label>
-          {% endfor %}
+        <div class="sim-choices-row">
+          <div class="sim-choices">
+            {% for c in choices %}
+              <label class="sim-choice-row">
+                <input type="checkbox" name="choice" value="{{ c.id }}" class="sim-choice" />
+                {{ c.text }}
+              </label>
+            {% endfor %}
+          </div>
+          <div class="sim-timer" data-seconds="{{ activity.timer_seconds|default:0 }}">
+            <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
+            <span id="timer-text">--:--</span>
+          </div>
         </div>
-        <div class="sim-timer">
-          <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
-          {% if activity.timer_seconds and activity.timer_seconds > 0 %}
-            {% widthratio activity.timer_seconds 60 1 %}mins
+
+        <div class="sim-actions">
+          {% if prev_exists %}
+            <a href="{% url 'mcq_prev' attempt.id %}" class="sim-prev-link">◀ Previous</a>
           {% else %}
-            5 mins
+            <button class="sim-prev-btn" id="btn-prev" disabled>◀ Previous</button>
           {% endif %}
+          <button class="sim-next-btn" id="btn-next" disabled>Proceed to next item <span class="test-icon">▶</span></button>
         </div>
-        <button class="sim-next-btn">Proceed to next item <span class="test-icon">▶</span></button>
       </div>
     </div>
   </div>

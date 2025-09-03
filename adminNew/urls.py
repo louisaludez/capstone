@@ -18,6 +18,9 @@ urlpatterns = [
     path('training/', admin_training, name='admin_training'),
    
     path('activity-materials/add-activity-mcq/', add_activity_mcq, name='add_activity_mcq'),
+    path('activity-materials/add-activity-speech/', add_activity_speech, name='add_activity_speech'),
+    path('activity-materials/view-mcq-activity/', view_mcq_activity, name='view_mcq_activity'),
+    path('activity-materials/view-speech-activity/', view_speech_activity, name='view_speech_activity'),
     path('activity-materials/save/', save_activities, name='save_activities'),
     path('addmt-speech-to-text/', addmt_speech_to_text, name='addmt_speech_to_text'),
     path('addmt-mcq/', addmt_mcq, name='addmt_mcq')

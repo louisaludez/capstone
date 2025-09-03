@@ -215,11 +215,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     function startSpeechToTextTest() {
-      window.location.href = '/admin/addmt-speech-to-text/'
+      window.location.href = '{% url 'addmt_speech_to_text' %}'
     }
     
     function startMultipleChoiceTest() {
-      window.location.href = '/adminNew/addmt-mcq/'
+      window.location.href = '{% url 'addmt_mcq' %}'
     }
   </script>
 {% endblock %}

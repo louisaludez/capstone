@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Activity Materials
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'main.css' %}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    * {
+      border-radius: 13px;
+    }
+    .header-buttons {
+      border: 1px solid gray;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 300px;
+      border-radius: 13px;
+    }
+    .activity-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid black;
+      border-radius: 13px;
+      height: 380px;
+      width: 310px !important;
+    }
+    .activity-box img {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 10px;
+    }
+    .activity-box span {
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      display: block;
+    }
+    .input-container {
+      border: 1px solid black;
+      margin-bottom: 10px;
+      height: 60px;
+      padding-bottom: 10px !important;
+      padding-right: 28px;
+      position: relative;
+    }
+    .input-container input {
+      border: none;
+      background-color: transparent;
+      font-size: 12px;
+      margin-top: 0 !important;
+      margin-bottom: 10px !important;
+      height: 10px;
+    }
+    .input-container input::placeholder {
+      color: #bababa;
+      font-style: italic;
+      font-size: 12px;
+    }
+    .input-container input:focus {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      background-color: transparent !important;
+    }
+    .input-header {
+      font-weight: bold;
+      font-size: 12px;
+      margin-left: 10px;
+      margin-bottom: 0 !important;
+    }
+    .timer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid black;
+      padding: 10px;
+      position: relative;
+    }
+    .timer button {
+      margin-right: 10px;
+      width: 100px;
+      height: 35px;
+      border: 1px solid gray;
+      border-radius: 4px;
+      font-size: 12px;
+      background-color: transparent;
+    }
+    
+    .group-input {
+      border: 1px solid black;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .add {
+      color: #73b455;
+    }
+    .remove {
+      color: #ad0908;
+    }
+    .edit {
+      color: #141311;
+    }
+    .group-input {
+      padding: 10px;
+    }
+    .group-header {
+      font-weight: bolder;
+      font-size: 16px;
+      margin-right: 10px !important;
+      white-space: nowrap;
+    }
+    .group-input input {
+      height: 90px;
+      margin-right: 10px;
+      width: 120px;
+      border: 1px solid black;
+    }
+    .groups {
+      display: flex;
+      gap: 15px;
+      flex-direction: row;
+      justify-self: center;
+      align-items: center;
+    }
+    .groups button {
+      position: relative;
+    }
+    .addbuttons button {
+      border: 1px solid black !important;
+      font-size: 12px;
+      height: 40px;
+      width: 100px;
+      border-radius: 4px;
+    }
+    .input-list {
+      max-height: 350px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+    }
+    .note {
+      font-size: 12px;
+      color: gray;
+      font-style: italic;
+      margin-left: 120px;
+    }
+    .footer {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .footer button {
+      width: 150px;
+      height: 30px;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid gray;
+      border-radius: 4px;
+      background-color: #ffffff;
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    .corner-checkbox {
+      position: absolute;
+      top: -2px;
+      right: -7px;
+      transform: scale(2);
+      transform-origin: top right;
+      cursor: pointer;
+    }
+    .corner-checkbox-timer {
+      position: absolute;
+      top: -5px;
+      right: -345px;
+      transform: scale(1.5);
+      cursor: pointer;
+    }
+    .corner-checkbox-btn {
+      position: absolute;
+      top: -45px;
+      right: -65px;
+      transform: scale(0.2);
+      cursor: pointer;
+      border: 1px solid black !important;
+    }
+    /* Add Activity button styling */
+    .div {
+      position: absolute;
+      top: 5px;
+      left: 540px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+    }
+    .plus-box {
+      width: 100%;
+      height: 35px;
+      border: 1px solid black;
+      border-radius: 13px;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .plus-icon {
+      font-size: 24px;
+      color: black;
+      font-weight: bold;
+    }
+    /* Header button reveal animations */
+    .hidden-control {
+      display: none !important;
+    }
+    .anim-enter {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+    }
+    .anim-enter-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    /* Add Activity button is always visible */
+    .input-container .div {
+      display: flex;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='training' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid p-5">
+    <div class="row header mt-3 mb-2">
+      <div class="col-6">
+        <h1>Activity Materials</h1>
+      </div>
+      <div class="col-6 d-flex justify-content-end align-items-center">
+        <div class="header-buttons">
+          <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
+          <span>|</span>
+          <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
+          <span>|</span>
+          <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
+        </div>
+      </div>
+    </div>
+    <div class="row body">
+      <div class="col-4">
+        <div class="activity-box">
+          <img src="{% static 'images/SPTT2.png' %}" alt="" />
+          <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="row"></div>
+        <div class="input-list">
+          {% if activities %}
+            {% for a in activities %}
+              <div class="input-container" data-id="{{ a.id }}">
+                <span class="input-header">{{ a.title }}</span>
+                <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">{{ a.description|default:'Description' }}</span>
+                <div class="div">
+                  <a href="{% url 'add_activity_speech' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
+                  <span>AddActivity</span>
+                </div>
+                <input type="checkbox" class="corner-checkbox" />
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="input-container">
+              <span class="input-header">Activity Title</span>
+              <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+              <div class="div">
+                <a href="{% url 'add_activity_speech' %}"><span><i class="bi bi-upload"></i></span></a>
+                <span>AddActivity</span>
+              </div>
+              <input type="checkbox" class="corner-checkbox" />
+            </div>
+          {% endif %}
+        </div>
+        <div class="plus-box">
+          <div class="plus-icon">+</div>
+        </div>
+        <div class="row footer">
+          <button id="saveChangesBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var container = document.querySelector('.header-buttons')
+      if (!container) return
+    
+      var addBtn = container.querySelector('.btn.add')
+      var removeBtn = container.querySelector('.btn.remove')
+      var editBtn = container.querySelector('.btn.edit')
+    
+      var sepAfterAdd = addBtn ? addBtn.nextElementSibling : null
+      var sepBeforeEdit = removeBtn ? removeBtn.nextElementSibling : null
+    
+      function getControls() {
+        var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox'))
+        return [addBtn, removeBtn, sepAfterAdd, sepBeforeEdit].concat(checkboxes).filter(Boolean)
+      }
+    
+      getControls().forEach(function (el) {
+        el.classList.add('hidden-control')
+      })
+    
+      var shown = false
+    
+      function showControls() {
+        var controls = getControls()
+        controls.forEach(function (el) {
+          el.classList.remove('hidden-control')
+          el.classList.add('anim-enter')
+          requestAnimationFrame(function () {
+            el.classList.add('anim-enter-active')
+            el.classList.remove('anim-enter')
+          })
+          el.addEventListener(
+            'transitionend',
+            function handler() {
+              el.classList.remove('anim-enter-active')
+              el.removeEventListener('transitionend', handler)
+            },
+            { once: true }
+          )
+        })
+        shown = true
+      }
+    
+      function hideControls() {
+        var controls = getControls()
+        controls.forEach(function (el) {
+          el.classList.add('hidden-control')
+        })
+        shown = false
+      }
+    
+      if (editBtn) {
+        editBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          if (!shown) {
+            showControls()
+          } else {
+            hideControls()
+          }
+        })
+      }
+    
+      // Add Activity button is always visible - no need for visibility control
+    
+      // Remove selected rows (with confirmation)
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var list = document.querySelector('.input-list')
+          if (!list) return
+          var rows = Array.from(list.querySelectorAll('.input-container'))
+    
+          if (rows.length <= 1) {
+            Swal.fire({ icon: 'info', title: 'Nothing to remove', text: 'At least one row is required.' })
+            return
+          }
+    
+          Swal.fire({
+            title: 'Remove selected rows?',
+            text: 'Rows with checked corner boxes will be removed. This only applies after Save.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Remove',
+            cancelButtonText: 'Cancel'
+          }).then(function (result) {
+            if (!result.isConfirmed) return
+    
+            var deleteIds = []
+            rows.forEach(function (row) {
+              var cb = row.querySelector('.corner-checkbox')
+              if (cb && cb.checked) {
+                var idAttr = row.getAttribute('data-id')
+                if (idAttr) deleteIds.push(parseInt(idAttr, 10))
+                row.remove()
+              }
+            })
+    
+            var saveBtnEl = document.getElementById('saveChangesBtn')
+            if (saveBtnEl) {
+              var existing = saveBtnEl.getAttribute('data-delete-ids')
+              var arr = existing
+                ? existing
+                    .split(',')
+                    .filter(Boolean)
+                    .map(function (x) {
+                      return parseInt(x, 10)
+                    })
+                : []
+              arr = arr.concat(deleteIds)
+              var dedupe = Array.from(new Set(arr)).filter(function (x) {
+                return !isNaN(x)
+              })
+              saveBtnEl.setAttribute('data-delete-ids', dedupe.join(','))
+            }
+          })
+        })
+      }
+    
+      // Add new row when clicking the plus box
+      document.addEventListener('click', function (e) {
+        var plus = e.target.closest('.plus-box')
+        if (!plus) return
+        var list = document.querySelector('.input-list')
+        if (!list) return
+        var template = list.querySelector('.input-container')
+        if (!template) return
+    
+        var clone = template.cloneNode(true)
+        var header = clone.querySelector('.input-header')
+        if (header) header.textContent = 'Activity Title'
+        var span = clone.querySelector('span.form-control')
+        if (span) {
+          span.textContent = 'Description'
+        }
+        clone.removeAttribute('data-id')
+        var cb = clone.querySelector('.corner-checkbox')
+        if (cb) cb.checked = false
+        var link = clone.querySelector('.div a')
+        if (link && link.getAttribute('href')) {
+          var href = link.getAttribute('href')
+          link.setAttribute('href', href.split('?')[0])
+        }
+        list.appendChild(clone)
+        clone.classList.add('anim-enter')
+        requestAnimationFrame(function () {
+          clone.classList.add('anim-enter-active')
+          clone.classList.remove('anim-enter')
+        })
+        clone.addEventListener(
+          'transitionend',
+          function handler() {
+            clone.classList.remove('anim-enter-active')
+            clone.removeEventListener('transitionend', handler)
+          },
+          { once: true }
+        )
+        var newCb = clone.querySelector('.corner-checkbox')
+        if (newCb) {
+          if (!shown) newCb.classList.add('hidden-control')
+          else {
+            newCb.classList.remove('hidden-control')
+            newCb.classList.add('anim-enter')
+            requestAnimationFrame(function () {
+              newCb.classList.add('anim-enter-active')
+              newCb.classList.remove('anim-enter')
+            })
+            newCb.addEventListener(
+              'transitionend',
+              function handler2() {
+                newCb.classList.remove('anim-enter-active')
+                newCb.removeEventListener('transitionend', handler2)
+              },
+              { once: true }
+            )
+          }
+        }
+      })
+    
+      // Save Changes
+      var saveBtn = document.getElementById('saveChangesBtn')
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var deleteIdsStr = saveBtn.getAttribute('data-delete-ids') || ''
+          var deleteIds = deleteIdsStr
+            ? deleteIdsStr
+                .split(',')
+                .filter(Boolean)
+                .map(function (x) {
+                  return parseInt(x, 10)
+                })
+            : []
+    
+          Swal.fire({
+            title: 'Save changes?',
+            text: 'This will update the activities in the database.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel'
+          }).then(function (resSwal) {
+            if (!resSwal.isConfirmed) return
+    
+            var list = document.querySelector('.input-list')
+            if (!list) return
+            var rows = Array.from(list.querySelectorAll('.input-container'))
+            // Use template-provided CSRF token (more reliable than parsing cookies)
+            var headers = { 'X-CSRFToken': '{{ csrf_token }}' }
+            var uploads = rows.map(function (row) {
+              var title = (row.querySelector('.input-header')?.textContent || '').trim()
+              var desc = (row.querySelector('span.form-control')?.textContent || '').trim()
+              if (!desc) return null
+              var idAttr = row.getAttribute('data-id')
+              var idVal = idAttr ? parseInt(idAttr, 10) : null
+              var fd = new FormData()
+              if (idVal) fd.append('id', String(idVal))
+              fd.append('title', title)
+              fd.append('description', desc)
+              return fetch('{% url 'addmt_speech_to_text' %}', { method: 'POST', headers: headers, credentials: 'same-origin', body: fd })
+            }).filter(Boolean)
+
+            Promise.all(uploads)
+              .then(function (responses) {
+                return Promise.all(
+                  responses.map(function (r) {
+                    if (!r.ok) {
+                      return r.text().then(function (t) { throw new Error('HTTP ' + r.status + ': ' + t.slice(0, 200)) })
+                    }
+                    return r.json()
+                  })
+                )
+              })
+              .then(function (datas) {
+              var rowsNow = Array.from(document.querySelectorAll('.input-list .input-container'))
+              datas.forEach(function (data, idx) { if (data && data.ok && rowsNow[idx]) rowsNow[idx].setAttribute('data-id', data.id) })
+              Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
+              saveBtn.setAttribute('data-delete-ids', '')
+            }).catch(function (err) { Swal.fire({ icon: 'error', title: 'Save failed', text: String(err && err.message ? err.message : err) }) })
+          })
+        })
+      }
+    })
+  </script>
+{% endblock %}

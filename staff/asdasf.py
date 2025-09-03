@@ -10,7 +10,7 @@ from django.utils import timezone
 from chat.models import Message
 from django.db.models import Q
 # Create your views here.
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def home(request):
     # Get selected date from request, default to today
     selected_date = request.GET.get('date', date.today().strftime('%Y-%m-%d'))
@@ -82,7 +82,7 @@ def message(request):
         "current_user_id": request.user.id,
     })
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def check_in(request):
     if request.method == 'POST':
         try:
@@ -177,7 +177,7 @@ def check_in(request):
         'today': date.today().strftime('%Y-%m-%d')
     })
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def check_out(request, reservation_id):
     try:
         reservation = get_object_or_404(Reservation, id=reservation_id)
@@ -202,7 +202,7 @@ def check_out(request, reservation_id):
         messages.add_message(request, messages.ERROR, f'An error occurred during check-out: {str(e)}')
         return redirect('view_reservations')
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def view_reservations(request):
     selected_date = request.GET.get('date', date.today().strftime('%Y-%m-%d'))
     try:
@@ -221,7 +221,7 @@ def view_reservations(request):
         'today': date.today().strftime('%Y-%m-%d')
     })
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def book_room(request):
     if request.method == 'POST':
         try:

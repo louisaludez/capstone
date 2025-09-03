@@ -30,3 +30,18 @@ class McqAttempt(models.Model):
 
   def __str__(self) -> str:
     return f"Attempt #{self.id} for {self.activity_id}: {self.participant_info[:40]}"
+
+
+class McqAnswer(models.Model):
+  attempt = models.ForeignKey(McqAttempt, on_delete=models.CASCADE, related_name='answers')
+  choice = models.ForeignKey('adminNew.ActivityChoice', on_delete=models.CASCADE)
+  is_correct = models.BooleanField(default=False)
+  selected_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    indexes = [
+      models.Index(fields=["attempt"]),
+    ]
+
+  def __str__(self) -> str:
+    return f"Answer for attempt {self.attempt_id}: {'correct' if self.is_correct else 'wrong'}"

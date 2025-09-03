@@ -28,7 +28,9 @@ def login(request):
             if user.role == 'admin':
                 return redirect('admin_home')  
             elif user.role == 'personnel':
-                return redirect('activity_home')
+                return redirect('HomeStaff')
+            elif user.role == 'staff':
+                return redirect('HomeStaff')
             elif user.role == 'supervisor_laundry':
                 return redirect('supervisor_laundry_home')          
             elif user.role == 'staff_laundry':
@@ -51,6 +53,8 @@ def login(request):
                 return redirect('room_service:dashboardrm')
             elif user.role == 'staff_fnb':
                 return redirect('staff_fnb_home')
+            # Fallback redirect if role doesn't match any case
+            return redirect('HomeStaff')
         else:
             messages.error(request, "Invalid username or password. Please try again.")
             return render(request, "registration/login.html")

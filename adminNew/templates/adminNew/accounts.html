@@ -10,7 +10,7 @@
   {% include './includes/sidebar.html' with active_page='accounts' %}
 {% endblock %}
 {% block content %}
-  <div class="container-fluid py-3">
+  <div class="container-fluid p-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="mb-0">Registered HMS Users</h4>
       <div class="d-flex gap-2">
@@ -85,6 +85,26 @@
               <input type="text" class="form-control" id="username" name="username" required />
             </div>
             <div class="mb-3">
+              <label for="first_name" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="first_name" name="first_name" required />
+            </div>
+            <div class="mb-3">
+              <label for="last_name" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="last_name" name="last_name" required />
+            </div>
+            <div class="mb-3">
+              <label for="course" class="form-label">Course</label>
+              <input type="text" class="form-control" id="course" name="course" required />
+            </div>
+            <div class="mb-3">
+              <label for="set" class="form-label">Set</label>
+              <input type="text" class="form-control" id="set" name="set" required />
+            </div>
+            <div class="mb-3">
+              <label for="year_level" class="form-label">Year Level</label>
+              <input type="number" class="form-control" id="year_level" name="year_level" min="1" required />
+            </div>
+            <div class="mb-3">
               <label for="password" class="form-label">Password</label>
               <input type="password" class="form-control" id="password" name="password" required />
             </div>
@@ -96,16 +116,8 @@
               <label for="role" class="form-label">Role</label>
               <select class="form-select" id="role" name="role" required>
                 <option value="">Select Role</option>
-                <option value="personnel">Personnel</option>
+                <option value="staff">Staff</option>
                 <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="supervisor_laundry">Supervisor - Laundry</option>
-                <option value="supervisor_concierge">Supervisor - Concierge</option>
-                <option value="supervisor_cafe">Supervisor - Cafe</option>
-                <option value="staff_laundry">Staff - Laundry</option>
-                <option value="staff_concierge">Staff - Concierge</option>
-                <option value="staff_cafe">Staff - Cafe</option>
-                <option value="staff_room_service">Staff - Room Service</option>
               </select>
             </div>
           </form>
@@ -187,16 +199,8 @@
               <label for="editRole" class="form-label">Role</label>
               <select class="form-select" id="editRole" name="role" required>
                 <option value="">Select Role</option>
-                <option value="personnel">Personnel</option>
+                <option value="staff">Staff</option>
                 <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="supervisor_laundry">Supervisor - Laundry</option>
-                <option value="supervisor_concierge">Supervisor - Concierge</option>
-                <option value="supervisor_cafe">Supervisor - Cafe</option>
-                <option value="staff_laundry">Staff - Laundry</option>
-                <option value="staff_concierge">Staff - Concierge</option>
-                <option value="staff_cafe">Staff - Cafe</option>
-                <option value="staff_room_service">Staff - Room Service</option>
               </select>
             </div>
           </form>

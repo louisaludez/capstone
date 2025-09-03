@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from decimal import Decimal
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def home(request):
     guest = Guest.objects.all()
     booking = Booking.objects.all() 
@@ -89,7 +89,7 @@ def message(request):
 
 
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def view_reservations(request):
     selected_date = request.GET.get('date', date.today().strftime('%Y-%m-%d'))
     try:
@@ -106,7 +106,7 @@ def view_reservations(request):
         'today': date.today().strftime('%Y-%m-%d')
     })
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def book_room(request):
     if request.method == 'POST':
         try:
@@ -494,7 +494,7 @@ def perform_checkout(request):
     print("Invalid request method (not POST).")
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
-@decorator.role_required('personnel')
+@decorator.role_required('staff')
 def room_list(request):
     """Display all rooms with their current status"""
     rooms = Room.objects.all().order_by('room_number')

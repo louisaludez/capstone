@@ -9,7 +9,7 @@ from users.models import CustomUser
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from staff.models import *
-from .models import Activity, ActivityChoice
+from .models import Activity, ActivityItem, ActivityChoice, SpeechActivity
 import locale
 from decimal import Decimal
 
@@ -39,6 +39,19 @@ def add_user(request):
             email = request.POST.get('email')
             password = request.POST.get('password')
             role = request.POST.get('role')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            course = request.POST.get('course')
+            student_set = request.POST.get('set')
+            year_level_raw = request.POST.get('year_level')
+            try:
+                year_level = int(year_level_raw) if year_level_raw is not None and year_level_raw != '' else None
+            except ValueError:
+                return JsonResponse({'status': 'error', 'message': 'Year level must be a number'})
+
+            # Restrict roles to only 'staff' or 'admin'
+            if role not in ['staff', 'admin']:
+                return JsonResponse({'status': 'error', 'message': 'Invalid role. Allowed roles are Staff or Admin.'})
 
             if CustomUser.objects.filter(username=username).exists():
                 return JsonResponse({'status': 'error', 'message': 'Username already exists'})
@@ -48,6 +61,11 @@ def add_user(request):
             user = CustomUser.objects.create(
                 username=username,
                 email=email,
+                first_name=first_name or '',
+                last_name=last_name or '',
+                course=course or None,
+                set=student_set or None,
+                year_level=year_level,
                 password=make_password(password),
                 role=role
             )
@@ -99,6 +117,10 @@ def edit_user(request, user_id):
                 return JsonResponse({'status': 'error', 'message': 'Username already exists'})
             if CustomUser.objects.exclude(id=user_id).filter(email=email).exists():
                 return JsonResponse({'status': 'error', 'message': 'Email already exists'})
+
+            # Restrict roles to only 'staff' or 'admin'
+            if role not in ['staff', 'admin']:
+                return JsonResponse({'status': 'error', 'message': 'Invalid role. Allowed roles are Staff or Admin.'})
 
             user.username = username
             user.email = email
@@ -197,41 +219,94 @@ def add_activity_mcq(request):
             if not data:
                 data = json.loads(request.body.decode("utf-8")) if request.body else {}
             print("[add_activity][POST] payload_keys=", list(data.keys()))
+            
             activity_id = data.get("id") or request.GET.get("id")
-            activity = get_object_or_404(Activity, id=activity_id)
-            print(f"[add_activity][POST] target_activity_id={activity.id}")
-            activity.description = data.get("description", activity.description or "")
-            activity.scenario = data.get("scenario", activity.scenario or "")
-            timer_val = data.get("timer_seconds")
-            if timer_val is not None and str(timer_val).isdigit():
-                activity.timer_seconds = int(timer_val)
+            item_number = int(data.get("item_number", 1))
+            action = data.get("action", "save")  # save, add_next
+            
+            if activity_id:
+                activity = get_object_or_404(Activity, id=activity_id)
+            else:
+                # Create new activity
+                activity = Activity.objects.create(
+                    title=data.get("title", "New Activity"),
+                    description=data.get("description", ""),
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+            
+            print(f"[add_activity][POST] target_activity_id={activity.id}, item_number={item_number}")
+            
+            # Update activity basic info
+            activity.title = data.get("title", activity.title)
+            activity.description = data.get("description", activity.description)
             activity.save()
-            print(
-                f"[add_activity][POST] saved activity: id={activity.id} timer_seconds={activity.timer_seconds} "
-                f"desc_len={len(activity.description or '')} scenario_len={len(activity.scenario or '')}"
-            )
-            # Update choices: replace with provided list
-            choices = data.get("choices", [])
-            if isinstance(choices, str):
-                try:
-                    choices = json.loads(choices)
-                except Exception:
-                    choices = []
-            print(f"[add_activity][POST] incoming_choices_count={len(choices) if isinstance(choices, list) else 'n/a'}")
-            activity.choices.all().delete()
-            bulk = []
-            order = 0
-            for text in choices[:4]:
-                text_str = (text or "").strip()
-                if not text_str:
-                    continue
-                bulk.append(ActivityChoice(activity=activity, text=text_str, display_order=order))
-                order += 1
-            if bulk:
-                ActivityChoice.objects.bulk_create(bulk)
-            print(f"[add_activity][POST] saved_choices_count={len(bulk)}")
-
-            return JsonResponse({"ok": True, "id": activity.id})
+            
+            # Handle current item
+            if action == "save" or action == "add_next":
+                # Get or create activity item
+                activity_item, created = ActivityItem.objects.get_or_create(
+                    activity=activity,
+                    item_number=item_number,
+                    defaults={
+                        'scenario': data.get("scenario", ""),
+                        'timer_seconds': int(data.get("timer_seconds", 0))
+                    }
+                )
+                
+                if not created:
+                    activity_item.scenario = data.get("scenario", activity_item.scenario)
+                    activity_item.timer_seconds = int(data.get("timer_seconds", activity_item.timer_seconds))
+                    activity_item.save()
+                
+                # Update choices for this item
+                choices = data.get("choices", [])
+                if isinstance(choices, str):
+                    try:
+                        choices = json.loads(choices)
+                    except Exception:
+                        choices = []
+                
+                print(f"[add_activity][POST] incoming_choices_count={len(choices) if isinstance(choices, list) else 'n/a'}")
+                
+                # Delete existing choices for this item
+                activity_item.choices.all().delete()
+                
+                # Create new choices
+                bulk = []
+                for order, text in enumerate(choices[:4]):
+                    text_str = (text or "").strip()
+                    if not text_str:
+                        continue
+                    # First choice is correct answer
+                    is_correct = (order == 0)
+                    bulk.append(ActivityChoice(
+                        activity_item=activity_item,
+                        text=text_str,
+                        display_order=order,
+                        is_correct=is_correct
+                    ))
+                
+                if bulk:
+                    ActivityChoice.objects.bulk_create(bulk)
+                print(f"[add_activity][POST] saved_choices_count={len(bulk)}")
+            
+            # If adding next item, increment item number
+            if action == "add_next":
+                next_item_number = item_number + 1
+                return JsonResponse({
+                    "ok": True, 
+                    "id": activity.id, 
+                    "next_item_number": next_item_number,
+                    "redirect": f"?id={activity.id}&item={next_item_number}"
+                })
+            else:
+                # For "save" action, redirect to separate MCQ view page
+                return JsonResponse({
+                    "ok": True, 
+                    "id": activity.id,
+                    "redirect_to_view": f"/adminNew/activity-materials/view-mcq-activity/?id={activity.id}"
+                })
+                
         except Exception as e:
             print("[add_activity][POST][error]", e)
             return JsonResponse({"ok": False, "error": str(e)}, status=400)
@@ -239,6 +314,8 @@ def add_activity_mcq(request):
     # GET: render activity details from DB
     activity = None
     activity_id = request.GET.get("id") or request.GET.get("activity_id")
+    item_number = int(request.GET.get("item", 1))
+    
     if activity_id:
         activity = get_object_or_404(Activity, id=activity_id)
         print(f"[add_activity][GET] load_by_id id={activity_id}")
@@ -246,16 +323,160 @@ def add_activity_mcq(request):
         activity = Activity.objects.order_by("-created_at").first()
         print("[add_activity][GET] load_latest id=", getattr(activity, "id", None))
 
+    # Get current item data
+    current_item = None
     choices = []
     if activity is not None:
-        choices = list(activity.choices.order_by("display_order", "id").values_list("text", flat=True))
-    print(f"[add_activity][GET] choices_count={len(choices)}")
+        try:
+            current_item = ActivityItem.objects.get(activity=activity, item_number=item_number)
+            choices = list(current_item.choices.order_by("display_order", "id").values_list("text", flat=True))
+        except ActivityItem.DoesNotExist:
+            # Item doesn't exist yet, use empty choices
+            choices = ["", "", "", ""]
+    
+    print(f"[add_activity][GET] choices_count={len(choices)}, item_number={item_number}")
 
     context = {
         "activity": activity,
+        "current_item": current_item,
         "choices": choices,
+        "item_number": item_number,
     }
     return render(request, "adminNew/add_activity_mcq.html", context)
+
+
+def view_mcq_activity(request):
+    """View for displaying MCQ activity items in a separate page"""
+    activity_id = request.GET.get("id")
+    
+    if not activity_id:
+        return JsonResponse({"error": "Activity ID required"}, status=400)
+    
+    try:
+        activity = get_object_or_404(Activity, id=activity_id)
+        
+        # Get all items for this activity
+        all_items = ActivityItem.objects.filter(activity=activity).order_by("item_number")
+        
+        context = {
+            "activity": activity,
+            "all_items": all_items,
+        }
+        
+        return render(request, "adminNew/view_mcq_activity.html", context)
+        
+    except Exception as e:
+        print(f"[view_mcq_activity] error: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def add_activity_speech(request):
+    print("[add_activity_speech] method=", request.method)
+    if request.method == "POST":
+        try:
+            import json
+            data = request.POST or {}
+            if not data:
+                data = json.loads(request.body.decode("utf-8")) if request.body else {}
+            print("[add_activity_speech][POST] payload_keys=", list(data.keys()))
+            
+            activity_id = data.get("id") or request.GET.get("id")
+            item_number = int(data.get("item_number", 1))
+            action = data.get("action", "save")  # save, add_next
+            
+            if activity_id:
+                activity = get_object_or_404(SpeechActivity, id=activity_id)
+            else:
+                # Create new speech activity
+                activity = SpeechActivity.objects.create(
+                    title=data.get("title", "New Speech Activity"),
+                    description=data.get("description", ""),
+                    timer_seconds=int(data.get("timer_seconds", 0)),
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+            
+            print(f"[add_activity_speech][POST] target_activity_id={activity.id}, item_number={item_number}")
+            
+            # Update activity basic info
+            activity.title = data.get("title", activity.title)
+            activity.description = data.get("description", activity.description)
+            activity.timer_seconds = int(data.get("timer_seconds", activity.timer_seconds))
+            activity.save()
+            
+            # Handle file uploads
+            if 'audio_file' in request.FILES:
+                activity.audio_file = request.FILES['audio_file']
+            if 'script_file' in request.FILES:
+                activity.script_file = request.FILES['script_file']
+            activity.save()
+            
+            # If adding next item, increment item number
+            if action == "add_next":
+                next_item_number = item_number + 1
+                return JsonResponse({
+                    "ok": True, 
+                    "id": activity.id, 
+                    "next_item_number": next_item_number,
+                    "redirect": f"?id={activity.id}&item={next_item_number}"
+                })
+            else:
+                # For "save" action, redirect to speech activity view page
+                return JsonResponse({
+                    "ok": True, 
+                    "id": activity.id,
+                    "redirect_to_view": f"/adminNew/activity-materials/view-speech-activity/?id={activity.id}"
+                })
+                
+        except Exception as e:
+            print("[add_activity_speech][POST][error]", e)
+            return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+    # GET: render activity details from DB
+    activity = None
+    activity_id = request.GET.get("id") or request.GET.get("activity_id")
+    item_number = int(request.GET.get("item", 1))
+    
+    if activity_id:
+        activity = get_object_or_404(SpeechActivity, id=activity_id)
+        print(f"[add_activity_speech][GET] load_by_id id={activity_id}")
+    else:
+        activity = SpeechActivity.objects.order_by("-created_at").first()
+        print("[add_activity_speech][GET] load_latest id=", getattr(activity, "id", None))
+
+    context = {
+        "activity": activity,
+        "item_number": item_number,
+    }
+    return render(request, "adminNew/add_activity_speech.html", context)
+
+
+def view_speech_activity(request):
+    """View for displaying speech activity items similar to MCQ page layout"""
+    activity_id = request.GET.get("id")
+    
+    if not activity_id:
+        return JsonResponse({"error": "Activity ID required"}, status=400)
+    
+    try:
+        activity = get_object_or_404(SpeechActivity, id=activity_id)
+        
+        # For speech activities, we'll treat each activity as a single "item"
+        # since speech activities don't have multiple items like MCQ activities
+        context = {
+            "activity": activity,
+            "item_number": 1,  # Speech activities are single items
+            "current_item": {
+                "scenario": getattr(activity, 'scenario', ''),
+                "timer_seconds": activity.timer_seconds,
+            },
+            "choices": [],  # Speech activities don't have choices
+        }
+        
+        return render(request, "adminNew/view_speech_activity.html", context)
+        
+    except Exception as e:
+        print(f"[view_speech_activity] error: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt
@@ -315,8 +536,38 @@ def addmt_mcq(request):
 def addmt_speech_to_text(request):
     print("[addmt_speech_to_text] method=", request.method)
     if request.method == "POST":
-        # Handle the POST request for adding a new Speech-to-Text activity
-        return JsonResponse({"ok": True})
+        # Create or update SpeechActivity and optionally upload files
+        item_id = request.POST.get('id')
+        title = (request.POST.get('title') or '').strip()
+        description = (request.POST.get('description') or '').strip()
+        timer = request.POST.get('timer_seconds', '0')
+        try:
+            timer_seconds = int(timer or 0)
+        except ValueError:
+            timer_seconds = 0
+
+        if item_id:
+            speech = SpeechActivity.objects.filter(id=item_id).first() or SpeechActivity(id=item_id)
+            if title:
+                speech.title = title
+            if description:
+                speech.description = description
+            speech.timer_seconds = timer_seconds
+        else:
+            speech = SpeechActivity(
+                title=title or 'Activity Title',
+                description=description,
+                timer_seconds=timer_seconds,
+            )
+        if request.user.is_authenticated:
+            speech.created_by = request.user
+        if 'audio_file' in request.FILES:
+            speech.audio_file = request.FILES['audio_file']
+        if 'script_file' in request.FILES:
+            speech.script_file = request.FILES['script_file']
+        speech.save()
+        return JsonResponse({"ok": True, "id": speech.id})
     else:
         # Render the form for adding a new Speech-to-Text activity
-        return render(request, "adminNew/addmt_speech.html")
+        activities = SpeechActivity.objects.order_by("-created_at")
+        return render(request, "adminNew/addmt_speech.html", {"activities": activities})

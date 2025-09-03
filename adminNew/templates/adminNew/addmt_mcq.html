@@ -280,7 +280,7 @@
             {% for a in activities %}
               <div class="input-container" data-id="{{ a.id }}">
                 <span class="input-header">{{ a.title }}</span>
-                <input type="text" class="form-control" placeholder="{{ a.description|default:'Description' }}" />
+                <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">{{ a.description|default:'Description' }}</span>
                 <div class="div">
                   <a href="{% url 'add_activity_mcq' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
                   <span>AddActivity</span>
@@ -291,9 +291,9 @@
           {% else %}
             <div class="input-container">
               <span class="input-header">Activity Title</span>
-              <input type="text" class="form-control" placeholder="Description" />
+              <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
               <div class="div">
-                <a href="{% url 'add_activity' %}"><span><i class="bi bi-upload"></i></span></a>
+                <a href="{% url 'add_activity_mcq' %}"><span><i class="bi bi-upload"></i></span></a>
                 <span>AddActivity</span>
               </div>
               <input type="checkbox" class="corner-checkbox" />
@@ -375,17 +375,7 @@
         })
       }
     
-      // Hide AddActivity link if description is empty
-      function hasDescription(row) {
-        var input = row.querySelector('input.form-control')
-        if (!input) return false
-        var val = (input.value || '').trim()
-        var ph = (input.getAttribute('placeholder') || '').trim()
-        // Treat default placeholder as empty description
-        if (!val && (!ph || ph.toLowerCase() === 'description')) return false
-        return !!(val || ph)
-      }
-    
+      // Show AddActivity link only when activity exists in DB (has data-id)
       function updateRowAddLink(row) {
         var linkWrap = row.querySelector('.div')
         if (!linkWrap) return
@@ -394,19 +384,10 @@
         linkWrap.style.display = hasId ? 'flex' : 'none'
       }
     
-      function bindRowInput(row) {
-        var input = row.querySelector('input.form-control')
-        if (!input) return
-        input.addEventListener('input', function () {
-          updateRowAddLink(row)
-        })
-      }
-    
       function updateAllAddLinks() {
         var rows = Array.from(document.querySelectorAll('.input-list .input-container'))
         rows.forEach(function (row) {
           updateRowAddLink(row)
-          bindRowInput(row)
         })
       }
       updateAllAddLinks()
@@ -500,9 +481,8 @@
         // append to the list
         list.appendChild(clone)
     
-        // ensure AddActivity link visibility is correct and input changes are tracked
+        // ensure AddActivity link visibility is correct
         updateRowAddLink(clone)
-        bindRowInput(clone)
     
         // animate the new row
         clone.classList.add('anim-enter')
