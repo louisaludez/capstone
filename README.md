@@ -111,6 +111,11 @@ The main configuration file is located at `hotelAi/settings.py`. Key configurati
    - Concierge Services
    - F&B Management
 
+## Documentation
+
+- See `docs/README.md` for the full API and component documentation.
+- Start with `docs/routes.md` and `docs/auth.md`.
+
 ## Security
 
 - Custom user model implementation
