@@ -360,6 +360,93 @@
           }
         })
       }
+
+      // Remove selected items when Remove is clicked
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          var list = document.querySelector('.input-list')
+          if (!list) return
+          var rows = Array.from(list.querySelectorAll('.input-container'))
+
+          if (rows.length <= 0) {
+            Swal.fire({ icon: 'info', title: 'Nothing to remove', text: 'No items found.' })
+            return
+          }
+
+          Swal.fire({
+            title: 'Remove selected items?',
+            text: 'Items with checked corner boxes will be removed.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Remove',
+            cancelButtonText: 'Cancel'
+          }).then(function (result) {
+            if (!result.isConfirmed) return
+
+            var deleteIds = []
+            rows.forEach(function (row) {
+              var cb = row.querySelector('.corner-checkbox')
+              if (cb && cb.checked) {
+                // Extract item number from the header text
+                var header = row.querySelector('.input-header')
+                if (header) {
+                  var itemText = header.textContent.trim()
+                  var itemMatch = itemText.match(/Item no\. (\d+)/)
+                  if (itemMatch) {
+                    deleteIds.push(parseInt(itemMatch[1], 10))
+                  }
+                }
+                row.remove()
+              }
+            })
+
+            if (deleteIds.length === 0) {
+              Swal.fire({ icon: 'info', title: 'No items selected', text: 'Please select items to remove.' })
+              return
+            }
+
+            // Send delete request to server
+            var urlParams = new URLSearchParams(window.location.search)
+            var activityId = urlParams.get('id')
+            
+            fetch('{% url "delete_activity_items" %}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+              },
+              body: JSON.stringify({ 
+                activity_id: activityId, 
+                item_numbers: deleteIds 
+              })
+            })
+              .then(function (res) {
+                return res.json()
+              })
+              .then(function (data) {
+                if (data && data.ok) {
+                  Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Items removed', 
+                    text: `${deleteIds.length} item(s) removed successfully.`,
+                    timer: 1500,
+                    showConfirmButton: false
+                  })
+                } else {
+                  Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Remove failed', 
+                    text: data && data.error ? data.error : 'Unknown error' 
+                  })
+                }
+              })
+              .catch(function (err) {
+                Swal.fire({ icon: 'error', title: 'Remove failed', text: String(err) })
+              })
+          })
+        })
+      }
     
       // Add New Item button
       var addNewBtn = document.getElementById('addNewItemBtn')

@@ -56,6 +56,13 @@
       font-weight: bold;
       margin-bottom: 0;
     }
+    .item-progress {
+      font-size: 0.9rem;
+      color: #666;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
     .sim-instructions {
       font-size: 1rem;
       color: #444;
@@ -233,28 +240,12 @@
             .then((r) => r.json())
             .then((data) => {
               if (data && data.ok) {
-                if (data.next) {
-                  // Start next activity via POST to mcq_start using the same participant info
-                  const fd2 = new FormData()
-                  fd2.append('participant', '{{ attempt.participant_info|escapejs }}')
-                  fetch(data.next, {
-                    method: 'POST',
-                    headers: {
-                      'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
-                    },
-                    body: fd2
-                  })
-                    .then((r2) => r2.json())
-                    .then((d2) => {
-                      if (d2 && d2.ok && d2.redirect) {
-                        window.location.href = d2.redirect
-                      } else if (d2 && d2.ok && d2.attempt_id) {
-                        window.location.href = '/assessment/mcq/take/' + d2.attempt_id + '/'
-                      } else {
-                        window.location.href = '{% url "mcq_home" %}'
-                      }
-                    })
-                    .catch((err2) => alert('Failed to start next: ' + String(err2)))
+                if (data.next_item) {
+                  // Move to next item in same activity
+                  window.location.href = data.redirect
+                } else if (data.redirect) {
+                  // Redirect to results page
+                  window.location.href = data.redirect
                 } else {
                   window.location.href = '{% url "mcq_home" %}'
                 }
@@ -266,6 +257,34 @@
         })
       }
     
+      // Handle previous item button
+      var prevItemBtn = document.getElementById('btn-prev-item')
+      if (prevItemBtn) {
+        prevItemBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          // Move to previous item by updating current_item_number
+          const formData = new FormData()
+          formData.append('action', 'prev_item')
+          fetch('{% url "mcq_submit" attempt.id %}', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+            },
+            body: formData
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data && data.ok) {
+                window.location.href = '{% url "mcq_take" attempt.id %}'
+              } else {
+                alert(data && data.error ? data.error : 'Failed to go to previous item')
+              }
+            })
+            .catch((err) => alert('Failed to go to previous item: ' + String(err)))
+        })
+      }
+    
+      // Handle previous activity button (existing logic)
       var prevBtn = document.getElementById('btn-prev')
       if (prevBtn) {
         prevBtn.addEventListener('click', function (e) {
@@ -274,7 +293,6 @@
           var url = prevBtn.getAttribute('data-url') || ''
           if (url) {
             const fd = new FormData()
-            fd.append('participant', '{{ attempt.participant_info|escapejs }}')
             fetch(url, {
               method: 'POST',
               headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
@@ -322,10 +340,11 @@
       <div class="mcq-right mt-5">
         <div class="sim-header">
           <div class="sim-title">Test {{ attempt.attempt_number }}. {{ activity.title }}</div>
+          <div class="item-progress">Item {{ attempt.current_item_number }} of {{ total_items }}</div>
         </div>
         <div class="sim-instructions">Instructions: Check the box of the right answer.</div>
         <div class="sim-scenario">
-          <b>Scenario:</b><br />{{ activity.scenario }}
+          <b>Scenario:</b><br />{{ current_item.scenario }}
         </div>
         <div class="sim-choices-row">
           <div class="sim-choices">
@@ -336,19 +355,25 @@
               </label>
             {% endfor %}
           </div>
-          <div class="sim-timer" data-seconds="{{ activity.timer_seconds|default:0 }}">
+          <div class="sim-timer" data-seconds="{{ current_item.timer_seconds|default:0 }}">
             <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
             <span id="timer-text">--:--</span>
           </div>
         </div>
 
         <div class="sim-actions">
-          {% if prev_exists %}
-            <a href="{% url 'mcq_prev' attempt.id %}" class="sim-prev-link">◀ Previous</a>
+          {% if has_prev_item %}
+            <button class="sim-prev-btn" id="btn-prev-item">◀ Previous Item</button>
+          {% elif prev_exists %}
+            <a href="{% url 'mcq_prev' attempt.id %}" class="sim-prev-link">◀ Previous Activity</a>
           {% else %}
-            <button class="sim-prev-btn" id="btn-prev" disabled>◀ Previous</button>
+            <button class="sim-prev-btn" disabled>◀ Previous</button>
           {% endif %}
-          <button class="sim-next-btn" id="btn-next" disabled>Proceed to next item <span class="test-icon">▶</span></button>
+          {% if has_next_item %}
+            <button class="sim-next-btn" id="btn-next" disabled>Next Item <span class="test-icon">▶</span></button>
+          {% else %}
+            <button class="sim-next-btn" id="btn-next" disabled>Complete Activity <span class="test-icon">▶</span></button>
+          {% endif %}
         </div>
       </div>
     </div>

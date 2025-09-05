@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Training Simulation - Results
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .mcq-card {
+      text-align: center;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      width: 250px;
+      margin: auto;
+      font-family: Arial, sans-serif;
+      margin-right: 20px;
+    
+      min-height: 312px !important;
+    }
+    
+    .card-image img {
+      width: 140px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+    
+    .card-title {
+      color: #13221b;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .card-title-mcq {
+      color: #13221b;
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    .card-text {
+      font-size: 0.6rem;
+      color: #13221b;
+      margin-bottom: 10px;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .card-body {
+      height: 55px;
+      padding: 10px;
+    }
+    .results-container {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 680px;
+      overflow: hidden;
+      height: 150px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .score-box {
+      flex: 2;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    
+    .status-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.6rem;
+    }
+    
+    .status-box.passed {
+      background-color: #4caf50; /* green */
+    }
+    
+    .status-box.failed {
+      background-color: #f44336; /* red */
+    }
+    .score {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .next-activity-card {
+      text-align: right;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container px-5">
+    <div class="row">
+      <h2>Training Simulation Results</h2>
+      <div class="col-4">
+        <div class="mcq-card">
+          <div class="card-image">
+            <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
+          </div>
+          <div class="card-title-mcq">
+            Multiple Choice<br />Scenario Based<br />Test
+          </div>
+        </div>
+      </div>
+      <div class="col-8">
+        <!-- Test Details Card -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ activity.title }}</h5>
+            <p class="card-text">{{ activity.description }}</p>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="results-card">
+          <div class="results-container">
+            <div class="score-box">
+              <h4 class="score">Your score is {{ correct_answers }} out of {{ total_questions }} questions.</h4>
+            </div>
+            <div class="status-box {% if passed %}
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                passed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              {% else %}
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                failed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              {% endif %}">
+              {% if passed %}
+                <span>Congratulations! You passed!</span>
+              {% else %}
+                <span>You Failed! <br /> Try again.</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Activity Card -->
+        {% if passed %}
+          {% if next_activity %}
+            <div class="next-activity-card">
+              <h6 class="mb-3">Up next</h6>
+              <a href="{% url 'mcq_start' next_activity.id %}" class="btn btn-success btn-lg">{{ next_activity.title }} <i class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+          {% else %}
+            <div class="next-activity-card">
+              <h6 class="mb-3">All activities completed!</h6>
+              <p class="text-muted">You have finished all available tests.</p>
+              <a href="{% url 'mcq_home' %}" class="btn btn-primary">Back to Home</a>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="next-activity-card">
+            <h6 class="mb-3">Take activity again?</h6>
+            <button id="retryBtn" class="btn btn-warning btn-lg" data-activity-id="{{ activity.id }}">Try again<i class="bi bi-arrow-clockwise ms-2"></i></button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const retryBtn = document.getElementById('retryBtn')
+      if (retryBtn) {
+        retryBtn.addEventListener('click', function () {
+          const activityId = this.getAttribute('data-activity-id')
+          const url = `/assessment/mcq/start/${activityId}/`
+    
+          console.log('DEBUG: Retrying activity with ID:', activityId)
+    
+          const formData = new FormData()
+          formData.append('participant', '{{ request.user.first_name }} {{ request.user.last_name }}'.trim() || '{{ request.user.username }}')
+    
+          console.log('DEBUG: Making POST request to:', url)
+          console.log('DEBUG: FormData contents:', formData)
+    
+          fetch(url, {
+            method: 'POST',
+            body: formData
+          })
+            .then(function (r) {
+              console.log('Response status:', r.status)
+              return r.text().then(function (text) {
+                console.log('Response text:', text)
+                if (!r.ok) {
+                  throw new Error(`HTTP ${r.status}: ${text}`)
+                }
+                try {
+                  return JSON.parse(text)
+                } catch (e) {
+                  console.error('JSON parse error:', e)
+                  throw new Error('Invalid JSON response: ' + text)
+                }
+              })
+            })
+            .then(function (data) {
+              if (data && data.ok) {
+                if (data.resumed) {
+                  Swal.fire({ icon: 'info', title: 'Resumed previous attempt', timer: 1200, showConfirmButton: false })
+                } else {
+                  Swal.fire({ icon: 'success', title: 'Started', timer: 1200, showConfirmButton: false })
+                }
+                if (data.redirect) {
+                  setTimeout(function () {
+                    window.location.href = data.redirect
+                  }, 300)
+                }
+              } else {
+                Swal.fire({ icon: 'error', title: 'Failed to start', text: data && data.error ? data.error : 'Unknown error' })
+              }
+            })
+            .catch(function (err) {
+              Swal.fire({ icon: 'error', title: 'Failed to start', text: String(err) })
+            })
+        })
+      }
+    })
+  </script>
+{% endblock %}

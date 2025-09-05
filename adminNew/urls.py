@@ -22,6 +22,7 @@ urlpatterns = [
     path('activity-materials/view-mcq-activity/', view_mcq_activity, name='view_mcq_activity'),
     path('activity-materials/view-speech-activity/', view_speech_activity, name='view_speech_activity'),
     path('activity-materials/save/', save_activities, name='save_activities'),
+    path('activity-materials/delete-items/', delete_activity_items, name='delete_activity_items'),
     path('addmt-speech-to-text/', addmt_speech_to_text, name='addmt_speech_to_text'),
     path('addmt-mcq/', addmt_mcq, name='addmt_mcq')
 ]

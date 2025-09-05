@@ -15,7 +15,7 @@
       width: 90%;
       margin: auto;
       font-family: Arial, sans-serif;
-      height: 312px !important;
+      min-height: 312px !important;
     }
     
     .card-image img {
@@ -42,7 +42,12 @@
       display: flex;
       justify-content: center; /* centers horizontally */
       align-items: center;
-      height: 100vh; /* full viewport height */
+      min-height: 100vh; /* full viewport height */
+    }
+    
+    /* Set minimum height for test cards to maintain current size */
+    .col-12 .card {
+      min-height: 60px;
     }
   </style>
 {% endblock %}
@@ -154,46 +159,56 @@
             Swal.fire({ icon: 'info', title: 'Not available', text: 'No activity linked for this test.' })
             return
           }
-          Swal.fire({
-            title: 'Enter Name, Section, and Year Level:',
-            input: 'text',
-            inputPlaceholder: 'ex. Last name, First Name MI, BSTM 3A',
-            showCancelButton: true,
-            confirmButtonText: 'Start Activity'
-          }).then(function (res) {
-            if (!res.isConfirmed || !res.value) return
-            var formData = new FormData()
-            formData.append('participant', res.value)
-            fetch('{% url "mcq_start" 0 %}'.replace('/0/', '/' + actId + '/'), {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
-              },
-              body: formData
-            })
-              .then(function (r) {
-                return r.json()
-              })
-              .then(function (data) {
-                if (data && data.ok) {
-                  if (data.resumed) {
-                    Swal.fire({ icon: 'info', title: 'Resumed previous attempt', timer: 1200, showConfirmButton: false })
-                  } else {
-                    Swal.fire({ icon: 'success', title: 'Started', timer: 1200, showConfirmButton: false })
-                  }
-                  if (data.redirect) {
-                    setTimeout(function () {
-                      window.location.href = data.redirect
-                    }, 300)
-                  }
-                } else {
-                  Swal.fire({ icon: 'error', title: 'Failed to start', text: data && data.error ? data.error : 'Unknown error' })
+    
+          // Start activity directly without asking for credentials
+          var formData = new FormData()
+          // Add dummy data to ensure it's not empty (which might cause GET conversion)
+          formData.append('dummy', 'data')
+          // No need to append participant info - backend will use logged-in user's info
+          var url = '{% url "mcq_start" 0 %}'.replace('/0/', '/' + actId + '/')
+          console.log('DEBUG: Fetching URL:', url)
+          console.log('DEBUG: Activity ID:', actId)
+          console.log('DEBUG: FormData contents:', formData)
+          console.log('DEBUG: CSRF Token:', (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '')
+          console.log('DEBUG: About to make POST request...')
+          fetch(url, {
+            method: 'POST',
+            body: formData
+          })
+            .then(function (r) {
+              console.log('Response status:', r.status)
+              return r.text().then(function (text) {
+                console.log('Response text:', text)
+                if (!r.ok) {
+                  throw new Error(`HTTP ${r.status}: ${text}`)
+                }
+                try {
+                  return JSON.parse(text)
+                } catch (e) {
+                  console.error('JSON parse error:', e)
+                  throw new Error('Invalid JSON response: ' + text)
                 }
               })
-              .catch(function (err) {
-                Swal.fire({ icon: 'error', title: 'Failed to start', text: String(err) })
-              })
-          })
+            })
+            .then(function (data) {
+              if (data && data.ok) {
+                if (data.resumed) {
+                  Swal.fire({ icon: 'info', title: 'Resumed previous attempt', timer: 1200, showConfirmButton: false })
+                } else {
+                  Swal.fire({ icon: 'success', title: 'Started', timer: 1200, showConfirmButton: false })
+                }
+                if (data.redirect) {
+                  setTimeout(function () {
+                    window.location.href = data.redirect
+                  }, 300)
+                }
+              } else {
+                Swal.fire({ icon: 'error', title: 'Failed to start', text: data && data.error ? data.error : 'Unknown error' })
+              }
+            })
+            .catch(function (err) {
+              Swal.fire({ icon: 'error', title: 'Failed to start', text: String(err) })
+            })
         })
       })
     })

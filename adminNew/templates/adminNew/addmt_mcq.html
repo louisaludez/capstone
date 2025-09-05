@@ -236,11 +236,8 @@
       transform: translateY(0) scale(1);
       transition: opacity 200ms ease, transform 200ms ease;
     }
-    /* Show AddActivity link only when persisted (has data-id) */
+    /* Show AddActivity link for all containers */
     .input-container .div {
-      display: none;
-    }
-    .input-container[data-id] .div {
       display: flex;
     }
   </style>
@@ -282,7 +279,7 @@
                 <span class="input-header">{{ a.title }}</span>
                 <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">{{ a.description|default:'Description' }}</span>
                 <div class="div">
-                  <a href="{% url 'add_activity_mcq' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
+                  <a href="{% url 'add_activity_mcq' %}?id={{ a.id }}&new_item=true"><span><i class="bi bi-upload"></i></span></a>
                   <span>AddActivity</span>
                 </div>
                 <input type="checkbox" class="corner-checkbox" />
@@ -375,13 +372,12 @@
         })
       }
     
-      // Show AddActivity link only when activity exists in DB (has data-id)
+      // Show AddActivity link for all rows
       function updateRowAddLink(row) {
         var linkWrap = row.querySelector('.div')
         if (!linkWrap) return
-        var hasId = !!row.getAttribute('data-id')
-        // Only show when activity exists in DB (has id)
-        linkWrap.style.display = hasId ? 'flex' : 'none'
+        // Always show the AddActivity link
+        linkWrap.style.display = 'flex'
       }
     
       function updateAllAddLinks() {
@@ -453,54 +449,43 @@
         if (!plus) return
         var list = document.querySelector('.input-list')
         if (!list) return
-        var template = list.querySelector('.input-container')
-        if (!template) return
     
-        var clone = template.cloneNode(true)
+        // Create a new template instead of cloning existing one
+        var template = document.createElement('div')
+        template.className = 'input-container'
+        template.innerHTML = `
+                  <span class="input-header">Activity Title</span>
+                  <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+                  <div class="div">
+                    <a href="{% url 'add_activity_mcq' %}?new_item=true"><span><i class="bi bi-upload"></i></span></a>
+                    <span>AddActivity</span>
+                  </div>
+                  <input type="checkbox" class="corner-checkbox" />
+                `
     
-        // reset header/title, input value and placeholder, and checkbox in the clone
-        var header = clone.querySelector('.input-header')
-        if (header) header.textContent = 'Activity Title'
-        var input = clone.querySelector('input.form-control')
-        if (input) {
-          input.value = ''
-          input.setAttribute('placeholder', 'Description')
-        }
-        // ensure cloned row is treated as new (no id)
-        clone.removeAttribute('data-id')
-        var cb = clone.querySelector('.corner-checkbox')
-        if (cb) cb.checked = false
-        // ensure AddActivity link is generic (no ?id= carried over)
-        var link = clone.querySelector('.div a')
-        if (link && link.getAttribute('href')) {
-          var href = link.getAttribute('href')
-          var baseHref = href.split('?')[0]
-          link.setAttribute('href', baseHref)
-        }
-    
-        // append to the list
-        list.appendChild(clone)
+        // append the new template to the list
+        list.appendChild(template)
     
         // ensure AddActivity link visibility is correct
-        updateRowAddLink(clone)
+        updateRowAddLink(template)
     
         // animate the new row
-        clone.classList.add('anim-enter')
+        template.classList.add('anim-enter')
         requestAnimationFrame(function () {
-          clone.classList.add('anim-enter-active')
-          clone.classList.remove('anim-enter')
+          template.classList.add('anim-enter-active')
+          template.classList.remove('anim-enter')
         })
-        clone.addEventListener(
+        template.addEventListener(
           'transitionend',
           function handler() {
-            clone.classList.remove('anim-enter-active')
-            clone.removeEventListener('transitionend', handler)
+            template.classList.remove('anim-enter-active')
+            template.removeEventListener('transitionend', handler)
           },
           { once: true }
         )
     
         // ensure checkbox visibility matches current Edit toggle
-        var newCb = clone.querySelector('.corner-checkbox')
+        var newCb = template.querySelector('.corner-checkbox')
         if (newCb) {
           if (!shown) {
             newCb.classList.add('hidden-control')
@@ -553,7 +538,8 @@
             var rows = Array.from(list.querySelectorAll('.input-container'))
             var activities = rows.map(function (row) {
               var title = (row.querySelector('.input-header')?.textContent || '').trim()
-              var desc = (row.querySelector('input.form-control')?.value || '').trim()
+              var descSpan = row.querySelector('span.form-control')
+              var desc = descSpan ? (descSpan.textContent || '').trim() : ''
               var idAttr = row.getAttribute('data-id')
               var idVal = idAttr ? parseInt(idAttr, 10) : null
               return { id: idVal, title: title, description: desc }

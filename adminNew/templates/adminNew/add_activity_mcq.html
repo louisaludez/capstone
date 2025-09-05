@@ -427,23 +427,37 @@
       // Previous Item button functionality
       var prevBtn = document.getElementById('prevItemBtn')
       if (prevBtn) {
+        // Ensure button state is correct based on current item
+        var params = new URLSearchParams(window.location.search)
+        var currentItem = parseInt(params.get('item') || '1')
+        if (currentItem <= 1) {
+          prevBtn.disabled = true
+        } else {
+          prevBtn.disabled = false
+        }
+        
         prevBtn.addEventListener('click', function (e) {
           e.preventDefault()
           if (prevBtn.disabled) return
           
-          var params = new URLSearchParams(window.location.search)
           var id = params.get('id')
           var currentItem = parseInt(params.get('item') || '1')
           
           if (currentItem > 1) {
             var prevItem = currentItem - 1
-            var redirectUrl = window.location.pathname + '?id=' + encodeURIComponent(id) + '&item=' + prevItem
+            var redirectUrl = window.location.pathname
+            if (id) {
+              redirectUrl += '?id=' + encodeURIComponent(id) + '&item=' + prevItem
+            } else {
+              redirectUrl += '?item=' + prevItem
+            }
+            console.log('Previous Item: Redirecting to', redirectUrl)
             window.location.href = redirectUrl
           }
         })
       }
     
-      function saveCurrentItem(action) {
+            function saveCurrentItem(action) {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
         var scenario = document.getElementById('scenario')?.value || ''
@@ -454,11 +468,22 @@
           .filter(function (choice) {
             return choice.trim() !== ''
           })
-    
+
+        // Client-side validation - only prompt for "Add Next Item"
+        if (!scenario.trim() && action === 'add_next') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Scenario Required',
+            text: 'Please enter a scenario before adding the next item.',
+            confirmButtonText: 'OK'
+          })
+          return
+        }
+
         var params = new URLSearchParams(window.location.search)
         var id = params.get('id')
         var item = params.get('item') || '1'
-    
+
         var payload = {
           id: id,
           title: title,

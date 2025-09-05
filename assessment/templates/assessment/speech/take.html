@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Speech-to-Text Assessment - {{ activity.title }}
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .speech-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .activity-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .activity-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #13221b;
+      margin-bottom: 10px;
+    }
+    
+    .activity-description {
+      font-size: 1.1rem;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+    
+    .timer-display {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #dc3545;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .audio-section {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 30px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .audio-controls {
+      margin: 20px 0;
+    }
+    
+    .audio-controls button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+    }
+    
+    .transcription-section {
+      margin: 30px 0;
+    }
+    
+    .transcription-textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 15px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    
+    .transcription-textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .action-buttons {
+      text-align: center;
+      margin: 30px 0;
+    }
+    
+    .action-buttons button {
+      margin: 0 10px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+    }
+    
+    .instructions {
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .instructions h5 {
+      color: #0066cc;
+      margin-bottom: 15px;
+    }
+    
+    .instructions ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .instructions li {
+      margin-bottom: 8px;
+      color: #333;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='home' %}
+{% endblock %}
+
+{% block content %}
+  <div class="speech-container">
+    <div class="activity-header">
+      <h1 class="activity-title">{{ activity.title }}</h1>
+      <p class="activity-description">{{ activity.description }}</p>
+      {% if timer_seconds > 0 %}
+        <div class="timer-display">
+          Time Limit: <span id="timer">{{ timer_seconds }}</span> seconds
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="instructions">
+      <h5>Instructions:</h5>
+      <ul>
+        <li>Listen to the audio content carefully</li>
+        <li>Transcribe what you hear in the text area below</li>
+        <li>Be as accurate as possible with spelling and punctuation</li>
+        <li>You can replay the audio as many times as needed</li>
+        {% if timer_seconds > 0 %}
+          <li>Complete your transcription within the time limit</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    {% if activity.audio_file %}
+      <div class="audio-section">
+        <h4>Audio Content</h4>
+        <audio id="audioPlayer" controls style="width: 100%; margin: 20px 0;">
+          <source src="{{ activity.audio_file.url }}" type="audio/mpeg" />
+          <source src="{{ activity.audio_file.url }}" type="audio/wav" />Your browser does not support the audio element.
+        </audio>
+        <div class="audio-controls">
+          <button type="button" class="btn btn-primary" onclick="playAudio()"><i class="bi bi-play-fill"></i> Play</button>
+          <button type="button" class="btn btn-secondary" onclick="pauseAudio()"><i class="bi bi-pause-fill"></i> Pause</button>
+          <button type="button" class="btn btn-info" onclick="restartAudio()"><i class="bi bi-arrow-clockwise"></i> Restart</button>
+        </div>
+      </div>
+    {% else %}
+      <div class="audio-section">
+        <h4>Audio Content</h4>
+        <p class="text-muted">No audio file available for this activity.</p>
+      </div>
+    {% endif %}
+
+    <div class="transcription-section">
+      <h4>Your Transcription</h4>
+      <textarea id="transcriptionText" class="transcription-textarea" placeholder="Type your transcription here..." rows="10"></textarea>
+    </div>
+
+    <div class="action-buttons">
+      <button type="button" class="btn btn-success btn-lg" onclick="saveTranscription()"><i class="bi bi-save"></i> Save Progress</button>
+      <button type="button" class="btn btn-primary btn-lg" onclick="submitTranscription()"><i class="bi bi-check-circle"></i> Submit</button>
+      <a href="{% url 'speech_home' %}" class="btn btn-secondary btn-lg"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    let timerInterval;
+    let timeRemaining = {{ timer_seconds|default:0 }};
+    
+    // Timer functionality
+    function startTimer() {
+      if (timeRemaining <= 0) return;
+      
+      timerInterval = setInterval(function() {
+        timeRemaining--;
+        document.getElementById('timer').textContent = timeRemaining;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert('Time\'s up! Your transcription will be auto-submitted.');
+          submitTranscription();
+        }
+      }, 1000);
+    }
+    
+    // Audio controls
+    function playAudio() {
+      const audio = document.getElementById('audioPlayer');
+      if (audio) {
+        audio.play();
+        if (timeRemaining > 0 && !timerInterval) {
+          startTimer();
+        }
+      }
+    }
+    
+    function pauseAudio() {
+      const audio = document.getElementById('audioPlayer');
+      if (audio) {
+        audio.pause();
+      }
+    }
+    
+    function restartAudio() {
+      const audio = document.getElementById('audioPlayer');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play();
+      }
+    }
+    
+    // Save transcription
+    function saveTranscription() {
+      const text = document.getElementById('transcriptionText').value;
+      // For now, just save to localStorage
+      localStorage.setItem('speech_transcription_{{ activity.id }}', text);
+      alert('Progress saved!');
+    }
+    
+    // Submit transcription
+    function submitTranscription() {
+      const text = document.getElementById('transcriptionText').value;
+      
+      if (!text.trim()) {
+        alert('Please enter your transcription before submitting.');
+        return;
+      }
+      
+      if (confirm('Are you sure you want to submit your transcription?')) {
+        // For now, just show success message
+        alert('Transcription submitted successfully!');
+        // In a real implementation, you would send this to the server
+        window.location.href = "{% url 'speech_home' %}";
+      }
+    }
+    
+    // Load saved transcription on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedText = localStorage.getItem('speech_transcription_{{ activity.id }}');
+      if (savedText) {
+        document.getElementById('transcriptionText').value = savedText;
+      }
+      
+      // Auto-start timer if there's a time limit
+      if (timeRemaining > 0) {
+        startTimer();
+      }
+    });
+  </script>
+{% endblock %}

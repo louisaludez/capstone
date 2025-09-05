@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  MCQ
+  Speech-to-Text Assessment
 {% endblock %}
 {% block extra_head %}
   <style>
@@ -42,7 +42,12 @@
       display: flex;
       justify-content: center; /* centers horizontally */
       align-items: center;
-      height: 100vh; /* full viewport height */
+      min-height: 100vh; /* full viewport height */
+    }
+    
+    /* Set minimum height for test cards to maintain current size */
+    .col-12 .card {
+      min-height: 60px;
     }
   </style>
 {% endblock %}
@@ -50,74 +55,92 @@
   {% include './includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="container">
+  <div class="container px-5">
     <div class="row">
       <div class="col-4">
         <div class="mcq-card">
           <div class="card-image">
-            <img src="{% static 'images/SPTT2.png' %}" alt="MCQ Icon" />
+            <img src="{% static 'images/SPTT2.png' %}" alt="Speech Icon" />
           </div>
           <div class="card-title">
             Speech-to-text<br />Speed and <br />Accuracy Test
           </div>
         </div>
       </div>
-
       <div class="col-8">
         <div class="row g-2">
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 1. Beginner’s Luck</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 1. {{ activities5.0.title|default:'Beginner's Luck' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.0.description|default:'An assessment format where participants are presented with audio content and must transcribe it accurately.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-caret-right-fill fs-5"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12">
-            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
-              <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 2. Can you do it?</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
-              </div>
-              <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.0 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="0"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 3. Halfway thru!</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 2. {{ activities5.1.title|default:'Can you do it?' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.1.description|default:'An assessment format where participants are presented with audio content and must transcribe it accurately.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.1 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="1"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 4. Fake it 'till you make it</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 3. {{ activities5.2.title|default:'Halfway thru!' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.2.description|default:'An assessment format where participants are presented with audio content and must transcribe it accurately.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.2 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="2"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1 test-title">Test 5. Final Destination</h6>
-                <p class="text-muted small mb-0 test-definition">An assessment format where participants are presented with realistic situations and must choose the best response.</p>
+                <h6 class="fw-bold mb-1 test-title">Test 4. {{ activities5.3.title|default:"Fake it 'till you make it" }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.3.description|default:'An assessment format where participants are presented with audio content and must transcribe it accurately.' }}</p>
               </div>
               <div>
-                <button class="btn btn-sm text-success border-0"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% if not can_start.3 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="3"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1 test-title">Test 5. {{ activities5.4.title|default:'Final Destination' }}</h6>
+                <p class="text-muted small mb-0 test-definition">{{ activities5.4.description|default:'An assessment format where participants are presented with audio content and must transcribe it accurately.' }}</p>
+              </div>
+              <div>
+                {% if not can_start.4 %}
+                  <button class="btn btn-sm text-success border-0" disabled title="Complete previous test first"><i class="bi bi-shield-lock-fill fs-5 text-danger"></i></button>
+                {% else %}
+                  <button class="btn btn-sm text-success border-0 start-btn" data-idx="4"><i class="bi bi-caret-right-fill fs-5"></i></button>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -127,5 +150,71 @@
   </div>
 {% endblock %}
 {% block extra_js %}
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var acts = JSON.parse('{{ acts_json|escapejs }}')
+    
+      document.querySelectorAll('.start-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.getAttribute('data-idx') || '0', 10)
+          var actId = acts[idx]
+          if (!actId) {
+            Swal.fire({ icon: 'info', title: 'Not available', text: 'No activity linked for this test.' })
+            return
+          }
+    
+          // Start activity directly without asking for credentials
+          var formData = new FormData()
+          // Add dummy data to ensure it's not empty (which might cause GET conversion)
+          formData.append('dummy', 'data')
+          // No need to append participant info - backend will use logged-in user's info
+          var url = '{% url "speech_start" 0 %}'.replace('/0/', '/' + actId + '/')
+          console.log('DEBUG: Fetching URL:', url)
+          console.log('DEBUG: Activity ID:', actId)
+          console.log('DEBUG: FormData contents:', formData)
+          console.log('DEBUG: CSRF Token:', (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '')
+          console.log('DEBUG: About to make POST request...')
+          fetch(url, {
+            method: 'POST',
+            body: formData
+          })
+            .then(function (r) {
+              console.log('Response status:', r.status)
+              return r.text().then(function (text) {
+                console.log('Response text:', text)
+                if (!r.ok) {
+                  throw new Error(`HTTP ${r.status}: ${text}`)
+                }
+                try {
+                  return JSON.parse(text)
+                } catch (e) {
+                  console.error('JSON parse error:', e)
+                  throw new Error('Invalid JSON response: ' + text)
+                }
+              })
+            })
+            .then(function (data) {
+              if (data && data.ok) {
+                if (data.resumed) {
+                  Swal.fire({ icon: 'info', title: 'Resumed previous attempt', timer: 1200, showConfirmButton: false })
+                } else {
+                  Swal.fire({ icon: 'success', title: 'Started', timer: 1200, showConfirmButton: false })
+                }
+                if (data.redirect) {
+                  setTimeout(function () {
+                    window.location.href = data.redirect
+                  }, 300)
+                }
+              } else {
+                Swal.fire({ icon: 'error', title: 'Failed to start', text: data && data.error ? data.error : 'Unknown error' })
+              }
+            })
+            .catch(function (err) {
+              Swal.fire({ icon: 'error', title: 'Failed to start', text: String(err) })
+            })
+        })
+      })
+    })
+  </script>
 {% endblock %}

@@ -243,18 +243,35 @@ def add_activity_mcq(request):
             
             # Handle current item
             if action == "save" or action == "add_next":
+                scenario = data.get("scenario", "").strip()
+                
+                # For "add_next" action, require scenario
+                if action == "add_next" and not scenario:
+                    return JsonResponse({
+                        "ok": False, 
+                        "error": "Scenario is required. Please enter a scenario before adding the next item."
+                    }, status=400)
+                
+                # For "save" action, skip items without scenario
+                if action == "save" and not scenario:
+                    return JsonResponse({
+                        "ok": True, 
+                        "message": "Item skipped - no scenario provided",
+                        "redirect_to_view": f"/adminNew/activity-materials/view-mcq-activity/?id={activity.id}"
+                    })
+                
                 # Get or create activity item
                 activity_item, created = ActivityItem.objects.get_or_create(
                     activity=activity,
                     item_number=item_number,
                     defaults={
-                        'scenario': data.get("scenario", ""),
+                        'scenario': scenario,
                         'timer_seconds': int(data.get("timer_seconds", 0))
                     }
                 )
                 
                 if not created:
-                    activity_item.scenario = data.get("scenario", activity_item.scenario)
+                    activity_item.scenario = scenario
                     activity_item.timer_seconds = int(data.get("timer_seconds", activity_item.timer_seconds))
                     activity_item.save()
                 
@@ -315,24 +332,36 @@ def add_activity_mcq(request):
     activity = None
     activity_id = request.GET.get("id") or request.GET.get("activity_id")
     item_number = int(request.GET.get("item", 1))
+    is_new_item = request.GET.get("new_item", "false").lower() == "true"
     
     if activity_id:
         activity = get_object_or_404(Activity, id=activity_id)
         print(f"[add_activity][GET] load_by_id id={activity_id}")
+        
+        # If adding a new item, find the next available item number
+        if is_new_item:
+            last_item = ActivityItem.objects.filter(activity=activity).order_by('-item_number').first()
+            item_number = (last_item.item_number + 1) if last_item else 1
+            print(f"[add_activity][GET] new_item, next_item_number={item_number}")
     else:
-        activity = Activity.objects.order_by("-created_at").first()
-        print("[add_activity][GET] load_latest id=", getattr(activity, "id", None))
+        # Don't load any activity - start with blank form
+        activity = None
+        print("[add_activity][GET] starting with blank form")
 
     # Get current item data
     current_item = None
     choices = []
-    if activity is not None:
+    if activity is not None and not is_new_item:
+        # Only load existing item data if we're not explicitly adding a new item
         try:
             current_item = ActivityItem.objects.get(activity=activity, item_number=item_number)
             choices = list(current_item.choices.order_by("display_order", "id").values_list("text", flat=True))
         except ActivityItem.DoesNotExist:
             # Item doesn't exist yet, use empty choices
             choices = ["", "", "", ""]
+    else:
+        # No activity loaded or adding new item, use empty choices for new form
+        choices = ["", "", "", ""]
     
     print(f"[add_activity][GET] choices_count={len(choices)}, item_number={item_number}")
 
@@ -526,13 +555,57 @@ def save_activities(request):
 
 def addmt_mcq(request):
     print("[admin_activity_materials] method=GET user=", request.user if request.user.is_authenticated else "anonymous")
-    activities = Activity.objects.order_by("-created_at")
+    activities = Activity.objects.order_by("created_at")
     try:
         count = activities.count()
     except Exception:
         count = len(list(activities))
     print(f"[admin_activity_materials] activities_count={count}")
     return render(request, "adminNew/addmt_mcq.html", {"activities": activities})
+@csrf_exempt
+def delete_activity_items(request):
+    """Delete selected activity items"""
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Method not allowed"}, status=405)
+    
+    try:
+        import json
+        data = json.loads(request.body.decode("utf-8")) if request.body else {}
+        
+        activity_id = data.get("activity_id")
+        item_numbers = data.get("item_numbers", [])
+        
+        if not activity_id:
+            return JsonResponse({"ok": False, "error": "Activity ID is required"}, status=400)
+        
+        if not item_numbers:
+            return JsonResponse({"ok": False, "error": "No items selected for deletion"}, status=400)
+        
+        # Get the activity
+        activity = get_object_or_404(Activity, id=activity_id)
+        
+        # Delete the selected items
+        deleted_count = 0
+        for item_number in item_numbers:
+            try:
+                activity_item = ActivityItem.objects.get(activity=activity, item_number=item_number)
+                activity_item.delete()
+                deleted_count += 1
+            except ActivityItem.DoesNotExist:
+                continue
+        
+        print(f"[delete_activity_items] deleted {deleted_count} items from activity {activity_id}")
+        
+        return JsonResponse({
+            "ok": True,
+            "deleted_count": deleted_count,
+            "message": f"Successfully deleted {deleted_count} item(s)"
+        })
+        
+    except Exception as e:
+        print("[delete_activity_items][error]", e)
+        return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
 def addmt_speech_to_text(request):
     print("[addmt_speech_to_text] method=", request.method)
     if request.method == "POST":
@@ -569,5 +642,5 @@ def addmt_speech_to_text(request):
         return JsonResponse({"ok": True, "id": speech.id})
     else:
         # Render the form for adding a new Speech-to-Text activity
-        activities = SpeechActivity.objects.order_by("-created_at")
+        activities = SpeechActivity.objects.order_by("created_at")
         return render(request, "adminNew/addmt_speech.html", {"activities": activities})
