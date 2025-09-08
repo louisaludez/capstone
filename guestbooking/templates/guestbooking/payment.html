@@ -1,1 +1,464 @@
- 
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Payment Information
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .main-content {
+      background: #fff;
+      border: 1px solid #1a2d1a;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px;
+    }
+    
+    .page-title {
+      color: #1a2d1a;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-label {
+      color: #1a2d1a;
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+      font-size: 0.9rem;
+    }
+    
+    .form-control {
+      border: 1px solid #cddcc9;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    
+    .form-control:focus {
+      border-color: #7eb455;
+      box-shadow: 0 0 0 0.2rem rgba(126, 180, 85, 0.25);
+      outline: none;
+    }
+    
+    .reserve-btn {
+      background: #1a2d1a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      float: right;
+    }
+    
+    .reserve-btn:hover {
+      background: #0b440c;
+    }
+    
+    .disclaimer {
+      color: #6c757d;
+      font-size: 0.8rem;
+      margin-top: 20px;
+      line-height: 1.4;
+      clear: both;
+    }
+    
+    /* Confirmation Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .confirmation-modal {
+      background: white;
+      border: 3px solid #1a2d1a;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #1a2d1a;
+      cursor: pointer;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    
+    .success-icon .outer-circle {
+      width: 80px;
+      height: 80px;
+      border: 3px solid #1a2d1a;
+      border-radius: 50%;
+      position: relative;
+    }
+    
+    .success-icon .inner-circle {
+      width: 60px;
+      height: 60px;
+      background: #7eb455;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .success-icon .checkmark {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .success-icon .refresh-arrow {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid white;
+      border-radius: 50%;
+      background: #1a2d1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+    }
+    
+    .confirmation-title {
+      color: #1a2d1a;
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    
+    .transaction-details {
+      color: #1a2d1a;
+      font-size: 0.9rem;
+      margin-bottom: 25px;
+      text-align: left;
+    }
+    
+    .transaction-details p {
+      margin: 5px 0;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .modal-btn {
+      background: #1a2d1a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .modal-btn:hover {
+      background: #0b440c;
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='payment' %}
+{% endblock %}
+
+{% block content %}
+  <div class="main-content">
+    <h1 class="page-title">Payment Information</h1>
+
+    <form id="payment-form">
+      <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="paymentMethod">Select payment method</label>
+            <input type="text" class="form-control" id="paymentMethod" name="paymentMethod" value="Visa/ Master Card / Debit Card" readonly />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cardHolderName">Card holder name</label>
+            <input type="text" class="form-control" id="cardHolderName" name="cardHolderName" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cardNumber">Credit card number</label>
+            <input type="text" class="form-control" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" required />
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-6">
+          <div class="form-group">
+            <label class="form-label" for="cvc">CVC/CW</label>
+            <input type="text" class="form-control" id="cvc" name="cvc" placeholder="123" maxlength="4" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="expiryDate">Expiry date</label>
+            <input type="text" class="form-control" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required />
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="reserve-btn" onclick="processReservation()">Reserve</button>
+
+      <div class="disclaimer">Your card shall be charged automatically. However, you are free to cancel your reservation before the said check-in date. Once check-in date has passed and you failed to meet within the expected time and date, your reservation shall be considered void and will not be refunded.</div>
+    </form>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="confirmationModal">
+    <div class="confirmation-modal">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+
+      <div class="success-icon">
+        <div class="outer-circle">
+          <div class="inner-circle">
+            <span class="checkmark">✓</span>
+          </div>
+        </div>
+        <div class="refresh-arrow">↻</div>
+      </div>
+
+      <h2 class="confirmation-title">Your reservation has been confirmed!</h2>
+
+      <div class="transaction-details">
+        <p>
+          <strong>Transaction recorded!</strong>
+        </p>
+        <p id="guestName">Guest Name: Loading...</p>
+        <p id="roomNumber">Room no. Loading...</p>
+        <p id="referenceNumber">Reference no. Loading...</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="modal-btn" onclick="viewDetails()">View Details</button>
+        <button class="modal-btn" onclick="goToActivities()">Activity Results</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '')
+      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value
+      e.target.value = formattedValue
+    })
+    
+    // Expiry date formatting
+    document.getElementById('expiryDate').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/\D/g, '')
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4)
+      }
+      e.target.value = value
+    })
+    
+    // CVC validation (numbers only)
+    document.getElementById('cvc').addEventListener('input', function (e) {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '')
+    })
+    
+    // Form validation and submission
+    function processReservation() {
+      const form = document.getElementById('payment-form')
+      const formData = new FormData(form)
+    
+      // Basic validation
+      const requiredFields = ['cardHolderName', 'cardNumber', 'cvc', 'expiryDate']
+      let isValid = true
+    
+      requiredFields.forEach((field) => {
+        const input = document.getElementById(field)
+        if (!input.value.trim()) {
+          input.style.borderColor = '#dc3545'
+          isValid = false
+        } else {
+          input.style.borderColor = '#cddcc9'
+        }
+      })
+    
+      if (!isValid) {
+        alert('Please fill in all required fields.')
+        return
+      }
+    
+      // Card number validation (basic)
+      const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '')
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        alert('Please enter a valid credit card number.')
+        document.getElementById('cardNumber').style.borderColor = '#dc3545'
+        return
+      }
+    
+      // CVC validation
+      const cvc = document.getElementById('cvc').value
+      if (cvc.length < 3 || cvc.length > 4) {
+        alert('Please enter a valid CVC/CW.')
+        document.getElementById('cvc').style.borderColor = '#dc3545'
+        return
+      }
+    
+      // Expiry date validation
+      const expiryDate = document.getElementById('expiryDate').value
+      if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+        alert('Please enter a valid expiry date (MM/YY).')
+        document.getElementById('expiryDate').style.borderColor = '#dc3545'
+        return
+      }
+    
+      // Store payment information
+      const paymentInfo = {
+        cardHolderName: formData.get('cardHolderName'),
+        cardNumber: formData.get('cardNumber'),
+        cvc: formData.get('cvc'),
+        expiryDate: formData.get('expiryDate'),
+        paymentMethod: formData.get('paymentMethod')
+      }
+    
+      localStorage.setItem('paymentInfo', JSON.stringify(paymentInfo))
+    
+      // Save to database and show confirmation modal
+      saveReservationToDatabase()
+    }
+    
+    // Save reservation to database
+    async function saveReservationToDatabase() {
+      try {
+        const guestInfo = JSON.parse(localStorage.getItem('guestInfo'))
+        const paymentInfo = JSON.parse(localStorage.getItem('paymentInfo'))
+        const roomId = localStorage.getItem('selectedRoomId')
+    
+        const reservationData = {
+          guest: guestInfo,
+          payment: paymentInfo,
+          room_id: roomId,
+          check_in_date: '2024-01-15', // You can get this from search params
+          check_out_date: '2024-01-17', // You can get this from search params
+          num_of_adults: 2, // You can get this from search params
+          num_of_children: 0 // You can get this from search params
+        }
+    
+        const response = await fetch('/guestbooking/save-reservation/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify(reservationData)
+        })
+    
+        if (response.ok) {
+          const result = await response.json()
+          showConfirmationModal(result)
+        } else {
+          alert('Error saving reservation. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        alert('Error saving reservation. Please try again.')
+      }
+    }
+    
+    // Show confirmation modal
+    function showConfirmationModal(result) {
+      document.getElementById('guestName').textContent = `Guest Name: ${result.guest_name}`
+      document.getElementById('roomNumber').textContent = `Room no. ${result.room_number}`
+      document.getElementById('referenceNumber').textContent = `Reference no. ${result.reference_number}`
+    
+      document.getElementById('confirmationModal').style.display = 'flex'
+    }
+    
+    // Close modal
+    function closeModal() {
+      document.getElementById('confirmationModal').style.display = 'none'
+    }
+    
+    // View details function
+    function viewDetails() {
+      window.location.href = '/guestbooking/confirmation/'
+    }
+    
+    // Go to activities function
+    function goToActivities() {
+      window.location.href = '/assessment/'
+    }
+    
+    // Get CSRF token
+    function getCookie(name) {
+      let cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';')
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
+        }
+      }
+      return cookieValue
+    }
+    
+    // Real-time validation
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputs = document.querySelectorAll('.form-control')
+      inputs.forEach((input) => {
+        input.addEventListener('blur', function () {
+          if (this.value.trim()) {
+            this.style.borderColor = '#7eb455'
+          } else {
+            this.style.borderColor = '#cddcc9'
+          }
+        })
+      })
+    })
+  </script>
+{% endblock %}

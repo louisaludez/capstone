@@ -202,9 +202,134 @@ def admin_laundry_reports(request):
     context = {'total_revenue': total}
     return render(request, "adminNew/laundry_reports.html", context)
 def admin_mcq_reports(request):
-    return render(request, "adminNew/mcq_reports.html")
+    from assessment.models import McqAttempt
+    from django.core.paginator import Paginator
+    
+    # Get all MCQ attempts
+    attempts = McqAttempt.objects.select_related('activity', 'started_by').order_by('-started_at')
+    
+    # Apply filters
+    filter_status = request.GET.get('filter', '')
+    if filter_status == 'passed':
+        attempts = attempts.filter(passed=True, status=McqAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'failed':
+        attempts = attempts.filter(passed=False, status=McqAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'in_progress':
+        attempts = attempts.filter(status=McqAttempt.STATUS_IN_PROGRESS)
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'date_desc')
+    if sort_by == 'date_asc':
+        attempts = attempts.order_by('started_at')
+    elif sort_by == 'date_desc':
+        attempts = attempts.order_by('-started_at')
+    elif sort_by == 'score_asc':
+        attempts = attempts.order_by('score')
+    elif sort_by == 'score_desc':
+        attempts = attempts.order_by('-score')
+    elif sort_by == 'participant_asc':
+        attempts = attempts.order_by('participant_info')
+    elif sort_by == 'participant_desc':
+        attempts = attempts.order_by('-participant_info')
+    
+    # Calculate statistics (always show total stats, not filtered)
+    all_attempts = McqAttempt.objects.select_related('activity', 'started_by')
+    total_tests = all_attempts.count()
+    passed_tests = all_attempts.filter(passed=True, status=McqAttempt.STATUS_SUBMITTED).count()
+    failed_tests = all_attempts.filter(passed=False, status=McqAttempt.STATUS_SUBMITTED).count()
+    
+    # Add answer counts to each attempt
+    for attempt in attempts:
+        attempt.correct_count = attempt.answers.filter(is_correct=True).count()
+        attempt.incorrect_count = attempt.answers.filter(is_correct=False).count()
+        attempt.total_items = attempt.activity.items.count()
+    
+    # Pagination
+    paginator = Paginator(attempts, 5)  # Show 5 attempts per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'total_tests': total_tests,
+        'passed_tests': passed_tests,
+        'failed_tests': failed_tests,
+        'attempts': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'current_filter': filter_status,
+        'current_sort': sort_by,
+    }
+    
+    return render(request, "adminNew/mcq_reports.html", context)
 def admin_speech_reports(request):
-    return render(request, "adminNew/speech_reports.html")
+    from assessment.models import SpeechAttempt
+    from django.core.paginator import Paginator
+    
+    # Get all Speech attempts
+    attempts = SpeechAttempt.objects.select_related('activity', 'started_by').order_by('-started_at')
+    
+    # Apply filters
+    filter_status = request.GET.get('filter', '')
+    if filter_status == 'passed':
+        attempts = attempts.filter(passed=True, status=SpeechAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'failed':
+        attempts = attempts.filter(passed=False, status=SpeechAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'in_progress':
+        attempts = attempts.filter(status=SpeechAttempt.STATUS_IN_PROGRESS)
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'date_desc')
+    if sort_by == 'date_asc':
+        attempts = attempts.order_by('started_at')
+    elif sort_by == 'date_desc':
+        attempts = attempts.order_by('-started_at')
+    elif sort_by == 'score_asc':
+        attempts = attempts.order_by('score')
+    elif sort_by == 'score_desc':
+        attempts = attempts.order_by('-score')
+    elif sort_by == 'participant_asc':
+        attempts = attempts.order_by('participant_info')
+    elif sort_by == 'participant_desc':
+        attempts = attempts.order_by('-participant_info')
+    
+    # Calculate statistics (always show total stats, not filtered)
+    all_attempts = SpeechAttempt.objects.select_related('activity', 'started_by')
+    total_tests = all_attempts.count()
+    passed_tests = all_attempts.filter(passed=True, status=SpeechAttempt.STATUS_SUBMITTED).count()
+    failed_tests = all_attempts.filter(passed=False, status=SpeechAttempt.STATUS_SUBMITTED).count()
+    
+    # Add answer counts to each attempt (for speech, we'll use accuracy-based logic)
+    for attempt in attempts:
+        if attempt.status == SpeechAttempt.STATUS_SUBMITTED and attempt.score is not None:
+            # For speech, we consider it "correct" if score >= 70%, "incorrect" otherwise
+            if attempt.score >= 70:
+                attempt.correct_count = 1
+                attempt.incorrect_count = 0
+            else:
+                attempt.correct_count = 0
+                attempt.incorrect_count = 1
+        else:
+            attempt.correct_count = 0
+            attempt.incorrect_count = 0
+        attempt.total_items = 1  # Speech tests have 1 item
+    
+    # Pagination
+    paginator = Paginator(attempts, 5)  # Show 5 attempts per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'total_tests': total_tests,
+        'passed_tests': passed_tests,
+        'failed_tests': failed_tests,
+        'attempts': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'current_filter': filter_status,
+        'current_sort': sort_by,
+    }
+    
+    return render(request, "adminNew/speech_reports.html", context)
 def admin_training(request):
     return render(request, "adminNew/training.html")
 

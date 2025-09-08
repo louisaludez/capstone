@@ -1,1 +1,64 @@
- 
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Reservation Confirmation
+{% endblock %}
+
+{% block content %}
+  <div class="container p-5">
+    <div class="text-center">
+      <h1 class="text-success mb-4">Reservation Confirmed!</h1>
+      <p class="lead">Your reservation has been successfully processed.</p>
+
+      <div class="mt-4">
+        <h3>Reservation Details:</h3>
+        <div id="reservation-details"></div>
+      </div>
+
+      <div class="mt-4">
+        <button class="btn btn-primary" onclick="window.location.href='/guestbooking/'">Make Another Reservation</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const guestInfo = localStorage.getItem('guestInfo')
+      const paymentInfo = localStorage.getItem('paymentInfo')
+      const roomId = localStorage.getItem('selectedRoomId')
+    
+      if (guestInfo && paymentInfo) {
+        const guest = JSON.parse(guestInfo)
+        const payment = JSON.parse(paymentInfo)
+    
+        const details = document.getElementById('reservation-details')
+        details.innerHTML = `
+              <div class="row justify-content-center">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Guest Information</h5>
+                      <p><strong>Name:</strong> ${guest.firstName} ${guest.lastName}</p>
+                      <p><strong>Email:</strong> ${guest.email}</p>
+                      <p><strong>Phone:</strong> ${guest.phone}</p>
+                      <p><strong>Country:</strong> ${guest.country}</p>
+                      
+                      <h5 class="mt-3">Payment Information</h5>
+                      <p><strong>Card Holder:</strong> ${payment.cardHolderName}</p>
+                      <p><strong>Card Number:</strong> **** **** **** ${payment.cardNumber.slice(-4)}</p>
+                      <p><strong>Expiry:</strong> ${payment.expiryDate}</p>
+                      
+                      <h5 class="mt-3">Room Information</h5>
+                      <p><strong>Room ID:</strong> ${roomId}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `
+      }
+    })
+  </script>
+{% endblock %}
