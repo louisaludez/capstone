@@ -270,6 +270,17 @@
       <div class="col-8">
         <div class="row"></div>
         <div class="input-list">
+          <!-- Hidden template for cloning -->
+          <div class="input-container template" style="display: none;">
+            <span class="input-header">Activity Title</span>
+            <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+            <div class="div">
+              <a href="{% url 'add_activity_speech' %}"><span><i class="bi bi-upload"></i></span></a>
+              <span>AddActivity</span>
+            </div>
+            <input type="checkbox" class="corner-checkbox" />
+          </div>
+
           {% if activities %}
             {% for a in activities %}
               <div class="input-container" data-id="{{ a.id }}">
@@ -428,13 +439,28 @@
       // Add new row when clicking the plus box
       document.addEventListener('click', function (e) {
         var plus = e.target.closest('.plus-box')
-        if (!plus) return
+        if (!plus) {
+          console.log('Plus box not found')
+          return
+        }
+        console.log('Plus box clicked!')
         var list = document.querySelector('.input-list')
-        if (!list) return
-        var template = list.querySelector('.input-container')
-        if (!template) return
+        if (!list) {
+          console.log('Input list not found')
+          return
+        }
+        var template = list.querySelector('.input-container.template')
+        if (!template) {
+          console.log('Template not found')
+          return
+        }
+        console.log('Template found, cloning...')
     
         var clone = template.cloneNode(true)
+        // Remove template class and make visible
+        clone.classList.remove('template')
+        clone.style.display = 'block'
+        
         var header = clone.querySelector('.input-header')
         if (header) header.textContent = 'Activity Title'
         var span = clone.querySelector('span.form-control')
@@ -450,6 +476,7 @@
           link.setAttribute('href', href.split('?')[0])
         }
         list.appendChild(clone)
+        console.log('Clone added to list')
         clone.classList.add('anim-enter')
         requestAnimationFrame(function () {
           clone.classList.add('anim-enter-active')
@@ -513,8 +540,27 @@
             var list = document.querySelector('.input-list')
             if (!list) return
             var rows = Array.from(list.querySelectorAll('.input-container'))
+            // Filter out template rows
+            rows = rows.filter(function(row) {
+              return !row.classList.contains('template')
+            })
+            
             // Use template-provided CSRF token (more reliable than parsing cookies)
             var headers = { 'X-CSRFToken': '{{ csrf_token }}' }
+            
+            // First, handle deletions
+            var deletePromises = []
+            if (deleteIds.length > 0) {
+              console.log('Deleting activities:', deleteIds)
+              deletePromises = deleteIds.map(function(id) {
+                var fd = new FormData()
+                fd.append('id', String(id))
+                fd.append('action', 'delete')
+                return fetch('{% url 'addmt_speech_to_text' %}', { method: 'POST', headers: headers, credentials: 'same-origin', body: fd })
+              })
+            }
+            
+            // Then, handle updates/creates
             var uploads = rows.map(function (row) {
               var title = (row.querySelector('.input-header')?.textContent || '').trim()
               var desc = (row.querySelector('span.form-control')?.textContent || '').trim()
@@ -525,10 +571,14 @@
               if (idVal) fd.append('id', String(idVal))
               fd.append('title', title)
               fd.append('description', desc)
+              fd.append('action', 'save')
               return fetch('{% url 'addmt_speech_to_text' %}', { method: 'POST', headers: headers, credentials: 'same-origin', body: fd })
             }).filter(Boolean)
 
-            Promise.all(uploads)
+            // Handle both deletions and uploads
+            var allPromises = deletePromises.concat(uploads)
+            
+            Promise.all(allPromises)
               .then(function (responses) {
                 return Promise.all(
                   responses.map(function (r) {
@@ -540,11 +590,28 @@
                 )
               })
               .then(function (datas) {
-              var rowsNow = Array.from(document.querySelectorAll('.input-list .input-container'))
-              datas.forEach(function (data, idx) { if (data && data.ok && rowsNow[idx]) rowsNow[idx].setAttribute('data-id', data.id) })
-              Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
-              saveBtn.setAttribute('data-delete-ids', '')
-            }).catch(function (err) { Swal.fire({ icon: 'error', title: 'Save failed', text: String(err && err.message ? err.message : err) }) })
+                // Only process upload responses (skip delete responses)
+                var uploadResponses = datas.slice(deletePromises.length)
+                var rowsNow = Array.from(document.querySelectorAll('.input-list .input-container'))
+                // Filter out template rows
+                rowsNow = rowsNow.filter(function(row) {
+                  return !row.classList.contains('template')
+                })
+                uploadResponses.forEach(function (data, idx) { 
+                  if (data && data.ok && rowsNow[idx]) {
+                    rowsNow[idx].setAttribute('data-id', data.id) 
+                  }
+                })
+                Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false })
+                saveBtn.setAttribute('data-delete-ids', '')
+                // Refresh the page to show updated data
+                setTimeout(function() {
+                  window.location.reload()
+                }, 1500)
+              }).catch(function (err) { 
+                console.error('Save error:', err)
+                Swal.fire({ icon: 'error', title: 'Save failed', text: String(err && err.message ? err.message : err) }) 
+              })
           })
         })
       }

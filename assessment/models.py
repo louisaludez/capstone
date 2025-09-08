@@ -27,6 +27,7 @@ class McqAttempt(models.Model):
 
   score = models.FloatField(null=True, blank=True)
   duration_seconds = models.PositiveIntegerField(default=0)
+  passed = models.BooleanField(default=False, help_text="Whether the attempt passed the passing threshold")
 
   # Optional: who triggered it if authenticated
   started_by = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True, blank=True, on_delete=models.SET_NULL)
@@ -50,3 +51,49 @@ class McqAnswer(models.Model):
 
   def __str__(self) -> str:
     return f"Answer for attempt {self.attempt_id}, item {self.activity_item.item_number}: {'correct' if self.is_correct else 'wrong'}"
+
+
+class SpeechAttempt(models.Model):
+  STATUS_IN_PROGRESS = 'in_progress'
+  STATUS_SUBMITTED = 'submitted'
+  STATUS_ABANDONED = 'abandoned'
+  STATUS_CHOICES = [
+    (STATUS_IN_PROGRESS, 'In Progress'),
+    (STATUS_SUBMITTED, 'Submitted'),
+    (STATUS_ABANDONED, 'Abandoned'),
+  ]
+
+  activity = models.ForeignKey('adminNew.SpeechActivity', on_delete=models.CASCADE, related_name='speech_attempts')
+  participant_info = models.CharField(max_length=255)
+  participant_key = models.CharField(max_length=255, db_index=True, default='', blank=True)
+
+  attempt_number = models.PositiveIntegerField(default=1)
+  status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_IN_PROGRESS)
+  
+  started_at = models.DateTimeField(auto_now_add=True)
+  finished_at = models.DateTimeField(null=True, blank=True)
+
+  score = models.FloatField(null=True, blank=True)
+  duration_seconds = models.PositiveIntegerField(default=0)
+  passed = models.BooleanField(default=False, help_text="Whether the attempt passed the passing threshold")
+
+  # Optional: who triggered it if authenticated
+  started_by = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), null=True, blank=True, on_delete=models.SET_NULL)
+
+  def __str__(self) -> str:
+    return f"Speech Attempt #{self.id} for {self.activity_id}: {self.participant_info[:40]}"
+
+
+class SpeechAnswer(models.Model):
+  attempt = models.ForeignKey(SpeechAttempt, on_delete=models.CASCADE, related_name='answers')
+  transcription_text = models.TextField()
+  accuracy_score = models.FloatField(null=True, blank=True, help_text="Accuracy score based on comparison with reference text")
+  submitted_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    indexes = [
+      models.Index(fields=["attempt"]),
+    ]
+
+  def __str__(self) -> str:
+    return f"Speech Answer for attempt {self.attempt_id}: {self.transcription_text[:50]}..."

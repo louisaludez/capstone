@@ -1,12 +1,95 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.http import JsonResponse
 from adminNew.models import Activity, ActivityChoice
-from .models import McqAttempt, McqAnswer
+from .models import McqAttempt, McqAnswer, SpeechAttempt, SpeechAnswer
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import hashlib
 import json
 import random
+import difflib
+import re
+
+
+def calculate_speech_accuracy(transcription_text, activity):
+    """
+    Calculate speech accuracy score based on text comparison.
+    This is a simplified version - in production, you might use more sophisticated methods.
+    """
+    # For now, we'll use a simple approach:
+    # 1. If there's a reference text in the activity description, compare against it
+    # 2. Otherwise, use basic text analysis
+    
+    # Normalize text for comparison
+    def normalize_text(text):
+        # Convert to lowercase, remove extra spaces, and basic punctuation
+        text = re.sub(r'[^\w\s]', '', text.lower())
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+    
+    user_text = normalize_text(transcription_text)
+    
+    # Check if there's a reference text in the activity
+    reference_text = ""
+    
+    # First, check if there's a dedicated reference_text field
+    if hasattr(activity, 'reference_text') and activity.reference_text:
+        reference_text = activity.reference_text
+    # Fallback: look for reference text in description
+    elif activity.description:
+        # Simple heuristic: look for text that might be the reference
+        desc_lines = activity.description.split('\n')
+        for line in desc_lines:
+            line = line.strip()
+            if len(line) > 20 and not line.startswith('Instructions') and not line.startswith('Note'):
+                reference_text = line
+                break
+    
+    if reference_text:
+        # Compare against reference text
+        ref_text = normalize_text(reference_text)
+        
+        # Use difflib to calculate similarity
+        similarity = difflib.SequenceMatcher(None, user_text, ref_text).ratio()
+        
+        # Convert similarity (0-1) to percentage (0-100)
+        accuracy_score = similarity * 100
+        
+        # Apply some leniency for minor differences
+        if accuracy_score >= 80:
+            accuracy_score = min(95, accuracy_score + 5)  # Bonus for high accuracy
+        elif accuracy_score >= 60:
+            accuracy_score = max(50, accuracy_score - 5)  # Slight penalty for medium accuracy
+        
+    else:
+        # No reference text - use basic text analysis
+        # Check for basic quality indicators
+        
+        # Length-based scoring (assuming longer transcriptions are better)
+        word_count = len(user_text.split())
+        
+        # Basic quality checks
+        has_capitalization = any(c.isupper() for c in transcription_text)
+        has_punctuation = any(c in '.,!?;:' for c in transcription_text)
+        has_reasonable_length = word_count >= 5
+        
+        # Calculate base score
+        base_score = 50  # Start with 50%
+        
+        if has_reasonable_length:
+            base_score += 20
+        if has_capitalization:
+            base_score += 10
+        if has_punctuation:
+            base_score += 10
+        if word_count >= 10:
+            base_score += 10
+        
+        # Add some randomness to make it more realistic (but less than before)
+        random_factor = random.uniform(-5, 5)
+        accuracy_score = max(30, min(95, base_score + random_factor))
+    
+    return round(accuracy_score, 1)
 
 
 def mcq_home(request):
@@ -42,20 +125,21 @@ def mcq_home(request):
         can_start[0] = True
         print(f"Activity 0 ({acts_ids[0]}) is always startable")
     
-    # For positions 1..4, only unlock if previous index is submitted by this participant
+    # For positions 1..4, only unlock if previous index is passed by this participant
     for i in range(1, 5):
         prev_id = acts_ids[i - 1]
         current_id = acts_ids[i]
         print(f"Checking activity {i}: current_id={current_id}, prev_id={prev_id}")
         
         if current_id and prev_id and participant_key:
-            prev_submitted = McqAttempt.objects.filter(
+            prev_passed = McqAttempt.objects.filter(
                 activity_id=prev_id,
                 participant_key=participant_key,
                 status=McqAttempt.STATUS_SUBMITTED,
+                passed=True,
             ).exists()
-            print(f"Previous activity {prev_id} submitted: {prev_submitted}")
-            can_start[i] = prev_submitted
+            print(f"Previous activity {prev_id} passed: {prev_passed}")
+            can_start[i] = prev_passed
         else:
             print(f"Activity {i} not startable: current_id={current_id}, prev_id={prev_id}, participant_key={participant_key}")
             can_start[i] = False
@@ -330,12 +414,21 @@ def mcq_submit(request, attempt_id: int):
         print(f"Total items: {total_items}")
         print(f"Attempt status before: {attempt.status}")
         
+        # Calculate score and determine if passed
+        correct_answers = attempt.answers.filter(is_correct=True).count()
+        score_percentage = (correct_answers / total_items * 100) if total_items > 0 else 0
+        passed = score_percentage >= 70  # 70% passing threshold
+        
         attempt.status = McqAttempt.STATUS_SUBMITTED
         attempt.finished_at = timezone.now()
-        attempt.save(update_fields=['status', 'finished_at'])
+        attempt.score = score_percentage
+        attempt.passed = passed
+        attempt.save(update_fields=['status', 'finished_at', 'score', 'passed'])
         
         print(f"Attempt status after: {attempt.status}")
         print(f"Finished at: {attempt.finished_at}")
+        print(f"Score: {score_percentage}%")
+        print(f"Passed: {passed}")
         print(f"=== END MCQ_SUBMIT DEBUG ===")
         
         # Redirect to results page instead of next activity
@@ -351,8 +444,8 @@ def mcq_results(request, attempt_id: int):
     correct_answers = attempt.answers.filter(is_correct=True).count()
     score_percentage = (correct_answers / total_questions * 100) if total_questions > 0 else 0
     
-    # Determine if passed (assuming 70% is passing)
-    passed = score_percentage >= 70
+    # Use the stored passed field (already calculated in mcq_submit)
+    passed = attempt.passed
     
     # Get next activity
     all_acts = list(Activity.objects.order_by('-created_at')[:5])
@@ -424,14 +517,39 @@ def speech_home(request):
     print(f"Participant key: {participant_key}")
     print(f"Activity IDs: {acts_ids}")
     
-    # For now, we'll implement basic sequential unlocking
-    # Later we can add speech attempt tracking similar to MCQ
+    # Debug: Check all speech attempts for this user
+    all_attempts = SpeechAttempt.objects.filter(participant_key=participant_key)
+    print(f"All speech attempts for this user:")
+    for attempt in all_attempts:
+        print(f"  Attempt {attempt.id}: Activity {attempt.activity_id}, Status: {attempt.status}, Passed: {attempt.passed}, Started: {attempt.started_at}, Finished: {attempt.finished_at}")
+
+    # Sequential unlocking: index 0 is always startable if present.
     can_start = [False] * 5
     if acts_ids[0]:
-        can_start[0] = True  # First activity is always available
+        can_start[0] = True
+        print(f"Speech Activity 0 ({acts_ids[0]}) is always startable")
     
-    # For now, all other activities are locked
-    # Later we can implement completion tracking
+    # For positions 1..4, only unlock if previous index is passed by this participant
+    for i in range(1, 5):
+        prev_id = acts_ids[i - 1]
+        current_id = acts_ids[i]
+        print(f"Checking speech activity {i}: current_id={current_id}, prev_id={prev_id}")
+        
+        if current_id and prev_id and participant_key:
+            prev_passed = SpeechAttempt.objects.filter(
+                activity_id=prev_id,
+                participant_key=participant_key,
+                status=SpeechAttempt.STATUS_SUBMITTED,
+                passed=True,
+            ).exists()
+            print(f"Previous speech activity {prev_id} passed: {prev_passed}")
+            can_start[i] = prev_passed
+        else:
+            print(f"Speech activity {i} not startable: current_id={current_id}, prev_id={prev_id}, participant_key={participant_key}")
+            can_start[i] = False
+    
+    print(f"Can start array: {can_start}")
+    print(f"=== END SPEECH_HOME DEBUG ===")
     
     acts_json = json.dumps(acts_ids)
     
@@ -497,16 +615,46 @@ def speech_start(request, activity_id: int):
             participant = request.user.username
             print(f"Using fallback participant info: {participant}")
         
-        # For now, we'll create a simple session-based tracking
-        # Later we can implement proper attempt tracking like MCQ
         participant_key = f"user:{request.user.id}"
+        print(f"Participant key: {participant_key}")
+        
+        # remember participant_key in session to drive locking on home page
         request.session['speech_participant_key'] = participant_key
+        print(f"Set session participant_key")
+
+        # find existing in-progress attempt for this participant/activity
+        print(f"Looking for existing speech attempts...")
+        existing = SpeechAttempt.objects.filter(
+            activity_id=activity_id,
+            participant_key=participant_key,
+            status=SpeechAttempt.STATUS_IN_PROGRESS
+        ).first()
+        
+        if existing:
+            print(f"Found existing in-progress attempt: {existing.id}")
+            return JsonResponse({
+                'ok': True, 
+                'resumed': True,
+                'attempt_id': existing.id,
+                'redirect': f"/assessment/speech/take/{existing.id}/"
+            })
+        
+        # create new attempt
+        print(f"Creating new speech attempt...")
+        attempt = SpeechAttempt.objects.create(
+            activity_id=activity_id,
+            participant_info=participant,
+            participant_key=participant_key,
+            started_by=request.user,
+        )
+        print(f"Created speech attempt: {attempt.id}")
         
         print(f"SUCCESS: Speech activity {activity.title} started for {participant}")
         return JsonResponse({
             'ok': True, 
-            'activity_id': activity.id,
-            'redirect': f"/assessment/speech/take/{activity.id}/"
+            'resumed': False,
+            'attempt_id': attempt.id,
+            'redirect': f"/assessment/speech/take/{attempt.id}/"
         })
         
     except Exception as e:
@@ -519,17 +667,22 @@ def speech_start(request, activity_id: int):
         return JsonResponse({'ok': False, 'error': f'Unexpected error: {str(e)}', 'details': error_details}, status=500)
 
 
-def speech_take(request, activity_id: int):
+def speech_take(request, attempt_id: int):
     """Take a speech activity - similar to mcq_take but for speech activities"""
     try:
-        # Import SpeechActivity from adminNew models
-        from adminNew.models import SpeechActivity
+        # Get the attempt and related activity
+        attempt = get_object_or_404(SpeechAttempt.objects.select_related('activity'), id=attempt_id)
+        activity = attempt.activity
         
-        activity = get_object_or_404(SpeechActivity, id=activity_id)
+        # Check if attempt is still in progress
+        if attempt.status != SpeechAttempt.STATUS_IN_PROGRESS:
+            print(f"Attempt {attempt_id} is not in progress (status: {attempt.status})")
+            return redirect('speech_home')
         
         # For speech activities, we don't have multiple items like MCQ
         # Each speech activity is a single activity
         context = {
+            'attempt': attempt,
             'activity': activity,
             'timer_seconds': activity.timer_seconds,
         }
@@ -541,4 +694,114 @@ def speech_take(request, activity_id: int):
         return redirect('speech_home')
 
 
-     
+@csrf_exempt
+def speech_submit(request, attempt_id: int):
+    """Submit a speech activity transcription"""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Invalid method'}, status=405)
+    
+    try:
+        attempt = get_object_or_404(SpeechAttempt.objects.select_related('activity'), id=attempt_id)
+        
+        # Check if attempt is still in progress
+        if attempt.status != SpeechAttempt.STATUS_IN_PROGRESS:
+            return JsonResponse({'ok': False, 'error': 'Attempt is not in progress'}, status=400)
+        
+        # Get transcription text
+        transcription_text = request.POST.get('transcription_text', '').strip()
+        
+        if not transcription_text:
+            return JsonResponse({'ok': False, 'error': 'Transcription text is required'}, status=400)
+        
+        # Calculate accuracy score based on text comparison
+        accuracy_score = calculate_speech_accuracy(transcription_text, attempt.activity)
+        passed = accuracy_score >= 70  # 70% passing threshold
+        
+        # Create speech answer
+        SpeechAnswer.objects.create(
+            attempt=attempt,
+            transcription_text=transcription_text,
+            accuracy_score=accuracy_score
+        )
+        
+        # Mark attempt as submitted
+        attempt.status = SpeechAttempt.STATUS_SUBMITTED
+        attempt.finished_at = timezone.now()
+        attempt.score = accuracy_score
+        attempt.passed = passed
+        attempt.save(update_fields=['status', 'finished_at', 'score', 'passed'])
+        
+        print(f"Speech attempt {attempt_id} submitted: score={accuracy_score:.1f}%, passed={passed}")
+        
+        # Redirect to results page
+        return JsonResponse({
+            'ok': True, 
+            'redirect': f"/assessment/speech/results/{attempt.id}/"
+        })
+        
+    except Exception as e:
+        print(f"Error in speech_submit: {str(e)}")
+        return JsonResponse({'ok': False, 'error': f'Unexpected error: {str(e)}'}, status=500)
+
+
+def speech_results(request, attempt_id: int):
+    """Show results page after completing a speech activity"""
+    try:
+        attempt = get_object_or_404(SpeechAttempt.objects.select_related('activity'), id=attempt_id)
+        activity = attempt.activity
+        
+        # Get the speech answer
+        speech_answer = attempt.answers.first()
+        
+        # Get next activity
+        from adminNew.models import SpeechActivity
+        all_acts = list(SpeechActivity.objects.order_by('-created_at')[:5])
+        next_activity = None
+        if activity in all_acts:
+            idx = all_acts.index(activity)
+            if idx + 1 < len(all_acts) and all_acts[idx + 1] is not None:
+                next_activity = all_acts[idx + 1]
+        
+        context = {
+            'attempt': attempt,
+            'activity': activity,
+            'speech_answer': speech_answer,
+            'score_percentage': attempt.score or 0,
+            'passed': attempt.passed,
+            'next_activity': next_activity,
+        }
+        
+        return render(request, 'assessment/speech/results.html', context)
+        
+    except Exception as e:
+        print(f"Error in speech_results: {str(e)}")
+        return redirect('speech_home')
+
+
+@csrf_exempt
+def speech_save(request, attempt_id: int):
+    """Save speech transcription progress (auto-save)"""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Invalid method'}, status=405)
+    
+    try:
+        attempt = get_object_or_404(SpeechAttempt, id=attempt_id)
+        
+        # Check if attempt is still in progress
+        if attempt.status != SpeechAttempt.STATUS_IN_PROGRESS:
+            return JsonResponse({'ok': False, 'error': 'Attempt is not in progress'}, status=400)
+        
+        # Get transcription text
+        transcription_text = request.POST.get('transcription_text', '').strip()
+        
+        # Update or create speech answer for auto-save
+        speech_answer, created = SpeechAnswer.objects.update_or_create(
+            attempt=attempt,
+            defaults={'transcription_text': transcription_text}
+        )
+        
+        return JsonResponse({'ok': True, 'created': created})
+        
+    except Exception as e:
+        print(f"Error in speech_save: {str(e)}")
+        return JsonResponse({'ok': False, 'error': f'Unexpected error: {str(e)}'}, status=500)

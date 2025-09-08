@@ -1,4 +1,4 @@
-from .views import mcq_home, speech_home, mcq_start, mcq_take, mcq_submit, mcq_save, mcq_prev, mcq_results, speech_start, speech_take
+from .views import mcq_home, speech_home, mcq_start, mcq_take, mcq_submit, mcq_save, mcq_prev, mcq_results, speech_start, speech_take, speech_submit, speech_save, speech_results
 from django.urls import path
 # Create your views here.
 urlpatterns  = [
@@ -11,6 +11,9 @@ urlpatterns  = [
   path('mcq/save/<int:attempt_id>/', mcq_save, name='mcq_save'),
   path('mcq/results/<int:attempt_id>/', mcq_results, name='mcq_results'),
   path('speech/start/<int:activity_id>/', speech_start, name='speech_start'),
-  path('speech/take/<int:activity_id>/', speech_take, name='speech_take'),
+  path('speech/take/<int:attempt_id>/', speech_take, name='speech_take'),
+  path('speech/submit/<int:attempt_id>/', speech_submit, name='speech_submit'),
+  path('speech/save/<int:attempt_id>/', speech_save, name='speech_save'),
+  path('speech/results/<int:attempt_id>/', speech_results, name='speech_results'),
 
 ]

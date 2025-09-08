@@ -7,110 +7,274 @@
 
 {% block extra_head %}
   <style>
-    .speech-container {
-      max-width: 800px;
+    .speech-compact-container {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 20px 0 0 0;
     }
-    
-    .activity-header {
+    .speech-row {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      min-height: 420px;
+    }
+    .speech-left {
+      flex: 0 0 270px;
       text-align: center;
-      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: #fff;
+      min-height: 312px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    
-    .activity-title {
-      font-size: 2rem;
-      font-weight: bold;
+    .card-image img {
+      width: 140px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+    .card-title {
       color: #13221b;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    .speech-right {
+      flex: 1;
+      padding: 10px 0 0 0;
+    }
+    .sim-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+    .sim-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0;
+    }
+    .item-progress {
+      font-size: 0.9rem;
+      color: #666;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .sim-instructions {
+      font-size: 1rem;
+      color: #444;
+      margin-bottom: 0.7rem;
+    }
+    .sim-scenario {
+      border: 1.5px solid #000;
+      border-radius: 5px;
+      padding: 7px 12px;
+      margin-bottom: 12px;
+      background: #fff;
+      font-size: 1.05rem;
+      text-align: left;
+    }
+    .audio-waveform-container {
+      border: 1.5px solid #000;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: #fff;
+      position: relative;
+    }
+    .audio-waveform {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      height: 50px;
       margin-bottom: 10px;
     }
-    
-    .activity-description {
-      font-size: 1.1rem;
-      color: #6c757d;
-      margin-bottom: 20px;
+    .wave-bar {
+      width: 3px;
+      background: #13221b;
+      border-radius: 2px;
+      animation: wave 1.5s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(1) {
+      height: 20px;
+      animation-delay: 0s;
+    }
+    .wave-bar:nth-child(2) {
+      height: 35px;
+      animation-delay: 0.1s;
+    }
+    .wave-bar:nth-child(3) {
+      height: 15px;
+      animation-delay: 0.2s;
+    }
+    .wave-bar:nth-child(4) {
+      height: 45px;
+      animation-delay: 0.3s;
+    }
+    .wave-bar:nth-child(5) {
+      height: 25px;
+      animation-delay: 0.4s;
+    }
+    .wave-bar:nth-child(6) {
+      height: 50px;
+      animation-delay: 0.5s;
+    }
+    .wave-bar:nth-child(7) {
+      height: 20px;
+      animation-delay: 0.6s;
+    }
+    .wave-bar:nth-child(8) {
+      height: 40px;
+      animation-delay: 0.7s;
+    }
+    .wave-bar:nth-child(9) {
+      height: 15px;
+      animation-delay: 0.8s;
+    }
+    .wave-bar:nth-child(10) {
+      height: 30px;
+      animation-delay: 0.9s;
+    }
+    .wave-bar:nth-child(11) {
+      height: 25px;
+      animation-delay: 1s;
+    }
+    .wave-bar:nth-child(12) {
+      height: 35px;
+      animation-delay: 1.1s;
+    }
+    .wave-bar:nth-child(13) {
+      height: 20px;
+      animation-delay: 1.2s;
+    }
+    .wave-bar:nth-child(14) {
+      height: 45px;
+      animation-delay: 1.3s;
+    }
+    .wave-bar:nth-child(15) {
+      height: 15px;
+      animation-delay: 1.4s;
     }
     
-    .timer-display {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #dc3545;
-      text-align: center;
-      margin: 20px 0;
+    @keyframes wave {
+      0%,
+      100% {
+        transform: scaleY(0.3);
+      }
+      50% {
+        transform: scaleY(1);
+      }
     }
     
-    .audio-section {
-      background: #f8f9fa;
-      border: 2px solid #dee2e6;
-      border-radius: 10px;
-      padding: 30px;
-      margin: 20px 0;
-      text-align: center;
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #e9ecef;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #4caf50;
+      width: 0%;
+      transition: width 0.3s ease;
     }
     
     .audio-controls {
-      margin: 20px 0;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
     }
     
-    .audio-controls button {
-      margin: 0 10px;
-      padding: 10px 20px;
-      font-size: 1.1rem;
+    .audio-controls .btn {
+      font-size: 0.9rem;
+      padding: 6px 12px;
     }
     
-    .transcription-section {
-      margin: 30px 0;
+    .transcription-container {
+      border: 1.5px solid #000;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #fff;
+      position: relative;
     }
     
     .transcription-textarea {
       width: 100%;
-      min-height: 200px;
-      padding: 15px;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
-      font-size: 1.1rem;
+      min-height: 150px;
+      padding: 10px;
+      border: none;
+      border-radius: 3px;
+      font-size: 1rem;
       line-height: 1.5;
       resize: vertical;
+      font-family: inherit;
+      background: transparent;
     }
     
     .transcription-textarea:focus {
       outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
     
-    .action-buttons {
-      text-align: center;
-      margin: 30px 0;
+    .transcription-textarea::placeholder {
+      color: #999;
+      font-style: italic;
     }
     
-    .action-buttons button {
-      margin: 0 10px;
-      padding: 12px 30px;
+    .sim-choices-row {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      align-items: start;
+      column-gap: 16px;
+      margin-bottom: 12px;
+    }
+    .sim-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 1.1rem;
+      font-weight: 500;
+      color: #388e3c;
+      justify-content: center;
+      align-self: center;
+      justify-self: center;
     }
-    
-    .instructions {
-      background: #e7f3ff;
-      border: 1px solid #b3d9ff;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
+    .sim-timer .timer-icon {
+      font-size: 2.2rem;
+      color: #388e3c;
     }
-    
-    .instructions h5 {
-      color: #0066cc;
-      margin-bottom: 15px;
+    .sim-next-btn {
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
     }
-    
-    .instructions ul {
-      margin: 0;
-      padding-left: 20px;
+    .sim-prev-btn,
+    .sim-prev-link {
+      background: #9e9e9e;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
     }
-    
-    .instructions li {
-      margin-bottom: 8px;
-      color: #333;
+    .sim-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .hidden {
+      display: none;
     }
   </style>
 {% endblock %}
@@ -120,59 +284,84 @@
 {% endblock %}
 
 {% block content %}
-  <div class="speech-container">
-    <div class="activity-header">
-      <h1 class="activity-title">{{ activity.title }}</h1>
-      <p class="activity-description">{{ activity.description }}</p>
-      {% if timer_seconds > 0 %}
-        <div class="timer-display">
-          Time Limit: <span id="timer">{{ timer_seconds }}</span> seconds
+  <div class="speech-compact-container p-5">
+    <div class="speech-row">
+      <div class="speech-left mt-5">
+        <div class="card-image">
+          <img src="{% static 'images/SPTT2.png' %}" alt="Speech-to-Text Icon" />
         </div>
-      {% endif %}
-    </div>
+        <div class="card-title">
+          Speech-to-Text<br />Speed and Accuracy<br />Test
+        </div>
+        <a href="{% url 'speech_home' %}" class="btn btn-success mt-3">Speech Test</a>
+      </div>
+      <div class="speech-right mt-5">
+        <div class="sim-header">
+          <div class="sim-title">Test {{ attempt.attempt_number }}. {{ activity.title }}</div>
+          <div class="item-progress">Speech Activity</div>
+        </div>
+        <div class="sim-instructions">Instructions: Listen to the audio and transcribe what you hear.</div>
+        <div class="sim-scenario">
+          <b>Description:</b><br />{{ activity.description }}
+        </div>
 
-    <div class="instructions">
-      <h5>Instructions:</h5>
-      <ul>
-        <li>Listen to the audio content carefully</li>
-        <li>Transcribe what you hear in the text area below</li>
-        <li>Be as accurate as possible with spelling and punctuation</li>
-        <li>You can replay the audio as many times as needed</li>
-        {% if timer_seconds > 0 %}
-          <li>Complete your transcription within the time limit</li>
-        {% endif %}
-      </ul>
-    </div>
+        <!-- Audio Waveform Section -->
+        <div class="audio-waveform-container">
+          <div class="audio-waveform">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
 
-    {% if activity.audio_file %}
-      <div class="audio-section">
-        <h4>Audio Content</h4>
-        <audio id="audioPlayer" controls style="width: 100%; margin: 20px 0;">
-          <source src="{{ activity.audio_file.url }}" type="audio/mpeg" />
-          <source src="{{ activity.audio_file.url }}" type="audio/wav" />Your browser does not support the audio element.
-        </audio>
-        <div class="audio-controls">
-          <button type="button" class="btn btn-primary" onclick="playAudio()"><i class="bi bi-play-fill"></i> Play</button>
-          <button type="button" class="btn btn-secondary" onclick="pauseAudio()"><i class="bi bi-pause-fill"></i> Pause</button>
-          <button type="button" class="btn btn-info" onclick="restartAudio()"><i class="bi bi-arrow-clockwise"></i> Restart</button>
+          <!-- Audio Controls -->
+          <div class="audio-controls">
+            <button type="button" class="btn btn-primary btn-sm" id="playBtn" onclick="playAudio()"><i class="bi bi-play-fill"></i> Play</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="pauseBtn" onclick="pauseAudio()" style="display: none;"><i class="bi bi-pause-fill"></i> Pause</button>
+            <button type="button" class="btn btn-info btn-sm" onclick="restartAudio()"><i class="bi bi-arrow-clockwise"></i> Restart</button>
+          </div>
+
+          <!-- Hidden Audio Player -->
+          {% if activity.audio_file %}
+            <audio id="audioPlayer" class="hidden">
+              <source src="{{ activity.audio_file.url }}" type="audio/mpeg" />
+              <source src="{{ activity.audio_file.url }}" type="audio/wav" />
+            </audio>
+          {% endif %}
+        </div>
+
+        <!-- Transcription Section -->
+        <div class="transcription-container">
+          <textarea id="transcriptionText" class="transcription-textarea" placeholder="Type your transcription here..." rows="6"></textarea>
+        </div>
+
+        <div class="sim-choices-row">
+          <div></div>
+          <div class="sim-timer" data-seconds="{{ timer_seconds|default:0 }}">
+            <span class="timer-icon"><i class="bi bi-clock-history"></i></span>
+            <span id="timer-text">--:--</span>
+          </div>
+        </div>
+
+        <div class="sim-actions">
+          <a href="{% url 'speech_home' %}" class="sim-prev-link">◀ Back to Home</a>
+          <button class="sim-next-btn" id="btn-submit">Submit Transcription <span class="test-icon">▶</span></button>
         </div>
       </div>
-    {% else %}
-      <div class="audio-section">
-        <h4>Audio Content</h4>
-        <p class="text-muted">No audio file available for this activity.</p>
-      </div>
-    {% endif %}
-
-    <div class="transcription-section">
-      <h4>Your Transcription</h4>
-      <textarea id="transcriptionText" class="transcription-textarea" placeholder="Type your transcription here..." rows="10"></textarea>
-    </div>
-
-    <div class="action-buttons">
-      <button type="button" class="btn btn-success btn-lg" onclick="saveTranscription()"><i class="bi bi-save"></i> Save Progress</button>
-      <button type="button" class="btn btn-primary btn-lg" onclick="submitTranscription()"><i class="bi bi-check-circle"></i> Submit</button>
-      <a href="{% url 'speech_home' %}" class="btn btn-secondary btn-lg"><i class="bi bi-arrow-left"></i> Back to Home</a>
     </div>
   </div>
 {% endblock %}
@@ -181,6 +370,7 @@
   <script>
     let timerInterval;
     let timeRemaining = {{ timer_seconds|default:0 }};
+    let isPlaying = false;
     
     // Timer functionality
     function startTimer() {
@@ -188,7 +378,10 @@
       
       timerInterval = setInterval(function() {
         timeRemaining--;
-        document.getElementById('timer').textContent = timeRemaining;
+        const timerElement = document.getElementById('timer');
+        if (timerElement) {
+          timerElement.textContent = timeRemaining;
+        }
         
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
@@ -203,6 +396,14 @@
       const audio = document.getElementById('audioPlayer');
       if (audio) {
         audio.play();
+        isPlaying = true;
+        
+        // Update button visibility
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (playBtn) playBtn.style.display = 'none';
+        if (pauseBtn) pauseBtn.style.display = 'inline-block';
+        
         if (timeRemaining > 0 && !timerInterval) {
           startTimer();
         }
@@ -213,6 +414,13 @@
       const audio = document.getElementById('audioPlayer');
       if (audio) {
         audio.pause();
+        isPlaying = false;
+        
+        // Update button visibility
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (playBtn) playBtn.style.display = 'inline-block';
+        if (pauseBtn) pauseBtn.style.display = 'none';
       }
     }
     
@@ -221,15 +429,56 @@
       if (audio) {
         audio.currentTime = 0;
         audio.play();
+        isPlaying = true;
+        
+        // Update button visibility
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (playBtn) playBtn.style.display = 'none';
+        if (pauseBtn) pauseBtn.style.display = 'inline-block';
+      }
+    }
+    
+    // Update progress bar based on audio playback
+    function updateProgress() {
+      const audio = document.getElementById('audioPlayer');
+      const progressFill = document.getElementById('progressFill');
+      
+      if (audio && progressFill) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressFill.style.width = progress + '%';
       }
     }
     
     // Save transcription
     function saveTranscription() {
       const text = document.getElementById('transcriptionText').value;
-      // For now, just save to localStorage
-      localStorage.setItem('speech_transcription_{{ activity.id }}', text);
-      alert('Progress saved!');
+      
+      // Save to server
+      const formData = new FormData();
+      formData.append('transcription_text', text);
+      
+      fetch('{% url "speech_save" attempt.id %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.ok) {
+          // Also save to localStorage as backup
+          localStorage.setItem('speech_transcription_{{ activity.id }}', text);
+          alert('Progress saved!');
+        } else {
+          alert('Failed to save progress. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Save error:', error);
+        alert('Failed to save progress. Please try again.');
+      });
     }
     
     // Submit transcription
@@ -242,10 +491,32 @@
       }
       
       if (confirm('Are you sure you want to submit your transcription?')) {
-        // For now, just show success message
-        alert('Transcription submitted successfully!');
-        // In a real implementation, you would send this to the server
-        window.location.href = "{% url 'speech_home' %}";
+        const formData = new FormData();
+        formData.append('transcription_text', text);
+        
+        fetch('{% url "speech_submit" attempt.id %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+          },
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.ok) {
+            if (data.redirect) {
+              window.location.href = data.redirect;
+            } else {
+              window.location.href = "{% url 'speech_home' %}";
+            }
+          } else {
+            alert(data && data.error ? data.error : 'Submission failed. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Submit error:', error);
+          alert('Submission failed. Please try again.');
+        });
       }
     }
     
@@ -256,9 +527,75 @@
         document.getElementById('transcriptionText').value = savedText;
       }
       
-      // Auto-start timer if there's a time limit
-      if (timeRemaining > 0) {
-        startTimer();
+      // Set up audio event listeners
+      const audio = document.getElementById('audioPlayer');
+      if (audio) {
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('ended', function() {
+          isPlaying = false;
+          
+          // Update button visibility when audio ends
+          const playBtn = document.getElementById('playBtn');
+          const pauseBtn = document.getElementById('pauseBtn');
+          if (playBtn) playBtn.style.display = 'inline-block';
+          if (pauseBtn) pauseBtn.style.display = 'none';
+          
+          // Reset progress bar when audio ends
+          const progressFill = document.getElementById('progressFill');
+          if (progressFill) {
+            progressFill.style.width = '0%';
+          }
+        });
+      }
+      
+      // Add click functionality to waveform to play/pause audio
+      const waveform = document.querySelector('.audio-waveform');
+      if (waveform) {
+        waveform.addEventListener('click', function() {
+          if (isPlaying) {
+            pauseAudio();
+          } else {
+            playAudio();
+          }
+        });
+        waveform.style.cursor = 'pointer';
+      }
+      
+      // Set up submit button
+      const submitBtn = document.getElementById('btn-submit');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          submitTranscription();
+        });
+      }
+      
+      // Timer setup (similar to MCQ)
+      const timerEl = document.querySelector('.sim-timer');
+      const timerText = document.getElementById('timer-text');
+      let remaining = 0;
+      if (timerEl) {
+        const total = parseInt(timerEl.getAttribute('data-seconds') || '0', 10);
+        remaining = isNaN(total) || total <= 0 ? 0 : total;
+        function renderTime(s) {
+          const m = Math.floor(s / 60);
+          const sec = s % 60;
+          if (timerText) timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+        if (remaining > 0) {
+          renderTime(remaining);
+          setInterval(function () {
+            if (remaining <= 0) return;
+            remaining -= 1;
+            renderTime(remaining);
+            if (remaining === 0) {
+              // Auto-submit when time runs out
+              submitTranscription();
+            }
+          }, 1000);
+        } else {
+          if (timerText) timerText.textContent = '--:--';
+        }
       }
     });
   </script>

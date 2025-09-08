@@ -59,6 +59,7 @@ class SpeechActivity(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     timer_seconds = models.PositiveIntegerField(default=0)
+    reference_text = models.TextField(blank=True, help_text="Reference text for accuracy comparison")
 
     audio_file = models.FileField(upload_to='speech/audio/', null=True, blank=True)
     script_file = models.FileField(upload_to='speech/scripts/', null=True, blank=True)

@@ -430,13 +430,26 @@ def add_activity_speech(request):
             activity.title = data.get("title", activity.title)
             activity.description = data.get("description", activity.description)
             activity.timer_seconds = int(data.get("timer_seconds", activity.timer_seconds))
-            activity.save()
+            
+            # Handle reference text
+            reference_text = data.get("reference_text", "").strip()
+            if reference_text:
+                activity.reference_text = reference_text
             
             # Handle file uploads
             if 'audio_file' in request.FILES:
                 activity.audio_file = request.FILES['audio_file']
             if 'script_file' in request.FILES:
                 activity.script_file = request.FILES['script_file']
+                # Extract text from script file if it's a .txt file
+                if activity.script_file.name.lower().endswith('.txt'):
+                    try:
+                        activity.script_file.seek(0)
+                        script_content = activity.script_file.read().decode('utf-8')
+                        activity.reference_text = script_content
+                    except Exception as e:
+                        print(f"Error reading script file: {e}")
+            
             activity.save()
             
             # If adding next item, increment item number
@@ -609,10 +622,28 @@ def delete_activity_items(request):
 def addmt_speech_to_text(request):
     print("[addmt_speech_to_text] method=", request.method)
     if request.method == "POST":
-        # Create or update SpeechActivity and optionally upload files
+        action = request.POST.get('action', 'save')
+        
+        # Handle delete action
+        if action == 'delete':
+            item_id = request.POST.get('id')
+            if item_id:
+                try:
+                    speech = SpeechActivity.objects.get(id=item_id)
+                    speech.delete()
+                    print(f"Deleted SpeechActivity with id: {item_id}")
+                    return JsonResponse({"ok": True, "deleted": True, "id": item_id})
+                except SpeechActivity.DoesNotExist:
+                    print(f"SpeechActivity with id {item_id} not found")
+                    return JsonResponse({"ok": False, "error": "Activity not found"})
+            else:
+                return JsonResponse({"ok": False, "error": "No ID provided for deletion"})
+        
+        # Handle save action (create or update)
         item_id = request.POST.get('id')
         title = (request.POST.get('title') or '').strip()
         description = (request.POST.get('description') or '').strip()
+        reference_text = (request.POST.get('reference_text') or '').strip()
         timer = request.POST.get('timer_seconds', '0')
         try:
             timer_seconds = int(timer or 0)
@@ -625,11 +656,14 @@ def addmt_speech_to_text(request):
                 speech.title = title
             if description:
                 speech.description = description
+            if reference_text:
+                speech.reference_text = reference_text
             speech.timer_seconds = timer_seconds
         else:
             speech = SpeechActivity(
                 title=title or 'Activity Title',
                 description=description,
+                reference_text=reference_text,
                 timer_seconds=timer_seconds,
             )
         if request.user.is_authenticated:
@@ -638,6 +672,14 @@ def addmt_speech_to_text(request):
             speech.audio_file = request.FILES['audio_file']
         if 'script_file' in request.FILES:
             speech.script_file = request.FILES['script_file']
+            # Extract text from script file if it's a .txt file
+            if speech.script_file.name.lower().endswith('.txt'):
+                try:
+                    speech.script_file.seek(0)
+                    script_content = speech.script_file.read().decode('utf-8')
+                    speech.reference_text = script_content
+                except Exception as e:
+                    print(f"Error reading script file: {e}")
         speech.save()
         return JsonResponse({"ok": True, "id": speech.id})
     else:
