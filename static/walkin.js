@@ -1,6 +1,6 @@
 flatpickr("#dob", { dateFormat: "Y-m-d", allowInput: true });
-flatpickr("#checkin", { dateFormat: "Y-m-d", allowInput: true });
-flatpickr("#checkout", { dateFormat: "Y-m-d", allowInput: true });
+var wiCheckinPicker = flatpickr("#checkin", { dateFormat: "Y-m-d", allowInput: true, minDate: "today" });
+var wiCheckoutPicker = flatpickr("#checkout", { dateFormat: "Y-m-d", allowInput: true, minDate: "today" });
 
 const paymentMethod = document.querySelector(".walkin-payment-method");
 const cardFields = document.querySelector(".walkin-card-fields");
@@ -28,6 +28,81 @@ document
     walkinOverlay.style.display = "flex";
     startWalkInTimer(minutes, timerDisplay); // Start the timer when the modal opens
   });
+// Load availability when room changes
+$(document).on("change", ".walkin-room", function () {
+  var room = $(this).val();
+  if (!room) return;
+  try { console.log('[walkin] room changed ->', room); } catch (e) { }
+  $.getJSON("/staff/api/room-availability/", { room: room })
+    .done(function (resp) {
+      try { console.log("[walkin] availability for room", room, resp); } catch (e) { }
+      var blockedDatesSet = new Set();
+      (resp.blocked || []).forEach(function (range) {
+        (range.dates || []).forEach(function (d) { blockedDatesSet.add(d); });
+      });
+      try { console.log('[walkin] blockedDatesSet size =', blockedDatesSet.size, 'sample:', Array.from(blockedDatesSet).slice(0, 10)); } catch (e) { }
+
+      // Recreate flatpickr with explicit disabled date strings so UI updates reliably
+      var blockedDates = Array.from(blockedDatesSet);
+      try { console.log('[walkin] blockedDates array ->', blockedDates); } catch (e) { }
+      try { if (wiCheckinPicker) wiCheckinPicker.destroy(); } catch (e) { }
+      try { if (wiCheckoutPicker) wiCheckoutPicker.destroy(); } catch (e) { }
+
+      wiCheckinPicker = flatpickr("#checkin", {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        minDate: "today",
+        disable: blockedDates,
+        onDayCreate: function (dObj, dStr, fp, dayElem) {
+          if (!dayElem.dateObj) return;
+          var y = dayElem.dateObj.getFullYear();
+          var m = (dayElem.dateObj.getMonth() + 1).toString().padStart(2, '0');
+          var dd = dayElem.dateObj.getDate().toString().padStart(2, '0');
+          var key = y + '-' + m + '-' + dd;
+          if (blockedDatesSet.has(key)) {
+            dayElem.style.backgroundColor = '#ad0908';
+            dayElem.style.color = '#ffffff';
+            try { console.log('[walkin] marking blocked check-in day:', key); } catch (e) { }
+          }
+        },
+        onChange: function (selectedDates, dateStr, fp) {
+          var isBlocked = blockedDatesSet.has(dateStr);
+          try { console.log('[walkin] check-in selected =', dateStr, 'isBlocked?', isBlocked); } catch (e) { }
+        }
+      });
+
+      wiCheckoutPicker = flatpickr("#checkout", {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        minDate: "today",
+        disable: blockedDates,
+        onDayCreate: function (dObj, dStr, fp, dayElem) {
+          if (!dayElem.dateObj) return;
+          var y = dayElem.dateObj.getFullYear();
+          var m = (dayElem.dateObj.getMonth() + 1).toString().padStart(2, '0');
+          var dd = dayElem.dateObj.getDate().toString().padStart(2, '0');
+          var key = y + '-' + m + '-' + dd;
+          if (blockedDatesSet.has(key)) {
+            dayElem.style.backgroundColor = '#ad0908';
+            dayElem.style.color = '#ffffff';
+            try { console.log('[walkin] marking blocked check-out day:', key); } catch (e) { }
+          }
+        },
+        onChange: function (selectedDates, dateStr, fp) {
+          var isBlocked = blockedDatesSet.has(dateStr);
+          try { console.log('[walkin] check-out selected =', dateStr, 'isBlocked?', isBlocked); } catch (e) { }
+        }
+      });
+
+      // Clear previously selected dates when room changes
+      try { console.log('[walkin] clearing previous dates for new room'); } catch (e) { }
+      wiCheckinPicker.clear();
+      wiCheckoutPicker.clear();
+    })
+    .fail(function (xhr) {
+      try { console.error('[walkin] availability error', xhr.responseText); } catch (e) { }
+    });
+});
 walkinOverlay.addEventListener("click", function (e) {
   if (!walkinModal.contains(e.target)) {
     closeWalkinModal();
@@ -42,7 +117,7 @@ function startWalkInTimer(duration, display) {
   if (walkInTimerInterval) {
     clearInterval(walkInTimerInterval);
   }
-  let  timer = duration - 1,
+  let timer = duration - 1,
     minutes,
     seconds;
   walkInTimerInterval = setInterval(function () {
@@ -75,57 +150,57 @@ $(".wi-addons-decrease, .wi-addons-increase").on("click", function () {
   $("#wi-addons-count").text(count);
 });
 
- $(".walkin-book-btn").on("click", function (event) {
-   walkinOverlay.style.display = "none";
-   const data = {
-     guest_name: document.querySelector(".walkin-name").value,
-     guest_address: document.querySelector(".walkin-address").value,
-     guest_mobile: document.querySelector(".walkin-mobile").value,
-     guest_birth: document.querySelector(".walkin-birth").value,
-     guest_email: document.querySelector(".walkin-email").value,
-     check_in: document.querySelector(".walkin-check-in").value,
-     check_out: document.querySelector(".walkin-check-out").value,
-     room: document.querySelector(".walkin-room").value,
-     total_guests: document.querySelector(".walkin-total-guest").value,
-     adults: document.querySelector(".walkin-no-of-adults").value,
-     children: document.querySelector(".walkin-no-of-children").value,
-     add_ons: document.querySelector("#wi-addons-count").textContent,
-     children_7_years: document.querySelector(".walkin-below-seven").value,
-     payment_method: document.querySelector(".walkin-payment-method").value,
-     card_number: document.querySelector(".walkin-card-number").value,
-     exp_date: document.querySelector(".walkin-card-exp-date").value,
-     cvc: document.querySelector(".walkin-card-cvc").value,
-     billing_address: document.querySelector(".walkin-billing-address").value,
-     current_balance: document.querySelector(".walkin-balance").value,
-     csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
-   };
+$(".walkin-book-btn").on("click", function (event) {
+  walkinOverlay.style.display = "none";
+  const data = {
+    guest_name: document.querySelector(".walkin-name").value,
+    guest_address: document.querySelector(".walkin-address").value,
+    guest_mobile: document.querySelector(".walkin-mobile").value,
+    guest_birth: document.querySelector(".walkin-birth").value,
+    guest_email: document.querySelector(".walkin-email").value,
+    check_in: document.querySelector(".walkin-check-in").value,
+    check_out: document.querySelector(".walkin-check-out").value,
+    room: document.querySelector(".walkin-room").value,
+    total_guests: document.querySelector(".walkin-total-guest").value,
+    adults: document.querySelector(".walkin-no-of-adults").value,
+    children: document.querySelector(".walkin-no-of-children").value,
+    add_ons: document.querySelector("#wi-addons-count").textContent,
+    children_7_years: document.querySelector(".walkin-below-seven").value,
+    payment_method: document.querySelector(".walkin-payment-method").value,
+    card_number: document.querySelector(".walkin-card-number").value,
+    exp_date: document.querySelector(".walkin-card-exp-date").value,
+    cvc: document.querySelector(".walkin-card-cvc").value,
+    billing_address: document.querySelector(".walkin-billing-address").value,
+    current_balance: document.querySelector(".walkin-balance").value,
+    csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+  };
 
-   $.ajax({
-     type: "POST",
-     url: "/staff/book-room/",
-     data: data,
+  $.ajax({
+    type: "POST",
+    url: "/staff/book-room/",
+    data: data,
 
-     success: function (response) {
-       Swal.fire({
-         title: "Room Successfully Checked In!",
-         text: "Your check-in has been completed.",
-         html: `<p style="color:#1a2d1e">Guest: ${data.guest_name}<br>Room no. ${data.room}<br>Reference no. 00001</p>`,
-         icon: "success",
-         customClass: {
-           confirmButton: "my-confirm-btn-checkin",
-           denyButton: "my-deny-btn-checkin",
-           title: "my-title-checkin",
-           text: "my-text-checkin",
-         },
-         showDenyButton: true,
-         confirmButtonText: "View Receipt",
-         denyButtonText: "Activity Results",
-       }).then((result) => {
-         if (result.isConfirmed) {
-           Swal.fire({
-             title: "",
-             showCloseButton: true,
-             html: `
+    success: function (response) {
+      Swal.fire({
+        title: "Room Successfully Checked In!",
+        text: "Your check-in has been completed.",
+        html: `<p style="color:#1a2d1e">Guest: ${data.guest_name}<br>Room no. ${data.room}<br>Reference no. 00001</p>`,
+        icon: "success",
+        customClass: {
+          confirmButton: "my-confirm-btn-checkin",
+          denyButton: "my-deny-btn-checkin",
+          title: "my-title-checkin",
+          text: "my-text-checkin",
+        },
+        showDenyButton: true,
+        confirmButtonText: "View Receipt",
+        denyButtonText: "Activity Results",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: "",
+            showCloseButton: true,
+            html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
                   <img src="${logoURLCheckin}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
                   <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
@@ -173,29 +248,29 @@ $(".wi-addons-decrease, .wi-addons-increase").on("click", function () {
                   <hr style="border: 1px dashed #333; margin: 10px 0;">
                 </div>
               `,
-             showConfirmButton: true,
-             confirmButtonText: "Print Receipt",
-             confirmButtonColor: "#1a2d1e",
-             width: 360,
-             padding: "1.5em",
-             backdrop: false,
-           });
-         } else if (result.isDenied) {
-           Swal.fire({
-             title: "<strong>Finished activity on <br>time!</strong>",
-             html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
-             icon: "success",
-             customClass: {
-               confirmButton: "my-confirm-btn-checkin",
-               title: "my-title-checkin",
-             },
-             confirmButtonText: "Close",
-           });
-         }
-       });
-     },
-     error: function (error) {
-       console.log("Check-in error:", error);
-     },
-   });
- });
+            showConfirmButton: true,
+            confirmButtonText: "Print Receipt",
+            confirmButtonColor: "#1a2d1e",
+            width: 360,
+            padding: "1.5em",
+            backdrop: false,
+          });
+        } else if (result.isDenied) {
+          Swal.fire({
+            title: "<strong>Finished activity on <br>time!</strong>",
+            html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
+            icon: "success",
+            customClass: {
+              confirmButton: "my-confirm-btn-checkin",
+              title: "my-title-checkin",
+            },
+            confirmButtonText: "Close",
+          });
+        }
+      });
+    },
+    error: function (error) {
+      console.log("Check-in error:", error);
+    },
+  });
+});

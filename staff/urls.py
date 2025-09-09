@@ -12,4 +12,5 @@ urlpatterns = [
     path("ajax/get-reservations/", views.get_reservations_ajax, name="get_reservations_ajax"),
     path("api/room-status/", views.room_status, name="room_status"),
     path("api/checkout/",views.perform_checkout, name="perform_checkout"),
+    path("api/room-availability/", views.room_availability, name="room_availability"),
 ]

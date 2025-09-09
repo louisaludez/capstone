@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from globals import decorator
 from django.contrib import messages
-from datetime import datetime, date
+from datetime import datetime, date, time as dt_time
 from django.utils import timezone
 from django.db.models import Q
 from chat.models import Message
@@ -12,9 +12,12 @@ from django.http import JsonResponse
 from decimal import Decimal
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date
+import re
+from datetime import timedelta
 @decorator.role_required('staff')
 def home(request):
-    guest = Guest.objects.all()
+    # Only guests with at least one Checked-in booking should appear for checkout selection
+    guest = Guest.objects.filter(booking__status='Checked-in').distinct()
     booking = Booking.objects.all() 
     payment = Payment.objects.all()
     
@@ -318,6 +321,40 @@ def room_status(request):
         print(f"[DEBUG] date parsing error: {e}")
         return JsonResponse({"error": "invalid or missing date"}, status=400)
 
+    # Auto-cancel no-shows: Pending bookings whose check-in date is past, or today after 09:00
+    try:
+        now = timezone.localtime()
+        today = now.date()
+        cutoff_reached = now.time() >= dt_time(9, 0)
+
+        pending_qs = Booking.objects.filter(status='Pending')
+        to_cancel = pending_qs.filter(check_in_date__lt=today)
+        if cutoff_reached:
+            to_cancel = to_cancel | pending_qs.filter(check_in_date=today)
+
+        to_cancel = to_cancel.distinct()
+        cancelled_ids = []
+        for b in to_cancel:
+            b.status = 'Cancelled'
+            b.save()
+            cancelled_ids.append(b.id)
+            # Free up the room if possible
+            try:
+                # normalize room number to numeric string
+                import re as _re
+                m = _re.search(r"\d+", str(b.room))
+                room_code = m.group(0) if m else str(b.room)
+                room_obj = Room.objects.get(room_number=room_code)
+                if room_obj.status == 'reserved':
+                    room_obj.status = 'available'
+                    room_obj.save()
+            except Exception as _e:
+                print(f"[DEBUG] while auto-cancelling booking {b.id}, room free-up error: {_e}")
+        if cancelled_ids:
+            print(f"[DEBUG] Auto-cancelled no-show bookings at room_status(): {cancelled_ids}")
+    except Exception as auto_e:
+        print(f"[DEBUG] auto-cancel pass failed: {auto_e}")
+
     # Get all rooms from the Room model
     all_rooms = Room.objects.all()
     total_rooms = all_rooms.count()
@@ -327,29 +364,61 @@ def room_status(request):
     room_statuses = list(all_rooms.values('room_number', 'status'))
     print(f"[DEBUG] Room statuses: {room_statuses}")
 
-    # Get occupied rooms for the selected date
+    # Helper: normalize stored room string to plain numeric code matching data-room
+    def normalize_room_code(room_str: str) -> str:
+        if not room_str:
+            return ""
+        match = re.search(r"\d+", str(room_str))
+        return match.group(0) if match else str(room_str)
+
+    # Get occupied rooms for the selected date (normalized)
     try:
         occupied_qs = Booking.objects.filter(
             check_in_date__lte=d,
             check_out_date__gte=d,
-            status='Checked-in'  # Only count actually checked-in bookings
-        ).values_list("room", flat=True)
-        print(f"[DEBUG] occupied_qs: {list(occupied_qs)}")
+            status='Checked-in'
+        ).select_related('guest')
+        occupied_rooms = [normalize_room_code(b.room) for b in occupied_qs]
+        print(f"[DEBUG] occupied_qs raw: {[ (b.room, b.guest.name) for b in occupied_qs ]}")
     except Exception as e:
-        print(f"[DEBUG] Error querying 'room' field: {e}")
-        occupied_qs = []
+        print(f"[DEBUG] Error querying occupied 'room' field: {e}")
+        occupied_rooms = []
+    print(f"[DEBUG] Occupied rooms (normalized): {occupied_rooms}")
 
-    occupied_rooms = list(occupied_qs)
-    print(f"[DEBUG] Occupied rooms: {occupied_rooms}")
+    # Get reserved rooms for the selected date (normalized)
+    try:
+        reserved_qs = Booking.objects.filter(
+            check_in_date__lte=d,
+            check_out_date__gte=d,
+            status='Pending'
+        ).select_related('guest')
+        reserved_rooms = [normalize_room_code(b.room) for b in reserved_qs]
+        print(f"[DEBUG] reserved_qs raw: {[ (b.room, b.guest.name) for b in reserved_qs ]}")
+    except Exception as e:
+        print(f"[DEBUG] Error querying reserved 'room' field: {e}")
+        reserved_rooms = []
+    print(f"[DEBUG] Reserved rooms (normalized): {reserved_rooms}")
 
-    # Count rooms by status dynamically
+    # Count rooms by status dynamically (date-aware for occupied and reserved)
+    maintenance_count = all_rooms.filter(status='maintenance').count()
+    cleaning_count = all_rooms.filter(status='cleaning').count()
+    out_of_order_count = all_rooms.filter(status='out_of_order').count()
+
+    occupied_set = set(occupied_rooms)
+    reserved_set = set(reserved_rooms)
+
+    # Available excludes occupied, reserved, maintenance, out_of_order
+    available_count = total_rooms - len(occupied_set) - len(reserved_set) - maintenance_count - out_of_order_count
+    if available_count < 0:
+        available_count = 0
+
     room_status_counts = {
-        'available': total_rooms - len(occupied_rooms),  # Total rooms minus occupied rooms
-        'occupied': len(occupied_rooms),
-        'maintenance': all_rooms.filter(status='maintenance').count(),
-        'cleaning': all_rooms.filter(status='cleaning').count(),
-        'reserved': all_rooms.filter(status='reserved').count(),
-        'out_of_order': all_rooms.filter(status='out_of_order').count(),
+        'available': available_count,
+        'occupied': len(occupied_set),
+        'maintenance': maintenance_count,
+        'cleaning': cleaning_count,
+        'reserved': len(reserved_set),
+        'out_of_order': out_of_order_count,
     }
     print(f"[DEBUG] Room status counts: {room_status_counts}")
 
@@ -369,7 +438,7 @@ def room_status(request):
 
     # Get the actual room types for occupied rooms
     for room_number in occupied_rooms:
-        room_num = room_number.replace('R', '')
+        room_num = room_number
         try:
             room = Room.objects.get(room_number=room_num)
             if room.room_type in occupied_by_type:
@@ -381,8 +450,36 @@ def room_status(request):
     print(f"[DEBUG] occupied rooms for {d}: {occupied_rooms}")
     print(f"[DEBUG] room counts: total={total_rooms}, available={room_status_counts['available']}, occupied={room_status_counts['occupied']}, maintenance={room_status_counts['maintenance']}")
 
+    # Build details for tooltips
+    occupied_details = {}
+    try:
+        for b in occupied_qs:
+            rc = normalize_room_code(b.room)
+            occupied_details[rc] = {
+                'guest': b.guest.name,
+                'check_in': b.check_in_date.strftime('%B %d, %Y'),
+                'check_out': b.check_out_date.strftime('%B %d, %Y'),
+            }
+    except Exception:
+        pass
+
+    reserved_details = {}
+    try:
+        for b in reserved_qs:
+            rc = normalize_room_code(b.room)
+            reserved_details[rc] = {
+                'guest': b.guest.name,
+                'check_in': b.check_in_date.strftime('%B %d, %Y'),
+                'check_out': b.check_out_date.strftime('%B %d, %Y'),
+            }
+    except Exception:
+        pass
+
     return JsonResponse({
-        "occupied": occupied_rooms,
+        "occupied": list(occupied_set),
+        "reserved": list(reserved_set),
+        "occupied_details": occupied_details,
+        "reserved_details": reserved_details,
         "room_info": {
             "total": total_rooms,
             "vacant": room_status_counts['available'],
@@ -444,6 +541,19 @@ def perform_checkout(request):
             booking.save()
             print("Booking updated:", booking)
 
+            # Set room status back to available
+            try:
+                import re as _re
+                posted_room = request.POST.get('room') or booking.room
+                m = _re.search(r"\d+", str(posted_room))
+                room_code = m.group(0) if m else str(posted_room)
+                room_obj = Room.objects.get(room_number=room_code)
+                room_obj.status = 'available'
+                room_obj.save()
+                print(f"Room {room_code} set to available after checkout")
+            except Exception as room_e:
+                print("Room availability update failed:", room_e)
+
             # Guest billing
             guest.billing = request.POST.get('room_charges') or '0'
             guest.room_service_billing = request.POST.get('room_service') or '0'
@@ -503,3 +613,52 @@ def room_list(request):
         'rooms': rooms,
         'today': date.today().strftime('%Y-%m-%d')
     })
+
+
+@decorator.role_required('staff')
+def room_availability(request):
+    """
+    Returns blocked date ranges for a given room number.
+    Query: ?room=<room_number>
+    Considers bookings with status Pending and Checked-in.
+    """
+    room_num = request.GET.get('room')
+    if not room_num:
+        return JsonResponse({'error': 'room is required'}, status=400)
+
+    # Collect all overlapping date ranges for this room (support multiple stored formats)
+    room_num_str = str(room_num)
+    alt_values = [
+        room_num_str,
+        f"R{room_num_str}",
+        f"Room {room_num_str}",
+        f"Room {room_num_str} : Standard",
+        f"Room {room_num_str} : Family",
+        f"Room {room_num_str} : Deluxe",
+    ]
+    bookings = Booking.objects.filter(
+        Q(room__in=alt_values),
+        status__in=['Pending', 'Checked-in']
+    ).order_by('check_in_date')
+
+    blocked = []
+    for b in bookings:
+        # Inclusive range [check_in_date, check_out_date]
+        start = b.check_in_date
+        end = b.check_out_date
+        # Flatpickr expects strings; we will provide individual dates list too
+        days = []
+        d = start
+        while d <= end:
+            days.append(d.strftime('%Y-%m-%d'))
+            d = d + timedelta(days=1)
+
+        blocked.append({
+            'start': start.strftime('%Y-%m-%d'),
+            'end': end.strftime('%Y-%m-%d'),
+            'dates': days,
+            'status': b.status,
+            'ref': f"{b.id:05d}"
+        })
+
+    return JsonResponse({'blocked': blocked})

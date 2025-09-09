@@ -10,6 +10,8 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from staff.models import *
 from .models import Activity, ActivityItem, ActivityChoice, SpeechActivity
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
 import locale
 from decimal import Decimal
 
@@ -155,51 +157,124 @@ def admin_reports(request):
 def admin_messenger(request):
     return render(request, "adminNew/messenger.html")
 def admin_front_office_reports(request):
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Revenue from all guest billings
     guests = Guest.objects.all()
-
-    total = 0
+    total_revenue = 0
     for g in guests:
-        total += (
-            int(g.billing or 0) +
-            int(g.room_service_billing or 0) +
-            int(g.laundry_billing or 0) +
-            int(g.cafe_billing or 0) +
-            int(g.excess_pax_billing or 0) +
-            int(g.additional_charge_billing or 0)
+        total_revenue += (
+            float(g.billing or 0) +
+            float(g.room_service_billing or 0) +
+            float(g.laundry_billing or 0) +
+            float(g.cafe_billing or 0) +
+            float(g.excess_pax_billing or 0) +
+            float(g.additional_charge_billing or 0)
         )
-    context = {'total_revenue': total}
+
+    # FO metrics
+    total_reservations = Booking.objects.filter(status='Pending').count()
+    total_checkins = Booking.objects.filter(status='Checked-in').count()
+    total_checkouts = Booking.objects.filter(status='Checked-out').count()
+    # Walk-ins heuristic: checked-in bookings created on the same date as check-in
+    walkins = (
+        Booking.objects
+        .filter(status='Checked-in')
+        .annotate(bd=TruncDate('booking_date'))
+        .filter(bd=models.F('check_in_date'))
+        .count()
+    )
+
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    orders_query = Booking.objects.select_related('guest').order_by('-booking_date')
+    
+    if search_query:
+        orders_query = orders_query.filter(
+            Q(guest__name__icontains=search_query) |
+            Q(guest__email__icontains=search_query) |
+            Q(room__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+
+    # Pagination with 7 rows per page
+    paginator = Paginator(orders_query, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'total_revenue': total_revenue,
+        'total_walkins': walkins,
+        'total_reservations': total_reservations,
+        'total_checkins': total_checkins,
+        'total_checkouts': total_checkouts,
+        'orders': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'search_query': search_query,
+    }
     return render(request, "adminNew/front_office_reports.html", context)
 def admin_cafe_reports(request):
-    guests = Guest.objects.all()
+    from cafe.models import CafeOrder, CafeOrderItem
 
-    total = 0
-    for g in guests:
-        total += (
-            int(g.cafe_billing or 0)
-        )
-    context = {'total_revenue': total}
+    # Totals
+    transactions = CafeOrder.objects.count()
+    items_sold = CafeOrderItem.objects.aggregate(n=Sum('quantity'))['n'] or 0
+    top = (
+        CafeOrderItem.objects
+        .values('item__name')
+        .annotate(q=Sum('quantity'))
+        .order_by('-q')
+        .first()
+    )
+    most_sold_item = top['item__name'] if top else '—'
+    total_revenue = CafeOrder.objects.aggregate(s=Sum('total'))['s'] or 0
+
+    orders = CafeOrder.objects.select_related('guest').order_by('-order_date')[:50]
+
+    context = {
+        'transactions_count': transactions,
+        'items_sold': items_sold,
+        'most_sold_item': most_sold_item,
+        'total_revenue': total_revenue,
+        'orders': orders,
+    }
     return render(request, "adminNew/cafe_reports.html", context)
 def admin_housekeeping_reports(request):
-    guests = Guest.objects.all()
+    from housekeeping.models import Housekeeping
 
-    total = 0
-    for g in guests:
-        total += (
-            int(g.housekeeping_billing or 0)
-        )
-    context = {'total_revenue': total}
+    hk_pending = Housekeeping.objects.filter(status__iexact='pending').count()
+    hk_in_progress = Housekeeping.objects.filter(status__iexact='in progress').count()
+    hk_finished = Housekeeping.objects.filter(status__iexact='finished').count()
+
+    orders = Housekeeping.objects.order_by('-created_at')[:50]
+
+    context = {
+        'hk_pending': hk_pending,
+        'hk_in_progress': hk_in_progress,
+        'hk_finished': hk_finished,
+        'orders': orders,
+    }
     return render(request, "adminNew/housekeeping_reports.html", context)
 def admin_laundry_reports(request):
-    guests = Guest.objects.all()
+    from laundry.models import LaundryTransaction
 
-    total = 0
-   
+    qs = LaundryTransaction.objects.all()
+    completed_count = qs.filter(status='completed').count()
+    room_charges = qs.filter(payment_method='room').aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
+    cash_payments = qs.filter(payment_method='cash').aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
+    total_revenue = qs.aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
 
-    total = Decimal(0)
-    for g in guests:
-     total += Decimal(g.laundry_billing or 0)
+    orders = LaundryTransaction.objects.select_related('guest').order_by('-created_at', '-date_time')[:50]
 
-    context = {'total_revenue': total}
+    context = {
+        'completed_count': completed_count,
+        'room_charges': room_charges,
+        'cash_payments': cash_payments,
+        'total_revenue': total_revenue,
+        'orders': orders,
+    }
     return render(request, "adminNew/laundry_reports.html", context)
 def admin_mcq_reports(request):
     from assessment.models import McqAttempt

@@ -22,23 +22,19 @@
     </div>
     <div class="row boxes">
       <div class="col">
-        <p class="title">Approved Transactions</p>
-
-        <span class="number">100</span>
+        <p class="title">Completed Transactions</p>
+        <span class="number">{{ completed_count }}</span>
       </div>
       <div class="col">
         <p class="title">Room Charges</p>
-
-        <span class="number">100</span>
+        <span class="number">₱ {{ room_charges }}</span>
       </div>
       <div class="col">
         <p class="title">Cash Payments</p>
-
-        <span class="number">100</span>
+        <span class="number">₱ {{ cash_payments }}</span>
       </div>
       <div class="col">
         <p class="title">Revenue</p>
-
         <span class="number">₱ {{ total_revenue }}</span>
       </div>
     </div>

@@ -21,6 +21,25 @@
     .available {
       background-color: #216216 !important;
     }
+    /* Lightweight tooltip for room tiles using data-tooltip */
+    [data-tooltip] {
+      position: relative;
+    }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 4px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+      z-index: 9999;
+      pointer-events: none;
+    }
   </style>
   <link rel="stylesheet" href="{% static 'walkin-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
@@ -177,7 +196,8 @@
             $('[data-room]')
               .not('.maintinance')
               .each(function () {
-                $(this).removeClass('occupied vacant').addClass('vacant')
+                // Clear any prior state classes coming from server-rendered HTML
+                $(this).removeClass('occupied vacant reserved').addClass('vacant')
               })
     
             // Mark occupied
@@ -185,8 +205,31 @@
               const $r = $(`[data-room="${roomCode}"]`)
               if ($r.length) {
                 $r.removeClass('vacant').addClass('occupied')
+                // Tooltip with guest and checkout
+                const d = (data.occupied_details && data.occupied_details[roomCode]) || null
+                if (d) {
+                  $r.attr('title', `${d.guest} — out ${d.check_out}`)
+                  $r.attr('data-tooltip', `${d.guest} — out ${d.check_out}`)
+                } else {
+                  $r.removeAttr('title data-tooltip')
+                }
               } else {
                 console.warn('Missing room div for:', roomCode)
+              }
+            })
+    
+            // Mark reserved (but not overriding occupied)
+            ;(data.reserved || []).forEach(function (roomCode) {
+              const $r = $(`[data-room="${roomCode}"]`)
+              if ($r.length && !$r.hasClass('occupied')) {
+                $r.removeClass('vacant').addClass('reserved')
+                const d = (data.reserved_details && data.reserved_details[roomCode]) || null
+                if (d) {
+                  $r.attr('title', `${d.guest} — out ${d.check_out}`)
+                  $r.attr('data-tooltip', `${d.guest} — out ${d.check_out}`)
+                } else {
+                  $r.removeAttr('title data-tooltip')
+                }
               }
             })
     
@@ -230,8 +273,8 @@
     const arrowIconUrl = "{% static 'images/arrow-right.png' %}"
     const logoURLCheckin = "{% static 'images/new HMS-B.png' %}"
   </script>
-  <script src="{% static 'walkin.js' %}?v=1.0"></script>
-  <script src="{% static 'checkin.js' %}?v=1.0"></script>
+  <script src="{% static 'walkin.js' %}?v=1.4" defer></script>
+  <script src="{% static 'checkin.js' %}?v=1.2" defer></script>
   <script src="{% static 'checkout.js' %}?v=1.0"></script>
   <script src="{% static 'view-reservations.js' %}?v=1.0"></script>
 {% endblock %}

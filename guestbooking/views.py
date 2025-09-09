@@ -4,6 +4,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.utils.dateparse import parse_date
+from decimal import Decimal
 import json
 import logging
 
@@ -158,3 +160,132 @@ def save_reservation(request):
             return JsonResponse({'error': 'Failed to save reservation'}, status=500)
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+def list_pending_reservations(request):
+    """Return all pending reservations for use in check-in modal (searchable list)."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+    query = request.GET.get('q', '').strip().lower()
+
+    bookings_qs = Booking.objects.select_related('guest').filter(status='Pending').order_by('-booking_date')
+
+    if query:
+        bookings_qs = bookings_qs.filter(
+            Q(guest__name__icontains=query) |
+            Q(room__icontains=query)
+        )
+
+    results = []
+    for b in bookings_qs:
+        payment = None
+        try:
+            payment = Payment.objects.get(booking=b)
+        except Payment.DoesNotExist:
+            payment = None
+
+        results.append({
+            'id': b.id,
+            'ref': f"{b.id:05d}",
+            'guest_name': b.guest.name,
+            'guest_email': b.guest.email,
+            'guest_address': b.guest.address,
+            'check_in_date': b.check_in_date.strftime('%Y-%m-%d'),
+            'check_out_date': b.check_out_date.strftime('%Y-%m-%d'),
+            'room': b.room,
+            'status': b.status,
+            'payment_method': getattr(payment, 'method', None),
+            'billing_address': getattr(payment, 'billing_address', None),
+            'total_balance': float(getattr(payment, 'total_balance', 0) or 0),
+        })
+
+    return JsonResponse({'reservations': results})
+
+
+def checkin_reservation(request):
+    """Check in an existing reservation (must be status Pending)."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+    try:
+        booking_id = request.POST.get('booking_id')
+        if not booking_id:
+            return JsonResponse({'success': False, 'message': 'Reservation is required for check-in.'}, status=400)
+
+        # Fetch booking and validate status
+        booking = Booking.objects.select_related('guest').get(id=booking_id)
+        if booking.status != 'Pending':
+            return JsonResponse({'success': False, 'message': 'Only pending reservations can be checked in.'}, status=400)
+
+        # Parse dates (fallback to existing if not provided)
+        raw_check_in = request.POST.get('check_in')
+        raw_check_out = request.POST.get('check_out')
+        if raw_check_in:
+            booking.check_in_date = parse_date(str(raw_check_in))
+        if raw_check_out:
+            booking.check_out_date = parse_date(str(raw_check_out))
+
+        # Room (keep reserved room if not provided)
+        room_number = request.POST.get('room') or booking.room
+        booking.room = room_number
+
+        # Guest counts
+        if request.POST.get('total_guests') is not None:
+            booking.total_of_guests = int(request.POST.get('total_guests') or 0)
+        if request.POST.get('adults') is not None:
+            booking.num_of_adults = int(request.POST.get('adults') or 0)
+        if request.POST.get('children') is not None:
+            booking.num_of_children = int(request.POST.get('children') or 0)
+        if request.POST.get('children_7_years') is not None:
+            booking.no_of_children_below_7 = int(request.POST.get('children_7_years') or 0)
+
+        booking.status = 'Checked-in'
+        booking.save()
+
+        # Update room status to occupied
+        try:
+            room_obj = Room.objects.get(room_number=room_number)
+            room_obj.status = 'occupied'
+            room_obj.save()
+        except Room.DoesNotExist:
+            # If room record not found, continue; front-end still succeeds but logs warning
+            pass
+
+        # Payment handling: update existing or create if missing
+        payment_method = request.POST.get('payment_method')
+        card_number = request.POST.get('card_number')
+        exp_date = request.POST.get('exp_date')
+        cvc = request.POST.get('cvv')
+        billing_address = request.POST.get('billing_address')
+        balance_raw = request.POST.get('current_balance') or request.POST.get('balance')
+
+        try:
+            payment = Payment.objects.get(booking=booking)
+        except Payment.DoesNotExist:
+            payment = Payment(booking=booking)
+
+        if payment_method:
+            payment.method = payment_method
+        if card_number is not None:
+            payment.card_number = card_number
+        if exp_date is not None:
+            payment.exp_date = exp_date
+        if cvc is not None:
+            payment.cvc_code = cvc
+        if billing_address is not None:
+            payment.billing_address = billing_address
+        if balance_raw is not None:
+            try:
+                payment.total_balance = Decimal(str(balance_raw))
+            except Exception:
+                pass
+
+        payment.save()
+
+        return JsonResponse({'success': True, 'message': f'Reservation {booking_id} checked in successfully.'})
+
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Reservation not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)

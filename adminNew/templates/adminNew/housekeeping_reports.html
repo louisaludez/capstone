@@ -23,18 +23,15 @@
     <div class="row boxes">
       <div class="col">
         <p class="title">Total Pending</p>
-
-        <span class="number">100</span>
+        <span class="number">{{ hk_pending }}</span>
       </div>
       <div class="col">
-        <p class="title">Total On-progress</p>
-
-        <span class="number">100</span>
+        <p class="title">Total In-progress</p>
+        <span class="number">{{ hk_in_progress }}</span>
       </div>
       <div class="col">
         <p class="title">Total Finished</p>
-
-        <span class="number">₱ {{ total_revenue }}</span>
+        <span class="number">{{ hk_finished }}</span>
       </div>
     </div>
     <!-- Table Header -->

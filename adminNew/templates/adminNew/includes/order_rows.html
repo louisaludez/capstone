@@ -1,14 +1,59 @@
+{% comment %}This include renders a generic table. It supports different order models by detecting fields. Supported models: Booking (FO), CafeOrder (Cafe), LaundryTransaction (Laundry), Housekeeping.{% endcomment %}
+
 {% for order in orders %}
   <div class="row row-border text-center align-items-center">
     <div class="col-1">
       <input type="checkbox" />
     </div>
     <div class="col-2">{{ order.id }}</div>
-    <div class="col-2">{{ order.guest.name }}</div>
-    <div class="col-2">{{ order.service_type }}</div>
-    <div class="col-2">{{ order.created_at|date:'H:i d/m/Y' }}</div>
     <div class="col-2">
-      <span class="status-pending">Pending</span>
+      {# Guest or customer name #}
+      {% if order.guest %}
+        {{ order.guest.name }}
+      {% elif order.customer_name %}
+        {{ order.customer_name }}
+      {% elif order.guest_name %}
+        {{ order.guest_name }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-2">
+      {% if order.service_type %}
+        {{ order.service_type }}
+      {% elif order.request_type %}
+        {{ order.request_type }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-2">
+      {% if order.created_at %}
+        {{ order.created_at|date:'H:i d/m/Y' }}
+      {% elif order.order_date %}
+        {{ order.order_date|date:'H:i d/m/Y' }}
+      {% elif order.date_time %}
+        {{ order.date_time|date:'H:i d/m/Y' }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-2">
+      {% if order.status %}
+        {% with s=order.status|lower %}
+          {% if s == 'pending' %}
+            <span class="status-pending">Pending</span>
+          {% elif s == 'completed' or s == 'finished' %}
+            <span class="status-finished">Finished</span>
+          {% elif s == 'cancelled' %}
+            <span class="status-cancelled">Cancelled</span>
+          {% else %}
+            <span class="status-pending">{{ order.status }}</span>
+          {% endif %}
+        {% endwith %}
+      {% else %}
+        <span class="status-pending">—</span>
+      {% endif %}
     </div>
     <div class="col-1 actions d-flex justify-content-center g-1">
       <button class="btn"><i class="bi bi-eye-slash"></i></button>
@@ -18,6 +63,6 @@
   </div>
 {% empty %}
   <div class="text-center py-4">
-    <p>No laundry orders found.</p>
+    <p>No records found.</p>
   </div>
 {% endfor %}
