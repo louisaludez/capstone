@@ -16,11 +16,30 @@
       <div class="col-lg-8 col-md-7 col-12">
         <div class="card mb-2 shadow-sm">
           <div class="card-body p-2">
-            <canvas id="statsChart" height="80"></canvas>
+            <canvas id="statsChart" style="height: 220px; max-height: 220px; width: 100%;"></canvas>
             <div class="d-flex flex-wrap justify-content-between mt-2 gap-2">
-              <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Download Report</button>
+              <button class="btn btn-sm btn-outline-secondary" id="downloadReportBtn"><i class="bi bi-download"></i> Download Report</button>
               <div>
-                <span class="text-success">+8.8%</span><span class="text-muted ms-2">All Time High</span>
+                <span class="text-{% if growth_percentage|add:0 >= 0 %}
+                    
+                    
+                    
+                    success
+
+
+
+                  {% else %}
+                    
+                    
+                    
+                    danger
+
+
+
+                  {% endif %}">
+                  {% if growth_percentage|add:0 >= 0 %}+{% endif %}{{ growth_percentage }}%
+                </span>
+                <span class="text-muted ms-2">Month-over-Month Growth</span>
               </div>
               <div>
                 <span class="h6">{{ total_guests }}</span><span class="text-muted ms-2">Total No. of Guests</span>
@@ -114,36 +133,179 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    const ctx = document.getElementById('statsChart').getContext('2d')
+    const canvasEl = document.getElementById('statsChart')
+    const ctx = canvasEl.getContext('2d')
+    
+    // Get chart data from Django context
+    const chartData = {{ chart_data|safe }};
+    const forecastMethod = '{{ forecast_method }}';
+    
+    if (window.__hmsStatsChart) {
+      try { window.__hmsStatsChart.destroy() } catch (e) {}
+    }
     
     const statsChart = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [
-          {
-            label: 'Weekly Stats',
-            data: [10, 15, 8, 12, 18, 20, 14],
-            fill: true,
-            borderColor: 'navy',
-            backgroundColor: 'rgba(0, 0, 128, 0.3)', // semi-transparent navy fill
-            tension: 0.4 // smooth curve
-          }
-        ]
-      },
+      data: chartData,
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
-          y: {
-            beginAtZero: true
-          }
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Monthly Reservations'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Month'
+              }
+            }
         },
         plugins: {
           legend: {
-            display: true
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Monthly Reservation Forecast (SARIMA Model)',
+            font: {
+              size: 16
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              title: function(context) {
+                const label = context[0].label;
+                // Label is already in "January 31, 2004" format, so return as is
+                return label;
+              },
+              label: function(context) {
+                const datasetLabel = context.dataset.label;
+                const value = context.parsed.y;
+                if (value === null) return '';
+                
+                if (datasetLabel === 'Historical Reservations') {
+                  return `Historical: ${value} reservations/month`;
+                } else if (datasetLabel === 'Forecast') {
+                  return `Forecast: ${value.toFixed(1)} reservations/month`;
+                } else if (datasetLabel === 'Confidence Interval') {
+                  return `Upper bound: ${value.toFixed(1)}`;
+                } else if (datasetLabel === '') {
+                  return `Lower bound: ${value.toFixed(1)}`;
+                }
+                return `${datasetLabel}: ${value}`;
+              }
+            }
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
+        },
+        elements: {
+          point: {
+            radius: 3,
+            hoverRadius: 5
           }
         }
       }
     })
+    window.__hmsStatsChart = statsChart
+    
+    // Add method indicator once
+    if (!document.getElementById('forecastMethodIndicator')) {
+      const methodIndicator = document.createElement('div');
+      methodIndicator.id = 'forecastMethodIndicator'
+      methodIndicator.className = 'mt-2 text-center';
+      methodIndicator.innerHTML = `
+        <small class="text-muted">
+          <i class="bi bi-info-circle"></i> 
+          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+        </small>
+      `;
+      canvasEl.parentNode.appendChild(methodIndicator);
+    }
+    
+    // Download Report functionality
+    document.getElementById('downloadReportBtn').addEventListener('click', function() {
+      downloadForecastReport(chartData, forecastMethod);
+    });
+    
+    function downloadForecastReport(chartData, method) {
+      // Prepare CSV data
+      let csvContent = "data:text/csv;charset=utf-8,";
+      
+      // Add dashboard summary
+      csvContent += "DASHBOARD SUMMARY\n";
+      csvContent += `Total Guests,{{ total_guests }}\n`;
+      csvContent += `Peak Month,{{ peak_month }}\n`;
+      csvContent += `Total Revenue,₱ {{ total_revenue }}\n`;
+      csvContent += `Forecast Method,${method.toUpperCase()}\n`;
+      csvContent += `Report Generated,${new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}\n`;
+      csvContent += "\n";
+      
+      // Add forecast data header
+      csvContent += "FORECAST DATA\n";
+      csvContent += "Month,Historical Reservations,Forecast,Lower Bound,Upper Bound,Type\n";
+      
+      // Get historical data
+      const historicalLabels = chartData.labels.slice(0, chartData.datasets[0].data.filter(d => d !== null).length);
+      const historicalData = chartData.datasets[0].data.filter(d => d !== null);
+      
+      // Get forecast data
+      const forecastLabels = chartData.labels.slice(historicalLabels.length);
+      const forecastData = chartData.datasets[1].data.filter(d => d !== null);
+      const lowerBound = chartData.datasets[2].data.filter(d => d !== null);
+      const upperBound = chartData.datasets[3].data.filter(d => d !== null);
+      
+      // Add historical data rows
+      historicalLabels.forEach((label, index) => {
+        // Label is already in "January 31, 2004" format
+        csvContent += `${label},${historicalData[index] || 0},,,"Historical"\n`;
+      });
+      
+      // Add forecast data rows
+      forecastLabels.forEach((label, index) => {
+        // Label is already in "January 31, 2004" format
+        csvContent += `${label},,${forecastData[index] || 0},${lowerBound[index] || 0},${upperBound[index] || 0},"Forecast"\n`;
+      });
+      
+      // Create and trigger download
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `reservation_forecast_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success message
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Report Downloaded!',
+          text: 'The forecast report has been downloaded as CSV.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        alert('Forecast report downloaded successfully!');
+      }
+    }
   </script>
 {% endblock %}

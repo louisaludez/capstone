@@ -5,7 +5,7 @@
   </div>
   <div class="sidebar-menu mt-4 mb-5">
     <a href="{% url 'guest_booking_home' %}" class="{% if active_page == 'home' %}active{% endif %}">Book Reservation</a>
-    <a href="" class="{% if active_page == 'details' %}active{% endif %}">Reservation Details</a>
+    <a href="{% url 'guest_reservations_list' %}" class="{% if active_page == 'reservations' %}active{% endif %}">Reservation Details</a>
     <a href="{% url 'activity_home' %}">Activity</a>
   </div>
   <div class="mt-auto p-3 d-flex flex-column align-items-center">

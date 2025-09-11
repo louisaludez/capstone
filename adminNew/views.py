@@ -17,18 +17,139 @@ from decimal import Decimal
 
 # Create your views here.
 def admin_home(request):
+    from .sarima_forecast import get_reservation_forecast
+    from django.db.models import Sum
+    from datetime import datetime, timedelta
+    import calendar
+    
     users = CustomUser.objects.all()
     guest = Guest.objects.all().count()
-    # Placeholder metrics
-    total_guests = guest
-    peak_month = "alaws"
-    formatted_revenue = "0.00"
+    
+    # Calculate total revenue from all billing fields
+    total_revenue = 0.0
+    for guest_obj in Guest.objects.all():
+        try:
+            total_revenue += float(guest_obj.billing or 0)
+            total_revenue += float(guest_obj.room_service_billing or 0)
+            total_revenue += float(guest_obj.laundry_billing or 0)
+            total_revenue += float(guest_obj.cafe_billing or 0)
+            total_revenue += float(guest_obj.excess_pax_billing or 0)
+            total_revenue += float(guest_obj.additional_charge_billing or 0)
+        except (ValueError, TypeError):
+            continue
+    
+    # Find peak month and calculate growth based on booking counts
+    monthly_bookings = {}
+    for booking in Booking.objects.all():
+        month_key = booking.booking_date.strftime('%Y-%m')
+        monthly_bookings[month_key] = monthly_bookings.get(month_key, 0) + 1
+    
+    peak_month = "No data"
+    growth_percentage = 0.0
+    
+    if monthly_bookings:
+        # Find peak month
+        peak_month_key = max(monthly_bookings, key=monthly_bookings.get)
+        peak_month = datetime.strptime(peak_month_key, '%Y-%m').strftime('%B %Y')
+        
+        # Calculate growth percentage (comparing last 2 months)
+        sorted_months = sorted(monthly_bookings.keys())
+        if len(sorted_months) >= 2:
+            current_month = monthly_bookings[sorted_months[-1]]
+            previous_month = monthly_bookings[sorted_months[-2]]
+            if previous_month > 0:
+                growth_percentage = ((current_month - previous_month) / previous_month) * 100
+            else:
+                growth_percentage = 100.0 if current_month > 0 else 0.0
+    
+    # Get SARIMA forecast data
+    forecast_data = get_reservation_forecast()
+    
+    # Prepare chart data
+    chart_data = {
+        'labels': [],
+        'datasets': []
+    }
+    
+    if forecast_data:
+        # Historical data
+        historical_labels = forecast_data['historical']['dates']
+        historical_values = forecast_data['historical']['values']
+        
+        # Forecast data
+        forecast_labels = forecast_data['forecast']['dates']
+        forecast_values = forecast_data['forecast']['values']
+        forecast_lower = forecast_data['forecast']['lower_bound']
+        forecast_upper = forecast_data['forecast']['upper_bound']
+        
+        # Combine labels (last 12 months + 6 months forecast)
+        chart_data['labels'] = historical_labels[-12:] + forecast_labels
+        
+        # Historical dataset
+        chart_data['datasets'].append({
+            'label': 'Historical Reservations',
+            'data': historical_values[-12:] + [None] * len(forecast_labels),
+            'borderColor': 'rgb(75, 192, 192)',
+            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+            'tension': 0.4,
+            'fill': False
+        })
+        
+        # Forecast dataset
+        chart_data['datasets'].append({
+            'label': 'Forecast',
+            'data': [None] * len(historical_values[-12:]) + forecast_values,
+            'borderColor': 'rgb(255, 99, 132)',
+            'backgroundColor': 'rgba(255, 99, 132, 0.2)',
+            'tension': 0.4,
+            'fill': False,
+            'borderDash': [5, 5]
+        })
+        
+        # Confidence interval
+        chart_data['datasets'].append({
+            'label': 'Confidence Interval',
+            'data': [None] * len(historical_values[-12:]) + forecast_upper,
+            'borderColor': 'rgba(255, 99, 132, 0.3)',
+            'backgroundColor': 'rgba(255, 99, 132, 0.1)',
+            'fill': '+1',
+            'pointRadius': 0,
+            'borderWidth': 0
+        })
+        
+        chart_data['datasets'].append({
+            'label': '',
+            'data': [None] * len(historical_values[-12:]) + forecast_lower,
+            'borderColor': 'rgba(255, 99, 132, 0.3)',
+            'backgroundColor': 'rgba(255, 99, 132, 0.1)',
+            'fill': False,
+            'pointRadius': 0,
+            'borderWidth': 0
+        })
+    else:
+        # Fallback data if no forecast available
+        chart_data = {
+            'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'datasets': [{
+                'label': 'Monthly Stats',
+                'data': [10, 15, 8, 12, 18, 20, 14, 16, 22, 19, 17, 13],
+                'borderColor': 'rgb(75, 192, 192)',
+                'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+                'tension': 0.4,
+                'fill': True
+            }]
+        }
+
+    import json
 
     return render(request, "adminNew/home.html", {
         "users": users,
-        "total_guests": total_guests,
+        "total_guests": guest,
         "peak_month": peak_month,
-        "total_revenue": formatted_revenue,
+        "total_revenue": f"{total_revenue:.2f}",
+        "growth_percentage": f"{growth_percentage:.1f}",
+        "chart_data": json.dumps(chart_data),
+        "forecast_method": forecast_data['method'] if forecast_data else 'fallback'
     })
 def admin_account(request):
     users = CustomUser.objects.all()
@@ -159,7 +280,7 @@ def admin_messenger(request):
 def admin_front_office_reports(request):
     from django.core.paginator import Paginator
     from django.db.models import Q
-    
+
     # Revenue from all guest billings
     guests = Guest.objects.all()
     total_revenue = 0

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  My Reservations
+{% endblock %}
+
+{% block link %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .reservations-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .reservations-card {
+      border: 1px solid #2e7d32;
+      border-radius: 10px;
+      padding: 20px;
+      width: 100%;
+      max-width: 900px;
+      background-color: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .reservation-item {
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+    
+    .reservation-item:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #2e7d32;
+    }
+    
+    .reservation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .reservation-id {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    .status-checked-in {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status-checked-out {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .reservation-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-group {
+      text-align: center;
+    }
+    
+    .detail-label {
+      color: #6c757d;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      color: #495057;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .reservation-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .btn-action {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .btn-primary {
+      background: #2e7d32;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #1b5e20;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      color: #2e7d32;
+      border: 1px solid #2e7d32;
+    }
+    
+    .btn-outline:hover {
+      background: #2e7d32;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .no-reservations {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+    }
+    
+    .no-reservations i {
+      font-size: 48px;
+      color: #dee2e6;
+      margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .reservation-details {
+        grid-template-columns: 1fr;
+      }
+    
+      .reservation-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='reservations' %}
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="p-4 rounded" style="max-width: 1100px; width: 100%; border: 2px solid #7c4dff;">
+      <h5 class="text-center fw-bold mb-3" style="color:#2e7d32">Your Reservations</h5>
+
+      {% if error %}
+        <div class="no-reservations">
+          <i class="bi bi-exclamation-triangle"></i>
+          <h5>Error Loading Reservations</h5>
+          <p>{{ error }}</p>
+        </div>
+      {% elif bookings %}
+        <div class="table-responsive">
+          <table class="table align-middle" style="margin-bottom: 8px;">
+            <thead>
+              <tr style="background:#f8f9fa;">
+                <th style="width: 110px;">Reference No.</th>
+                <th>Guests Name</th>
+                <th>Service</th>
+                <th>Reservation Date</th>
+                <th>Check-in Date</th>
+                <th>Time-in</th>
+                <th class="text-end" style="width: 140px;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for booking in bookings %}
+                <tr>
+                  <td>{{ booking.id|stringformat:'05d' }}</td>
+                  <td>{{ booking.guest.name }}</td>
+                  <td>Reservation</td>
+                  <td>{{ booking.booking_date|date:'n/j/Y' }}</td>
+                  <td>{{ booking.check_in_date|date:'n/j/Y' }}</td>
+                  <td>9:00AM</td>
+                  <td class="text-end">
+                    {% if booking.status == 'Cancelled' %}
+                      <span class="status-badge status-cancelled">Cancelled</span>
+                    {% elif booking.status == 'Checked-in' %}
+                      <span class="status-badge status-checked-in">Checked-in</span>
+                    {% else %}
+                      <span class="status-badge status-pending">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if paginator.num_pages > 1 %}
+          <div class="d-flex justify-content-end align-items-center gap-1">
+            {% if page_obj.has_previous %}
+              <a class="btn btn-sm btn-light" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+            {% else %}
+              <button class="btn btn-sm btn-light" disabled>&laquo;</button>
+            {% endif %}
+            {% for num in paginator.page_range %}
+              {% if num == page_obj.number %}
+                <button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32;">{{ num }}</button>
+              {% else %}
+                <a class="btn btn-sm btn-light" href="?page={{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+              <a class="btn btn-sm btn-light" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+            {% else %}
+              <button class="btn btn-sm btn-light" disabled>&raquo;</button>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="no-reservations">
+          <i class="bi bi-calendar-x"></i>
+          <h5>No Reservations Found</h5>
+          <p>You don't have any reservations yet.</p>
+          <a href="{% url 'guest_booking_home' %}" class="btn-action btn-primary">
+            <i class="bi bi-plus"></i>
+            Make Your First Reservation
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
