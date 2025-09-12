@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.core.paginator import Paginator
+from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 import logging
@@ -20,52 +21,84 @@ def guest_booking_home(request):
 def guest_booking_results(request):
     # Read query params
     stay_type = request.GET.get('stayType', 'overnight')
-    checkin = request.GET.get('checkin')
-    checkout = request.GET.get('checkout')
-    rooms = request.GET.get('rooms')
-    adults = request.GET.get('adults')
-    children = request.GET.get('children')
+    checkin_str = request.GET.get('checkin')
+    checkout_str = request.GET.get('checkout')
+    rooms_param = request.GET.get('rooms')
+    adults_param = request.GET.get('adults')
+    children_param = request.GET.get('children')
     child_ages = request.GET.get('childAges', '')
 
-    # Debug: Log query parameters
-    logger.debug(f"Search Parameters - Stay Type: {stay_type}, Check-in: {checkin}, Check-out: {checkout}, Rooms: {rooms}, Adults: {adults}, Children: {children}, Child Ages: {child_ages}")
-    print(f"DEBUG: Stay Type: {stay_type}, Check-in: {checkin}, Check-out: {checkout}, Rooms: {rooms}, Adults: {adults}, Children: {children}, Child Ages: {child_ages}")
+    # Parse counts safely
+    try:
+        adults = int(adults_param or 2)
+    except Exception:
+        adults = 2
+    try:
+        children = int(children_param or 0)
+    except Exception:
+        children = 0
 
-    # Query the database for available rooms
-    available_rooms = Room.objects.filter(
-        capacity__gte=int(adults) + int(children),
-        status='available'  # Check if the room status is available
+    # Parse dates; ensure checkout set correctly for dayuse/overnight
+    try:
+        checkin = datetime.strptime(str(checkin_str), '%Y-%m-%d').date()
+    except Exception:
+        checkin = timezone.localdate()
+
+    try:
+        checkout = datetime.strptime(str(checkout_str), '%Y-%m-%d').date() if checkout_str else None
+    except Exception:
+        checkout = None
+
+    if stay_type == 'dayuse':
+        # Same-day use
+        checkout = checkin
+    else:
+        # Overnight requires at least one night
+        if not checkout or checkout <= checkin:
+            checkout = checkin + timedelta(days=1)
+
+    logger.debug(f"Search Parameters - Stay Type: {stay_type}, Check-in: {checkin}, Check-out: {checkout}, Rooms: {rooms_param}, Adults: {adults}, Children: {children}, Child Ages: {child_ages}")
+    print(f"[guest_booking_results] stay_type={stay_type} checkin={checkin} checkout={checkout} rooms={rooms_param} adults={adults} children={children}")
+
+    # Collect rooms blocked by overlapping bookings within selected range
+    # A booking overlaps if: booking.check_in_date <= checkout and booking.check_out_date >= checkin
+    overlapping = Booking.objects.filter(
+        status__in=['Pending', 'Checked-in'],
+        check_in_date__lte=checkout,
+        check_out_date__gte=checkin,
     )
 
-    # Debug: Log the number of available rooms
-    logger.debug(f"Number of available rooms: {available_rooms.count()}")
-    print(f"DEBUG: Number of available rooms: {available_rooms.count()}")
+    # Normalize room codes to plain numeric strings (e.g., "Room 11 : Deluxe" -> "11")
+    import re as _re
+    blocked_numbers = set()
+    for b in overlapping:
+        m = _re.search(r"\d+", str(b.room))
+        code = m.group(0) if m else str(b.room)
+        blocked_numbers.add(code)
 
-    # Print available room information
-    for room in available_rooms:
-        print(f"Room Number: {room.room_number}")
-        print(f"Room Type: {room.get_room_type_display()}")
-        print(f"Status: {room.get_status_display()}")
-        print(f"Capacity: {room.capacity}")
-        print(f"Price per Night: {room.price_per_night}")
-        print(f"Description: {room.description}")
-        print(f"Amenities: {room.amenities}")
-        print(f"Accessible: {room.is_accessible}")
-        print(f"Balcony: {room.has_balcony}")
-        print(f"Ocean View: {room.has_ocean_view}")
-        print(f"Created At: {room.created_at}")
-        print(f"Updated At: {room.updated_at}")
-        print("-" * 40)
+    print(f"[guest_booking_results] blocked room_numbers due to overlap: {sorted(blocked_numbers)}")
+
+    # Start from all rooms that meet capacity, then exclude blocked
+    candidate_rooms = Room.objects.filter(capacity__gte=(adults + children))
+    available_rooms = candidate_rooms.exclude(room_number__in=blocked_numbers).order_by('room_number')
+    blocked_among_candidates = candidate_rooms.filter(room_number__in=blocked_numbers).count()
+    candidate_count = candidate_rooms.count()
+    available_count = available_rooms.count()
+
+    print(f"[guest_booking_results] total candidates={candidate_count} available_after_block={available_count} blocked={blocked_among_candidates}")
 
     context = {
         'stay_type': stay_type,
-        'checkin': checkin,
-        'checkout': checkout,
-        'rooms': rooms,
+        'checkin': checkin.strftime('%Y-%m-%d'),
+        'checkout': checkout.strftime('%Y-%m-%d'),
+        'num_rooms': rooms_param,
         'adults': adults,
         'children': children,
         'child_ages': child_ages,
-        'rooms': available_rooms,  # Pass the rooms to the template
+        'rooms': available_rooms,
+        'unavailable_count': blocked_among_candidates,
+        'available_count': available_count,
+        'candidate_count': candidate_count,
     }
 
     return render(request, 'guestbooking/results.html', context)
