@@ -1,11 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from staff.models import Room, Guest, Booking, Payment  # Import models from staff app
 from django.db.models import Q
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.core.paginator import Paginator
 from decimal import Decimal
 import json
 import logging
@@ -290,84 +290,19 @@ def checkin_reservation(request):
         return JsonResponse({'success': False, 'message': 'Reservation not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
+def reservation_details(request):
+    """Display a paginated list of reservations similar to the provided UI."""
+    bookings = (
+        Booking.objects.select_related('guest')
+        .order_by('-booking_date')
+    )
 
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(bookings, 5)  # Show 5 rows per page to match the screenshot
+    page_obj = paginator.get_page(page_number)
 
-def guest_reservations_list(request):
-    """Display list of guest's reservations"""
-    try:
-        # For now, show all bookings since there's no user-guest relationship
-        bookings_qs = Booking.objects.select_related('guest').order_by('-booking_date')
-
-        # Pagination - 5 rows per page like in screenshot
-        page_number = request.GET.get('page', 1)
-        paginator = Paginator(bookings_qs, 5)
-        page_obj = paginator.get_page(page_number)
-        
-        context = {
-            'page_obj': page_obj,
-            'bookings': page_obj.object_list,
-            'paginator': paginator,
-        }
-        
-        return render(request, 'guestbooking/reservations_list.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in guest_reservations_list: {str(e)}")
-        return render(request, 'guestbooking/reservations_list.html', {
-            'error': 'Error loading reservations.',
-            'bookings': []
-        })
-
-
-def reservation_details(request, booking_id):
-    """Display detailed information about a specific reservation"""
-    try:
-        # Get the booking with related guest and payment information
-        booking = get_object_or_404(Booking, id=booking_id)
-        
-        # Get related objects
-        guest = booking.guest
-        
-        # Get room information - since room is stored as CharField, we need to find the actual room
-        room_number = booking.room
-        try:
-            room = Room.objects.get(room_number=room_number)
-        except Room.DoesNotExist:
-            # Create a mock room object if room not found
-            room = type('MockRoom', (), {
-                'room_number': room_number,
-                'get_room_type_display': lambda: 'Standard',
-                'capacity': 2,
-                'price_per_night': 1000.00,
-                'description': 'Room details not available'
-            })()
-        
-        payment = getattr(booking, 'payment', None)
-        
-        # Calculate stay duration
-        check_in = booking.check_in_date
-        check_out = booking.check_out_date
-        stay_duration = (check_out - check_in).days if check_out and check_in else 0
-        
-        # Calculate total cost
-        total_cost = 0
-        if payment:
-            total_cost = float(payment.total_balance) if payment.total_balance else 0
-        
-        context = {
-            'booking': booking,
-            'guest': guest,
-            'room': room,
-            'payment': payment,
-            'stay_duration': stay_duration,
-            'total_cost': total_cost,
-        }
-        
-        return render(request, 'guestbooking/reservation_details.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in reservation_details: {str(e)}")
-        return render(request, 'guestbooking/reservation_details.html', {
-            'error': 'Reservation not found or error occurred.',
-            'booking': None
-        })
+    context = {
+        'page_obj': page_obj,
+        'paginator': paginator,
+    }
+    return render(request, 'guestbooking/reservation_details.html', context)

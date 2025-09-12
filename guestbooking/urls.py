@@ -7,8 +7,7 @@ urlpatterns = [
     path('payment/', payment, name='payment'),
     path('confirmation/', confirmation, name='confirmation'),
     path('save-reservation/', save_reservation, name='save_reservation'),
-    path('my-reservations/', guest_reservations_list, name='guest_reservations_list'),
-    path('reservation-details/<int:booking_id>/', reservation_details, name='reservation_details'),
+    path('details/', reservation_details, name='reservation_details'),
     # APIs used by staff check-in modal
     path('api/list-pending-reservations/', list_pending_reservations, name='list_pending_reservations'),
     path('api/checkin-reservation/', checkin_reservation, name='checkin_reservation'),
