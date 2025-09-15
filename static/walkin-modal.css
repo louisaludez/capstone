@@ -94,16 +94,80 @@
     max-width: 48%;
 }
 
-.walkin-addons {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.addons-popup {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.addons-popup.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.addons-popup::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.addons-popup::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ddd;
 }
 
 .walkin-addons button {
     padding: 2px 6px;
     font-size: 11px;
     cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #f5f5f5;
+    transition: all 0.2s ease;
+}
+
+.walkin-addons button:hover:not(:disabled) {
+    background: #e0e0e0;
+    border-color: #999;
+}
+
+.walkin-addons button:disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ddd;
+}
+
+.walkin-addons button.disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ddd;
+}
+
+#wi-addons-count {
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+    padding: 2px 4px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
 }
 
 .walkin-book-btn {
@@ -141,7 +205,7 @@
     margin: 0;
 }
 
-.walkin-countdown img{
+.walkin-countdown img {
     width: 30px;
     height: 30px;
     margin-left: 0;

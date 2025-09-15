@@ -30,15 +30,19 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
       cursor: pointer;
       word-wrap: break-word;
       margin-bottom: 20px;
     }
     .parent > div img {
-      width: 90%;
-      height: 70px;
-      margin-bottom: 10px;
-      align-self: center;
+      max-width: 120px; /* cap width */
+      max-height: 80px; /* cap height */
+      width: auto; /* keep aspect ratio */
+      height: auto; /* keep aspect ratio */
+      margin: 0 auto 10px; /* center image */
+      object-fit: contain; /* avoid stretching */
+      display: block;
     }
     span {
       color: #216216;

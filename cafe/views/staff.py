@@ -3,6 +3,8 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from cafe.models import *
 from staff.models import Guest
 
@@ -183,11 +185,21 @@ def create_order(request):
 
 
 def staff_cafe_orders(request):
-    dine_in_orders = CafeOrder.objects.filter(service_type='dine_in').order_by('-order_date')
-    take_out_orders = CafeOrder.objects.filter(service_type='take_out').order_by('-order_date')
+    dine_in_orders = CafeOrder.objects.filter(service_type='dine_in').exclude(status='done').order_by('-order_date')
+    take_out_orders = CafeOrder.objects.filter(service_type='take_out').exclude(status='done').order_by('-order_date')
 
     context = {
         'dine_in_orders': dine_in_orders,
         'take_out_orders': take_out_orders,
     }
     return render(request, 'cafe/staff/orders.html', context)
+
+
+@csrf_exempt
+def mark_order_done(request, order_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+    order = get_object_or_404(CafeOrder, id=order_id)
+    order.status = 'done'
+    order.save(update_fields=['status'])
+    return JsonResponse({'status': 'ok'})

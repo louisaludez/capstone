@@ -28,6 +28,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
       cursor: pointer;
       word-wrap: break-word;
       margin-bottom: 20px;
@@ -39,11 +40,12 @@
       border-color: #1b7a1b;
     }
     .parent > div img {
-      width: 150px; /* change as needed */
-      height: 100px; /* change as needed */
-      margin-bottom: 10px;
-      object-fit: contain; /* keeps aspect ratio; adds letterboxing if needed */
-      align-self: center;
+      max-width: 150px; /* cap width */
+      max-height: 100px; /* cap height */
+      width: auto; /* keep aspect ratio */
+      height: auto; /* keep aspect ratio */
+      margin: 0 auto 10px; /* center */
+      object-fit: contain; /* avoid stretching */
       display: block;
       transition: transform 0.2s ease;
     }

@@ -29,6 +29,10 @@ class CafeOrder(models.Model):
         ('dine_in', 'Dine In'),
         ('take_out', 'Take Out'),
     ]
+    STATUS_CHOICES = [
+        ('queued', 'Queued'),
+        ('done', 'Done'),
+    ]
 
     customer_name = models.CharField(max_length=100, blank=True, null=True)
     guest = models.ForeignKey(Guest, on_delete=models.SET_NULL, blank=True, null=True)
@@ -38,6 +42,7 @@ class CafeOrder(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     card_number = models.CharField(max_length=20, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
     
     def __str__(self):
         return f"Order #{self.id}"

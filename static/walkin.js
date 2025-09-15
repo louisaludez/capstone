@@ -143,12 +143,73 @@ function closeWalkinModal() {
   clearInterval(walkInTimerInterval);
   walkInTimerInterval = null;
 }
-$(".wi-addons-decrease, .wi-addons-increase").on("click", function () {
-  let count = parseInt($("#wi-addons-count").text());
-  count += $(this).hasClass("wi-addons-increase") ? 1 : -1;
-  if (count < 0) count = 0;
-  $("#wi-addons-count").text(count);
+// Add-ons dropdown functionality
+let addonsData = {
+  bed: 0,
+  pillow: 0,
+  towel: 0
+};
+
+// Initialize add-ons functionality when DOM is ready
+$(document).ready(function () {
+  // Toggle add-ons popup
+  $(document).on("click", ".walkin-addons-dropdown", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Add-ons dropdown clicked");
+    $("#addons-popup").toggleClass('show');
+  });
+
+  // Add-ons counter functionality
+  $(document).on("click", "#bed-minus, #bed-plus, #pillow-minus, #pillow-plus, #towel-minus, #towel-plus", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Add-ons button clicked:", this.id);
+
+    const isPlus = this.id.includes('plus');
+    const type = this.id.replace('-plus', '').replace('-minus', '');
+
+    let count = addonsData[type];
+    count += isPlus ? 1 : -1;
+    if (count < 0) count = 0;
+    if (count > 10) count = 10;
+
+    addonsData[type] = count;
+    $(`#${type}-count`).text(count);
+
+    // Update button states
+    $(`#${type}-minus`).prop('disabled', count <= 0);
+    $(`#${type}-plus`).prop('disabled', count >= 10);
+
+    // Update summary
+    updateAddonsSummary();
+  });
+
+  // Close add-ons popup when clicking outside
+  $(document).on("click", function (e) {
+    if (!$(e.target).closest('.walkin-addons-dropdown').length) {
+      $("#addons-popup").removeClass('show');
+    }
+  });
 });
+
+// Update add-ons summary display
+function updateAddonsSummary() {
+  const totalAddons = addonsData.bed + addonsData.pillow + addonsData.towel;
+
+  if (totalAddons === 0) {
+    $("#addons-summary").text("No add-ons selected");
+    $("#addons-details").text("Select add-ons for your stay");
+  } else {
+    let summary = [];
+    if (addonsData.bed > 0) summary.push(`${addonsData.bed} bed${addonsData.bed > 1 ? 's' : ''}`);
+    if (addonsData.pillow > 0) summary.push(`${addonsData.pillow} pillow${addonsData.pillow > 1 ? 's' : ''}`);
+    if (addonsData.towel > 0) summary.push(`${addonsData.towel} towel${addonsData.towel > 1 ? 's' : ''}`);
+
+    $("#addons-summary").text(summary.join(', '));
+    $("#addons-details").text(`${totalAddons} add-on${totalAddons > 1 ? 's' : ''} selected`);
+  }
+}
 
 $(".walkin-book-btn").on("click", function (event) {
   walkinOverlay.style.display = "none";
@@ -164,7 +225,7 @@ $(".walkin-book-btn").on("click", function (event) {
     total_guests: document.querySelector(".walkin-total-guest").value,
     adults: document.querySelector(".walkin-no-of-adults").value,
     children: document.querySelector(".walkin-no-of-children").value,
-    add_ons: document.querySelector("#wi-addons-count").textContent,
+    add_ons: addonsData,
     children_7_years: document.querySelector(".walkin-below-seven").value,
     payment_method: document.querySelector(".walkin-payment-method").value,
     card_number: document.querySelector(".walkin-card-number").value,
@@ -235,6 +296,21 @@ $(".walkin-book-btn").on("click", function (event) {
                       <td style="text-align: left;"></td>
                       <td>x2</td>
                       <td style="text-align: right;">1000.00</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;">Extra Bed</td>
+                      <td>x${data.add_ons.bed}</td>
+                      <td style="text-align: right;">${data.add_ons.bed * 200}.00</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;">Extra Pillow</td>
+                      <td>x${data.add_ons.pillow}</td>
+                      <td style="text-align: right;">${data.add_ons.pillow * 50}.00</td>
+                    </tr>
+                    <tr>
+                      <td style="text-align: left;">Extra Towel</td>
+                      <td>x${data.add_ons.towel}</td>
+                      <td style="text-align: right;">${data.add_ons.towel * 30}.00</td>
                     </tr>
                   </table>
                   <hr style="border: 1px dashed #333; margin: 10px 0;">

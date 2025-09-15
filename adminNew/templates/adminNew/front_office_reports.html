@@ -22,7 +22,7 @@
         </div>
       </div>
     </div>
-    <div class="row boxes">
+    <div class="row boxes" style="margin-top: 20px; padding-top: 15px;">
       <div class="col">
         <p class="title">Total Walk-ins</p>
         <span class="number">{{ total_walkins }}</span>
@@ -50,12 +50,15 @@
       <div class="col-1">
         <input type="checkbox" />
       </div>
-      <div class="col-2">Receipt No.</div>
-      <div class="col-2">Customer</div>
-      <div class="col-2">Service Type</div>
+      <div class="col-1">Room No.</div>
+      <div class="col-2">Guest Name</div>
+      <div class="col-1">Room Type</div>
       <div class="col-2">Date and Time</div>
-      <div class="col-2">Status</div>
-      <div class="col-1">Actions</div>
+      <div class="col-1">Stay (Nights)</div>
+      <div class="col-1">Guests (A+C)</div>
+      <div class="col-1">Room Charges</div>
+      <div class="col-1">Other Charges</div>
+      <div class="col-1">Payment</div>
     </div>
 
     <!-- Table Rows -->
@@ -82,6 +85,9 @@
                   
                   
                   
+                  
+                  
+                  
                   &search={{ search_query }}
                 {% endif %}">
                 First
@@ -90,6 +96,9 @@
             <li class="page-item">
               <a class="page-link"
                 href="?page={{ page_obj.previous_page_number }}{% if search_query %}
+                  
+                  
+                  
                   
                   
                   
@@ -116,6 +125,9 @@
                     
                     
                     
+                    
+                    
+                    
                     &search={{ search_query }}
                   {% endif %}">
                   {{ num }}
@@ -133,6 +145,9 @@
                   
                   
                   
+                  
+                  
+                  
                   &search={{ search_query }}
                 {% endif %}">
                 Next
@@ -141,6 +156,9 @@
             <li class="page-item">
               <a class="page-link"
                 href="?page={{ paginator.num_pages }}{% if search_query %}
+                  
+                  
+                  
                   
                   
                   

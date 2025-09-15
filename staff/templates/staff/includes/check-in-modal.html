@@ -1,4 +1,5 @@
 {% load static %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 <!-- Check‑in Modal -->
 <div class="checkin-overlay">
   <div class="checkin-modal">
@@ -79,10 +80,55 @@
           </div>
           <div class="checkin-field">
             <label>Add‑ons</label>
-            <div class="checkin-addons">
-              <button type="button" class="ci-addons-decrease">-</button>
-              <span id="ci-addons-count">1</span>
-              <button type="button" class="ci-addons-increase">+</button>
+            <div class="checkin-addons-dropdown" style="border: 1px solid #ccc; border-radius: 4px; padding: 2px 5px; background-color: #dddddd; cursor: pointer; position: relative; font-size: 11px; height: 18px; display: flex; align-items: center;" onclick="console.log('Check-in dropdown clicked'); const popup = document.getElementById('checkin-addons-popup'); if (popup.style.display === 'none' || popup.style.display === '') { popup.style.display = 'block'; console.log('Showing check-in popup'); } else { popup.style.display = 'none'; console.log('Hiding check-in popup'); }">
+              <div class="d-flex justify-content-between align-items-center" style="width: 100%;">
+                <div style="flex: 1;">
+                  <div style="font-size: 11px; line-height: 1;">
+                    <i class="bi bi-plus-circle" style="font-size: 9px;"></i> <strong id="checkin-addons-summary" style="font-size: 11px;">No add-ons selected</strong>
+                  </div>
+                  <small class="text-muted" id="checkin-addons-details" style="font-size: 8px; line-height: 0.8;">Select add-ons for your stay</small>
+                </div>
+                <i class="bi bi-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
+              </div>
+
+              <!-- Add-ons Popup -->
+              <div class="addons-popup" id="checkin-addons-popup" style="position: absolute; top: 100%; left: 0; background: #f0f0f0; border: 2px solid #2e7d32; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 9999; min-width: 250px; max-width: 250px; display: none; padding: 8px; margin-top: 5px;">
+                <div class="addons-section" style="padding: 4px; border-bottom: 1px solid #eee;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <h6 style="margin: 0; color: #333; font-weight: 600; font-size: 12px;">Extra Bed</h6>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <button id="checkin-bed-minus" onclick="event.stopPropagation(); changeCheckinAddon('bed', -1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">-</button>
+                      <span id="checkin-bed-count" style="font-weight: bold; min-width: 20px; text-align: center; font-size: 12px;">0</span>
+                      <button id="checkin-bed-plus" onclick="event.stopPropagation(); changeCheckinAddon('bed', 1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">+</button>
+                    </div>
+                  </div>
+                  <div style="font-size: 9px; color: #666; font-style: italic;">₱200 per bed</div>
+                </div>
+
+                <div class="addons-section" style="padding: 4px; border-bottom: 1px solid #eee;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <h6 style="margin: 0; color: #333; font-weight: 600; font-size: 12px;">Extra Pillow</h6>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <button id="checkin-pillow-minus" onclick="event.stopPropagation(); changeCheckinAddon('pillow', -1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">-</button>
+                      <span id="checkin-pillow-count" style="font-weight: bold; min-width: 20px; text-align: center; font-size: 12px;">0</span>
+                      <button id="checkin-pillow-plus" onclick="event.stopPropagation(); changeCheckinAddon('pillow', 1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">+</button>
+                    </div>
+                  </div>
+                  <div style="font-size: 9px; color: #666; font-style: italic;">₱50 per pillow</div>
+                </div>
+
+                <div class="addons-section" style="padding: 4px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <h6 style="margin: 0; color: #333; font-weight: 600; font-size: 12px;">Extra Towel</h6>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <button id="checkin-towel-minus" onclick="event.stopPropagation(); changeCheckinAddon('towel', -1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">-</button>
+                      <span id="checkin-towel-count" style="font-weight: bold; min-width: 20px; text-align: center; font-size: 12px;">0</span>
+                      <button id="checkin-towel-plus" onclick="event.stopPropagation(); changeCheckinAddon('towel', 1);" style="background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">+</button>
+                    </div>
+                  </div>
+                  <div style="font-size: 9px; color: #666; font-style: italic;">₱30 per towel</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -142,3 +188,47 @@
     </div>
   </div>
 </div>
+
+<script>
+// Check-in Add-ons functionality
+let checkinAddonsData = {
+  bed: 0,
+  pillow: 0,
+  towel: 0
+}
+
+function changeCheckinAddon(type, delta) {
+  console.log('Changing check-in addon:', type, delta)
+  let count = checkinAddonsData[type]
+  count += delta
+  if (count < 0) count = 0
+  if (count > 10) count = 10
+
+  checkinAddonsData[type] = count
+  document.getElementById('checkin-' + type + '-count').textContent = count
+
+  // Update button states
+  document.getElementById('checkin-' + type + '-minus').disabled = count <= 0
+  document.getElementById('checkin-' + type + '-plus').disabled = count >= 10
+
+  // Update summary
+  updateCheckinAddonsSummary()
+}
+
+function updateCheckinAddonsSummary() {
+  const totalAddons = checkinAddonsData.bed + checkinAddonsData.pillow + checkinAddonsData.towel
+
+  if (totalAddons === 0) {
+    document.getElementById('checkin-addons-summary').textContent = 'No add-ons selected'
+    document.getElementById('checkin-addons-details').textContent = 'Select add-ons for your stay'
+  } else {
+    let summary = []
+    if (checkinAddonsData.bed > 0) summary.push(`${checkinAddonsData.bed} bed${checkinAddonsData.bed > 1 ? 's' : ''}`)
+    if (checkinAddonsData.pillow > 0) summary.push(`${checkinAddonsData.pillow} pillow${checkinAddonsData.pillow > 1 ? 's' : ''}`)
+    if (checkinAddonsData.towel > 0) summary.push(`${checkinAddonsData.towel} towel${checkinAddonsData.towel > 1 ? 's' : ''}`)
+
+    document.getElementById('checkin-addons-summary').textContent = summary.join(', ')
+    document.getElementById('checkin-addons-details').textContent = `${totalAddons} add-on${totalAddons > 1 ? 's' : ''} selected`
+  }
+}
+</script>

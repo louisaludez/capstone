@@ -9,36 +9,71 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
       body {
-        background: linear-gradient(to right, #0f0f0f, #2e7d32);
+        background: radial-gradient(ellipse at right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), linear-gradient(135deg, #164a2a 0%, #2e7d32 60%, #0f2a16 100%);
         min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
+        padding: 24px;
       }
       .login-container {
-        background: #fff;
-        border-radius: 20px;
-        padding: 40px;
-        max-width: 900px;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 32px 28px;
         width: 100%;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        max-width: 560px;
+        border: 2px solid #8a5cf6;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 6px rgba(138, 92, 246, 0.1);
+        backdrop-filter: blur(2px);
+      }
+      .brand-logo {
+        height: 56px;
+        width: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 0 0 2px #ffffff;
+      }
+      .brand-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e1a;
       }
       .login-title {
         font-size: 40px;
         font-weight: bold;
         color: #1a3e1a;
+        text-align: center;
       }
       .form-control {
-        border-radius: 10px;
+        border-radius: 12px;
+        height: 46px;
+        border: 1px solid #d6d9dc;
+        background-color: #f9fafb;
+        width: 100%;
+        max-width: 360px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .form-control:focus {
+        background-color: #ffffff;
+        border-color: #8a5cf6;
+        box-shadow: 0 0 0 0.2rem rgba(138, 92, 246, 0.2);
       }
       .login-btn {
         background-color: #1a3e1a;
         color: #fff;
-        border-radius: 20px;
-        padding: 10px 30px;
+        border-radius: 999px;
+        padding: 10px 32px;
       }
       .login-btn:hover {
         background-color: #145214;
+      }
+      .forgot-link {
+        color: #1a3e1a;
+        text-decoration: none;
+      }
+      .forgot-link:hover {
+        text-decoration: underline;
       }
       .signup-link {
         font-weight: bold;
@@ -47,13 +82,6 @@
       .signup-link:hover {
         text-decoration: underline;
       }
-      .logo-img {
-        height: 100px;
-        width: 250px;
-      }
-      .illustration-img {
-        max-width: 300px;
-      }
       .alert {
         border-radius: 10px;
         margin-bottom: 20px;
@@ -61,72 +89,55 @@
     </style>
   </head>
   <body>
-    <div class="login-container d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
-      <div class="flex-fill">
-        <h2 class="login-title mb-4">Login</h2>
+    <div class="login-container">
+      <div class="d-flex justify-content-center align-items-center gap-2 mb-2">
+        <img src="{% static 'images/aces-logo.png' %}" alt="ACES HMS Logo" class="brand-logo" />
+        <span class="brand-text">ACES Hotel Management System</span>
+      </div>
+      <h2 class="login-title mb-3">Login</h2>
 
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}
-                
-                
-                
-                
-                alert-danger
-
-
-
-
-              {% else %}
-                
-                
-                
-                
-                alert-{{ message.tags }}
-              {% endif %} alert-dismissible fade show"
-              role="alert"
-              id="alert-{{ forloop.counter }}">
+      {% if messages %}
+        {% for message in messages %}
+          {% if message.tags == 'error' %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="alert-{{ forloop.counter }}">
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-          {% endfor %}
-        {% endif %} {% if form.errors %}
-          <div class="alert alert-danger alert-dismissible fade show" role="alert" id="form-error-alert">
-            {% for field, errors in form.errors.items %}
-              {% for error in errors %}
-                {{ error }}
-              {% endfor %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="form-error-alert">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              {{ error }}
             {% endfor %}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endif %}
-
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <input type="text" class="form-control {% if form.username.errors %}is-invalid{% endif %}" placeholder="Username" id="username" name="username" required />
-            {% if form.username.errors %}
-              <div class="invalid-feedback">{{ form.username.errors }}</div>
-            {% endif %}
-          </div>
-          <div class="mb-4">
-            <input type="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" placeholder="Password" id="password" name="password" required />
-            {% if form.password.errors %}
-              <div class="invalid-feedback">{{ form.password.errors }}</div>
-            {% endif %}
-          </div>
-          <div class="d-flex justify-content-end align-items-center">
-            <button type="submit" class="btn login-btn" style="width: 200px">Login</button>
-          </div>
-        </form>
-        <div class="mt-4 d-flex align-items-center">
-          <img src="{% static 'images/New HMS-B.png' %}" alt="Logosds" class="logo-img" />
+          {% endfor %}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-      </div>
+      {% endif %}
 
-      <div class="flex-fill text-center d-flex justify-content-center align-items-center">
-        <img src="{% static 'images/illustration.png' %}" alt="Illustration" class="illustration-img" />
-      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <input type="text" class="form-control {% if form.username.errors %}is-invalid{% endif %}" placeholder="Email/Username" id="username" name="username" required autofocus autocomplete="username" />
+          {% if form.username.errors %}
+            <div class="invalid-feedback">{{ form.username.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <input type="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" placeholder="Password" id="password" name="password" required autocomplete="current-password" />
+          {% if form.password.errors %}
+            <div class="invalid-feedback">{{ form.password.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="d-flex justify-content-center align-items-center">
+          <button type="submit" class="btn login-btn" style="width: 200px">Login</button>
+        </div>
+      </form>
+      <p class="text-center mt-3">
+        <a href="" class="forgot-link">Forgot password?</a>
+      </p>
     </div>
 
     <!-- Bootstrap JS -->

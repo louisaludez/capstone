@@ -5,7 +5,7 @@
     <div class="col-1">
       <input type="checkbox" />
     </div>
-    <div class="col-2">{{ order.id }}</div>
+    <div class="col-1">{{ order.room }}</div>
     <div class="col-2">
       {# Guest or customer name #}
       {% if order.guest %}
@@ -18,11 +18,17 @@
         —
       {% endif %}
     </div>
-    <div class="col-2">
-      {% if order.service_type %}
-        {{ order.service_type }}
-      {% elif order.request_type %}
-        {{ order.request_type }}
+    <div class="col-1">
+      {% if order.room %}
+        {% if 'Standard' in order.room %}
+          Standard
+        {% elif 'Family' in order.room %}
+          Family
+        {% elif 'Deluxe' in order.room %}
+          Deluxe
+        {% else %}
+          —
+        {% endif %}
       {% else %}
         —
       {% endif %}
@@ -34,31 +40,48 @@
         {{ order.order_date|date:'H:i d/m/Y' }}
       {% elif order.date_time %}
         {{ order.date_time|date:'H:i d/m/Y' }}
+      {% elif order.booking_date %}
+        {{ order.booking_date|date:'H:i d/m/Y' }}
       {% else %}
         —
       {% endif %}
     </div>
-    <div class="col-2">
-      {% if order.status %}
-        {% with s=order.status|lower %}
-          {% if s == 'pending' %}
-            <span class="status-pending">Pending</span>
-          {% elif s == 'completed' or s == 'finished' %}
-            <span class="status-finished">Finished</span>
-          {% elif s == 'cancelled' %}
-            <span class="status-cancelled">Cancelled</span>
-          {% else %}
-            <span class="status-pending">{{ order.status }}</span>
-          {% endif %}
-        {% endwith %}
+    <div class="col-1">
+      {% if order.check_in_date and order.check_out_date %}
+        1
       {% else %}
-        <span class="status-pending">—</span>
+        —
       {% endif %}
     </div>
-    <div class="col-1 actions d-flex justify-content-center g-1">
-      <button class="btn"><i class="bi bi-eye-slash"></i></button>
-      <button class="btn"><i class="bi bi-pencil-square"></i></button>
-      <button class="btn delete-order-btn"><i class="bi bi-trash text-danger"></i></button>
+    <div class="col-1">
+      {% if order.num_of_adults and order.num_of_children %}
+        {{ order.num_of_adults }}+{{ order.num_of_children }}
+      {% elif order.total_of_guests %}
+        {{ order.total_of_guests }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">
+      {% if order.guest and order.guest.billing %}
+        ₱{{ order.guest.billing }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">
+      {% if order.guest %}
+        ₱0
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">
+      {% if order.payment %}
+        {{ order.payment.method|title }}
+      {% else %}
+        —
+      {% endif %}
     </div>
   </div>
 {% empty %}

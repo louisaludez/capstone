@@ -21,7 +21,7 @@
         <span class="title">Take Out</span>
         <div class="row">
           {% for order in take_out_orders %}
-            <div class="col-6">
+            <div class="col-6" id="order-{{ order.id }}">
               <div class="receipt-container">
                 <div class="receipt-header">
                   <img src="{% static 'images/New HMS-B.png' %}" alt="Logo" class="receipt-logo" />
@@ -58,7 +58,7 @@
 
                 <p class="receipt-order">Order no. #{{ order.id|stringformat:'05d' }}</p>
 
-                <button class="receipt-done">Done</button>
+                <button class="receipt-done" data-order-id="{{ order.id }}">Done</button>
               </div>
             </div>
           {% empty %}
@@ -70,7 +70,7 @@
         <span class="title">Dine In</span>
         <div class="row">
           {% for order in dine_in_orders %}
-            <div class="col-6">
+            <div class="col-6" id="order-{{ order.id }}">
               <div class="receipt-container">
                 <div class="receipt-header">
                   <img src="{% static 'images/New HMS-B.png' %}" alt="Logo" class="receipt-logo" />
@@ -107,7 +107,7 @@
                 <div class="mt-auto d-flex flex-column align-items-center">
                   <p class="receipt-order">Order no. #{{ order.id|stringformat:'05d' }}</p>
 
-                  <button class="receipt-done">Done</button>
+                  <button class="receipt-done" data-order-id="{{ order.id }}">Done</button>
                 </div>
               </div>
             </div>
@@ -122,5 +122,40 @@
 
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="{% static 'cafe/js/orders.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const buttons = document.querySelectorAll('.receipt-done')
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', async function () {
+          const orderId = this.getAttribute('data-order-id')
+          if (!orderId) return
+          try {
+            const resp = await fetch(`/cafe/staff/orders/${orderId}/done/`, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              }
+            })
+            if (!resp.ok) throw new Error('Failed to update')
+            const wrapper = document.getElementById(`order-${orderId}`)
+            if (wrapper) wrapper.remove()
+          } catch (e) {
+            console.error(e)
+            Swal.fire('Error', 'Could not mark order as done', 'error')
+          }
+        })
+      })
+    
+      function getCsrfToken() {
+        const name = 'csrftoken='
+        const cookies = document.cookie.split(';')
+        for (let c of cookies) {
+          c = c.trim()
+          if (c.startsWith(name)) return c.substring(name.length)
+        }
+        return ''
+      }
+    })
+  </script>
 {% endblock %}
