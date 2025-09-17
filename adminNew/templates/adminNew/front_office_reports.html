@@ -10,7 +10,7 @@
   {% include './includes/sidebar.html' with active_page='reports' %}
 {% endblock %}
 {% block content %}
-  <div class="container">
+  <div class="container p-5">
     <!-- Filters -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Front Office Reports</h2>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <!-- Table Header -->
-    <div class="row table-header py-2 text-center">
+    <div class="row table-header py-2 text-center mx-2">
       <div class="col-1">
         <input type="checkbox" />
       </div>
@@ -54,7 +54,7 @@
       <div class="col-2">Guest Name</div>
       <div class="col-1">Room Type</div>
       <div class="col-2">Date and Time</div>
-      <div class="col-1">Stay (Nights)</div>
+      <div class="col-1">Checkout</div>
       <div class="col-1">Guests (A+C)</div>
       <div class="col-1">Room Charges</div>
       <div class="col-1">Other Charges</div>
@@ -67,7 +67,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-between mt-4">
+    <div class="d-flex justify-content-between mt-4 mx-2">
       <div>
         <label for="pages">Pages</label>
         <select id="pages" class="form-select d-inline-block w-auto">
@@ -88,6 +88,17 @@
                   
                   
                   
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   &search={{ search_query }}
                 {% endif %}">
                 First
@@ -96,6 +107,17 @@
             <li class="page-item">
               <a class="page-link"
                 href="?page={{ page_obj.previous_page_number }}{% if search_query %}
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   
                   
                   
@@ -128,6 +150,17 @@
                     
                     
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     &search={{ search_query }}
                   {% endif %}">
                   {{ num }}
@@ -148,6 +181,17 @@
                   
                   
                   
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   &search={{ search_query }}
                 {% endif %}">
                 Next
@@ -156,6 +200,17 @@
             <li class="page-item">
               <a class="page-link"
                 href="?page={{ paginator.num_pages }}{% if search_query %}
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   
                   
                   
@@ -205,12 +260,18 @@
       function performSearch() {
         const searchQuery = searchInput.value.trim()
         const currentPage = new URLSearchParams(window.location.search).get('page') || '1'
+        performSearchWithPage(currentPage)
+      }
+    
+      function performSearchWithPage(page) {
+        const searchQuery = searchInput.value.trim()
+        const targetPage = page || '1'
     
         // Show loading state
         ordersContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
     
         // Make AJAX request
-        fetch(`?search=${encodeURIComponent(searchQuery)}&page=${currentPage}`, {
+        fetch(`?search=${encodeURIComponent(searchQuery)}&page=${targetPage}`, {
           method: 'GET',
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -246,7 +307,7 @@
             } else {
               url.searchParams.delete('search')
             }
-            url.searchParams.set('page', currentPage)
+            url.searchParams.set('page', targetPage)
             window.history.pushState({}, '', url)
           })
           .catch((error) => {
@@ -265,7 +326,7 @@
           const search = url.searchParams.get('search') || ''
     
           searchInput.value = search
-          performSearch()
+          performSearchWithPage(page)
         }
       })
     })

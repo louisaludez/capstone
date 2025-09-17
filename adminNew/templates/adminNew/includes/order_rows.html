@@ -1,7 +1,8 @@
 {% comment %}This include renders a generic table. It supports different order models by detecting fields. Supported models: Booking (FO), CafeOrder (Cafe), LaundryTransaction (Laundry), Housekeeping.{% endcomment %}
+{% load custom_filters %}
 
 {% for order in orders %}
-  <div class="row row-border text-center align-items-center">
+  <div class="row row-border text-center align-items- mx-2">
     <div class="col-1">
       <input type="checkbox" />
     </div>
@@ -19,16 +20,8 @@
       {% endif %}
     </div>
     <div class="col-1">
-      {% if order.room %}
-        {% if 'Standard' in order.room %}
-          Standard
-        {% elif 'Family' in order.room %}
-          Family
-        {% elif 'Deluxe' in order.room %}
-          Deluxe
-        {% else %}
-          —
-        {% endif %}
+      {% if order.room and room_mapping %}
+        {{ room_mapping|lookup:order.room|default:'—' }}
       {% else %}
         —
       {% endif %}
@@ -47,8 +40,8 @@
       {% endif %}
     </div>
     <div class="col-1">
-      {% if order.check_in_date and order.check_out_date %}
-        1
+      {% if order.check_out_date %}
+        {{ order.check_out_date|date:'d/m/Y' }}
       {% else %}
         —
       {% endif %}

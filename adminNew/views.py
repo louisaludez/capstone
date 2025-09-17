@@ -280,6 +280,7 @@ def admin_messenger(request):
 def admin_front_office_reports(request):
     from django.core.paginator import Paginator
     from django.db.models import Q
+    from staff.models import Room
 
     # Revenue from all guest billings
     guests = Guest.objects.all()
@@ -311,6 +312,11 @@ def admin_front_office_reports(request):
     search_query = request.GET.get('search', '')
     orders_query = Booking.objects.select_related('guest').order_by('-booking_date')
     
+    # Create a mapping of room numbers to room types
+    room_mapping = {}
+    for room in Room.objects.all():
+        room_mapping[room.room_number] = room.get_room_type_display()
+    
     if search_query:
         orders_query = orders_query.filter(
             Q(guest__name__icontains=search_query) |
@@ -334,6 +340,7 @@ def admin_front_office_reports(request):
         'page_obj': page_obj,
         'paginator': paginator,
         'search_query': search_query,
+        'room_mapping': room_mapping,
     }
     return render(request, "adminNew/front_office_reports.html", context)
 def admin_cafe_reports(request):

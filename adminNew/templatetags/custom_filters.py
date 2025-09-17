@@ -15,3 +15,10 @@ def days_between(start_date, end_date):
         delta = end_date - start_date
         return delta.days
     return 0
+
+@register.filter
+def lookup(dictionary, key):
+    """Look up a key in a dictionary"""
+    if dictionary and key:
+        return dictionary.get(key, '')
+    return ''
