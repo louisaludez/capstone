@@ -14,6 +14,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 import locale
 from decimal import Decimal
+from django.views.decorators.http import require_GET
 
 # Create your views here.
 def admin_home(request):
@@ -62,95 +63,21 @@ def admin_home(request):
             else:
                 growth_percentage = 100.0 if current_month > 0 else 0.0
     
-    # Get SARIMA forecast data
-    forecast_data = get_reservation_forecast()
-    
-    # Prepare chart data
-    chart_data = {
-        'labels': [],
-        'datasets': []
-    }
-    
-    if forecast_data:
-        # Historical data
-        historical_labels = forecast_data['historical']['dates']
-        historical_values = forecast_data['historical']['values']
-        
-        # Forecast data
-        forecast_labels = forecast_data['forecast']['dates']
-        forecast_values = forecast_data['forecast']['values']
-        forecast_lower = forecast_data['forecast']['lower_bound']
-        forecast_upper = forecast_data['forecast']['upper_bound']
-        
-        # Combine labels (last 12 months + 6 months forecast)
-        chart_data['labels'] = historical_labels[-12:] + forecast_labels
-        
-        # Historical dataset
-        chart_data['datasets'].append({
-            'label': 'Historical Reservations',
-            'data': historical_values[-12:] + [None] * len(forecast_labels),
-            'borderColor': 'rgb(75, 192, 192)',
-            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
-            'tension': 0.4,
-            'fill': False
-        })
-        
-        # Forecast dataset
-        chart_data['datasets'].append({
-            'label': 'Forecast',
-            'data': [None] * len(historical_values[-12:]) + forecast_values,
-            'borderColor': 'rgb(255, 99, 132)',
-            'backgroundColor': 'rgba(255, 99, 132, 0.2)',
-            'tension': 0.4,
-            'fill': False,
-            'borderDash': [5, 5]
-        })
-        
-        # Confidence interval
-        chart_data['datasets'].append({
-            'label': 'Confidence Interval',
-            'data': [None] * len(historical_values[-12:]) + forecast_upper,
-            'borderColor': 'rgba(255, 99, 132, 0.3)',
-            'backgroundColor': 'rgba(255, 99, 132, 0.1)',
-            'fill': '+1',
-            'pointRadius': 0,
-            'borderWidth': 0
-        })
-        
-        chart_data['datasets'].append({
-            'label': '',
-            'data': [None] * len(historical_values[-12:]) + forecast_lower,
-            'borderColor': 'rgba(255, 99, 132, 0.3)',
-            'backgroundColor': 'rgba(255, 99, 132, 0.1)',
-            'fill': False,
-            'pointRadius': 0,
-            'borderWidth': 0
-        })
-    else:
-        # Fallback data if no forecast available
-        chart_data = {
-            'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            'datasets': [{
-                'label': 'Monthly Stats',
-                'data': [10, 15, 8, 12, 18, 20, 14, 16, 22, 19, 17, 13],
-                'borderColor': 'rgb(75, 192, 192)',
-                'backgroundColor': 'rgba(75, 192, 192, 0.2)',
-                'tension': 0.4,
-                'fill': True
-            }]
-        }
-
-    import json
-
+    # Defer forecast computation to an async JSON endpoint to speed up initial page load
     return render(request, "adminNew/home.html", {
         "users": users,
         "total_guests": guest,
         "peak_month": peak_month,
         "total_revenue": f"{total_revenue:.2f}",
         "growth_percentage": f"{growth_percentage:.1f}",
-        "chart_data": json.dumps(chart_data),
-        "forecast_method": forecast_data['method'] if forecast_data else 'fallback'
     })
+
+@require_GET
+def admin_home_forecast_json(request):
+    from .sarima_forecast import get_reservation_forecast
+    import json
+    data = get_reservation_forecast() or {}
+    return JsonResponse(data, safe=False)
 def admin_account(request):
     users = CustomUser.objects.all()
     return render(request, "adminNew/accounts.html", {"users": users})
@@ -308,14 +235,34 @@ def admin_front_office_reports(request):
         .count()
     )
 
-    # Search functionality
+    # Search, filter, and sort functionality
     search_query = request.GET.get('search', '')
-    orders_query = Booking.objects.select_related('guest').order_by('-booking_date')
+    filter_type = request.GET.get('filter', 'all')
+    sort_by = request.GET.get('sort', 'date_desc')
+    orders_query = Booking.objects.select_related('guest')
     
     # Create a mapping of room numbers to room types
     room_mapping = {}
     for room in Room.objects.all():
         room_mapping[room.room_number] = room.get_room_type_display()
+    
+    # Apply filters based on guest cycle
+    if filter_type == 'walkins':
+        # Walk-ins: checked-in bookings created on the same date as check-in
+        orders_query = orders_query.filter(
+            status='Checked-in'
+        ).annotate(
+            bd=TruncDate('booking_date')
+        ).filter(
+            bd=models.F('check_in_date')
+        )
+    elif filter_type == 'checkins':
+        # Check-ins: all checked-in bookings
+        orders_query = orders_query.filter(status='Checked-in')
+    elif filter_type == 'checkouts':
+        # Check-outs: all checked-out bookings
+        orders_query = orders_query.filter(status='Checked-out')
+    # 'all' shows all bookings regardless of status
     
     if search_query:
         orders_query = orders_query.filter(
@@ -324,6 +271,22 @@ def admin_front_office_reports(request):
             Q(room__icontains=search_query) |
             Q(id__icontains=search_query)
         )
+
+    # Apply sorting
+    if sort_by == 'date_asc':
+        orders_query = orders_query.order_by('booking_date')
+    elif sort_by == 'date_desc':
+        orders_query = orders_query.order_by('-booking_date')
+    elif sort_by == 'guest_asc':
+        orders_query = orders_query.order_by('guest__name')
+    elif sort_by == 'guest_desc':
+        orders_query = orders_query.order_by('-guest__name')
+    elif sort_by == 'room_asc':
+        orders_query = orders_query.order_by('room')
+    elif sort_by == 'room_desc':
+        orders_query = orders_query.order_by('-room')
+    else:
+        orders_query = orders_query.order_by('-booking_date')
 
     # Pagination with 7 rows per page
     paginator = Paginator(orders_query, 7)
@@ -340,11 +303,16 @@ def admin_front_office_reports(request):
         'page_obj': page_obj,
         'paginator': paginator,
         'search_query': search_query,
+        'filter_type': filter_type,
         'room_mapping': room_mapping,
+        'current_sort': sort_by,
     }
     return render(request, "adminNew/front_office_reports.html", context)
 def admin_cafe_reports(request):
     from cafe.models import CafeOrder, CafeOrderItem
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q
 
     # Totals
     transactions = CafeOrder.objects.count()
@@ -359,34 +327,124 @@ def admin_cafe_reports(request):
     most_sold_item = top['item__name'] if top else '—'
     total_revenue = CafeOrder.objects.aggregate(s=Sum('total'))['s'] or 0
 
-    orders = CafeOrder.objects.select_related('guest').order_by('-order_date')[:50]
+    # Search, filter, sort
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')  # cash, card, all
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    orders_qs = CafeOrder.objects.select_related('guest')
+
+    if filter_type == 'cash':
+        orders_qs = orders_qs.filter(payment_method='cash')
+    elif filter_type == 'card':
+        orders_qs = orders_qs.filter(payment_method='card')
+
+    if search_query:
+        orders_qs = orders_qs.filter(
+            Q(id__icontains=search_query) |
+            Q(customer_name__icontains=search_query) |
+            Q(payment_method__icontains=search_query)
+        )
+
+    if sort_by == 'date_asc':
+        orders_qs = orders_qs.order_by('order_date')
+    elif sort_by == 'date_desc':
+        orders_qs = orders_qs.order_by('-order_date')
+    elif sort_by == 'total_asc':
+        orders_qs = orders_qs.order_by('total')
+    elif sort_by == 'total_desc':
+        orders_qs = orders_qs.order_by('-total')
+    elif sort_by == 'receipt_asc':
+        orders_qs = orders_qs.order_by('id')
+    elif sort_by == 'receipt_desc':
+        orders_qs = orders_qs.order_by('-id')
+    else:
+        orders_qs = orders_qs.order_by('-order_date')
+
+    paginator = Paginator(orders_qs, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     context = {
         'transactions_count': transactions,
         'items_sold': items_sold,
         'most_sold_item': most_sold_item,
         'total_revenue': total_revenue,
-        'orders': orders,
+        'orders': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'search_query': search_query,
+        'filter_type': filter_type,
+        'current_sort': sort_by,
     }
     return render(request, "adminNew/cafe_reports.html", context)
 def admin_housekeeping_reports(request):
     from housekeeping.models import Housekeeping
+    from django.core.paginator import Paginator
+    from django.db.models import Q
 
     hk_pending = Housekeeping.objects.filter(status__iexact='pending').count()
     hk_in_progress = Housekeeping.objects.filter(status__iexact='in progress').count()
     hk_finished = Housekeeping.objects.filter(status__iexact='finished').count()
 
-    orders = Housekeeping.objects.order_by('-created_at')[:50]
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')  # pending, in_progress, finished, all
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    qs = Housekeeping.objects.all()
+
+    # Normalize status mapping for filter values
+    if filter_type == 'pending':
+        qs = qs.filter(status__iexact='pending')
+    elif filter_type == 'in_progress':
+        qs = qs.filter(status__iexact='in progress')
+    elif filter_type == 'finished':
+        qs = qs.filter(status__iexact='finished')
+
+    if search_query:
+        qs = qs.filter(
+            Q(room_number__icontains=search_query) |
+            Q(guest_name__icontains=search_query) |
+            Q(request_type__icontains=search_query) |
+            Q(status__icontains=search_query)
+        )
+
+    if sort_by == 'date_asc':
+        qs = qs.order_by('created_at')
+    elif sort_by == 'date_desc':
+        qs = qs.order_by('-created_at')
+    elif sort_by == 'room_asc':
+        qs = qs.order_by('room_number')
+    elif sort_by == 'room_desc':
+        qs = qs.order_by('-room_number')
+    elif sort_by == 'status_asc':
+        qs = qs.order_by('status')
+    elif sort_by == 'status_desc':
+        qs = qs.order_by('-status')
+    else:
+        qs = qs.order_by('-created_at')
+
+    paginator = Paginator(qs, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     context = {
         'hk_pending': hk_pending,
         'hk_in_progress': hk_in_progress,
         'hk_finished': hk_finished,
-        'orders': orders,
+        'orders': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'search_query': search_query,
+        'filter_type': filter_type,
+        'current_sort': sort_by,
     }
     return render(request, "adminNew/housekeeping_reports.html", context)
 def admin_laundry_reports(request):
     from laundry.models import LaundryTransaction
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q
 
     qs = LaundryTransaction.objects.all()
     completed_count = qs.filter(status='completed').count()
@@ -394,14 +452,62 @@ def admin_laundry_reports(request):
     cash_payments = qs.filter(payment_method='cash').aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
     total_revenue = qs.aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
 
-    orders = LaundryTransaction.objects.select_related('guest').order_by('-created_at', '-date_time')[:50]
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')  # pending, in_progress, completed, cancelled, all
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    orders_qs = LaundryTransaction.objects.select_related('guest')
+
+    # Status filter
+    if filter_type == 'pending':
+        orders_qs = orders_qs.filter(status='pending')
+    elif filter_type == 'in_progress':
+        orders_qs = orders_qs.filter(status='in_progress')
+    elif filter_type == 'completed':
+        orders_qs = orders_qs.filter(status='completed')
+    elif filter_type == 'cancelled':
+        orders_qs = orders_qs.filter(status='cancelled')
+
+    # Search
+    if search_query:
+        orders_qs = orders_qs.filter(
+            Q(id__icontains=search_query) |
+            Q(guest__name__icontains=search_query) |
+            Q(service_type__icontains=search_query) |
+            Q(payment_method__icontains=search_query)
+        )
+
+    # Sort
+    if sort_by == 'date_asc':
+        orders_qs = orders_qs.order_by('date_time', 'created_at')
+    elif sort_by == 'date_desc':
+        orders_qs = orders_qs.order_by('-date_time', '-created_at')
+    elif sort_by == 'amount_asc':
+        orders_qs = orders_qs.order_by('total_amount')
+    elif sort_by == 'amount_desc':
+        orders_qs = orders_qs.order_by('-total_amount')
+    elif sort_by == 'receipt_asc':
+        orders_qs = orders_qs.order_by('id')
+    elif sort_by == 'receipt_desc':
+        orders_qs = orders_qs.order_by('-id')
+    else:
+        orders_qs = orders_qs.order_by('-date_time', '-created_at')
+
+    paginator = Paginator(orders_qs, 7)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     context = {
         'completed_count': completed_count,
         'room_charges': room_charges,
         'cash_payments': cash_payments,
         'total_revenue': total_revenue,
-        'orders': orders,
+        'orders': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'search_query': search_query,
+        'filter_type': filter_type,
+        'current_sort': sort_by,
     }
     return render(request, "adminNew/laundry_reports.html", context)
 def admin_mcq_reports(request):

@@ -1,0 +1,38 @@
+{% load custom_filters %}
+{% for order in orders %}
+  <div class="row row-border text-center align-items-center mx-2">
+    <div class="col-1">
+      <input type="checkbox" />
+    </div>
+    <div class="col-2">#{{ order.id }}</div>
+    <div class="col-2">{{ order.order_date|date:'H:i d/m/Y' }}</div>
+    <div class="col-2">
+      {% if order.items.all %}
+        {{ order.items.all|join_items_names }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">{{ order.items.all|sum_quantities }}</div>
+    <div class="col-1">₱{{ order.total }}</div>
+    <div class="col-1">
+      {% if order.cash_tendered %}
+        ₱{{ order.cash_tendered }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">
+      {% if order.change %}
+        ₱{{ order.change }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+    <div class="col-1">{{ order.get_payment_method_display }}</div>
+  </div>
+{% empty %}
+  <div class="text-center py-4">
+    <p>No records found.</p>
+  </div>
+{% endfor %}

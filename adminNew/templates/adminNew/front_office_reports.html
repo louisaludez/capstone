@@ -10,13 +10,89 @@
   {% include './includes/sidebar.html' with active_page='reports' %}
 {% endblock %}
 {% block content %}
-  <div class="container p-5">
+  <div class="container">
     <!-- Filters -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Front Office Reports</h2>
       <div class="d-flex">
-        <button class="btn btn-outline-secondary me-2 text-black"><i class="bi bi-filter text-black"></i>Filter</button>
-        <button class="btn btn-outline-secondary me-2 text-black">Sort <i class="bi bi-sort-down text-black"></i></button>
+        <div class="dropdown me-2">
+          <button class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px;">
+            <i class="bi bi-filter text-black"></i>Filter
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+            <li><h6 class="dropdown-header">Select Guest Cycle</h6></li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="guest_cycle" value="all" class="me-2" {% if not filter_type or filter_type == 'all' %}checked{% endif %}>
+                All
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="guest_cycle" value="walkins" class="me-2" {% if filter_type == 'walkins' %}checked{% endif %}>
+                Walk-ins
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="guest_cycle" value="checkins" class="me-2" {% if filter_type == 'checkins' %}checked{% endif %}>
+                Check-ins
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="guest_cycle" value="checkouts" class="me-2" {% if filter_type == 'checkouts' %}checked{% endif %}>
+                Check-outs
+              </label>
+            </li>
+          </ul>
+        </div>
+        <div class="dropdown me-2">
+          <button id="sortButton" class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px;">
+            Sort <i class="bi bi-sort-down text-black"></i>
+          </button>
+          <ul class="dropdown-menu">
+            <li><h6 class="dropdown-header">Sort By</h6></li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="date_desc" class="me-2" {% if current_sort == 'date_desc' or not current_sort %}checked{% endif %}>
+                Date (Newest)
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="date_asc" class="me-2" {% if current_sort == 'date_asc' %}checked{% endif %}>
+                Date (Oldest)
+              </label>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="guest_asc" class="me-2" {% if current_sort == 'guest_asc' %}checked{% endif %}>
+                Guest Name (A-Z)
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="guest_desc" class="me-2" {% if current_sort == 'guest_desc' %}checked{% endif %}>
+                Guest Name (Z-A)
+              </label>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="room_asc" class="me-2" {% if current_sort == 'room_asc' %}checked{% endif %}>
+                Room No. (Asc)
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="sort_by" value="room_desc" class="me-2" {% if current_sort == 'room_desc' %}checked{% endif %}>
+                Room No. (Desc)
+              </label>
+            </li>
+          </ul>
+        </div>
         <div class="d-flex">
           <input type="text" id="search-input" class="form-control w-auto search-bar" placeholder="Search by name, email, room, or ID" value="{{ search_query }}" />
         </div>
@@ -83,23 +159,7 @@
                   
                   
                   
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  &search={{ search_query }}
+             &search={{ search_query }}
                 {% endif %}">
                 First
               </a>
@@ -115,17 +175,7 @@
                   
                   
                   
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
+           
                   &search={{ search_query }}
                 {% endif %}">
                 Previous
@@ -142,6 +192,20 @@
               <li class="page-item">
                 <a class="page-link"
                   href="?page={{ num }}{% if search_query %}
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     
                     
                     
@@ -192,6 +256,20 @@
                   
                   
                   
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   &search={{ search_query }}
                 {% endif %}">
                 Next
@@ -200,6 +278,20 @@
             <li class="page-item">
               <a class="page-link"
                 href="?page={{ paginator.num_pages }}{% if search_query %}
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   
                   
                   
@@ -234,10 +326,13 @@
   <script src="{% static 'admin/js/reports.js' %}"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Removed JS height-sync to avoid locking smaller height before fonts/styles settle
       const searchInput = document.getElementById('search-input')
       const ordersContainer = document.getElementById('orders-container')
       const paginationContainer = document.querySelector('.pagination')
       const pageInfo = document.querySelector('#pages option')
+      const filterRadios = document.querySelectorAll('input[name="guest_cycle"]')
+      const sortRadios = document.querySelectorAll('input[name="sort_by"]')
     
       let searchTimeout
     
@@ -257,6 +352,20 @@
         }
       })
     
+      // Filter change handler
+      filterRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+          performSearch()
+        })
+      })
+
+      // Sort change handler
+      sortRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+          performSearch()
+        })
+      })
+    
       function performSearch() {
         const searchQuery = searchInput.value.trim()
         const currentPage = new URLSearchParams(window.location.search).get('page') || '1'
@@ -266,12 +375,21 @@
       function performSearchWithPage(page) {
         const searchQuery = searchInput.value.trim()
         const targetPage = page || '1'
+        const selectedFilter = document.querySelector('input[name="guest_cycle"]:checked').value
+        const selectedSort = document.querySelector('input[name="sort_by"]:checked')?.value || 'date_desc'
     
         // Show loading state
         ordersContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
     
+        // Build URL with parameters
+        const params = new URLSearchParams()
+        if (searchQuery) params.set('search', searchQuery)
+        if (selectedFilter && selectedFilter !== 'all') params.set('filter', selectedFilter)
+        if (selectedSort) params.set('sort', selectedSort)
+        params.set('page', targetPage)
+    
         // Make AJAX request
-        fetch(`?search=${encodeURIComponent(searchQuery)}&page=${targetPage}`, {
+        fetch(`?${params.toString()}`, {
           method: 'GET',
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -307,6 +425,16 @@
             } else {
               url.searchParams.delete('search')
             }
+            if (selectedFilter && selectedFilter !== 'all') {
+              url.searchParams.set('filter', selectedFilter)
+            } else {
+              url.searchParams.delete('filter')
+            }
+            if (selectedSort) {
+              url.searchParams.set('sort', selectedSort)
+            } else {
+              url.searchParams.delete('sort')
+            }
             url.searchParams.set('page', targetPage)
             window.history.pushState({}, '', url)
           })
@@ -323,9 +451,7 @@
           const href = e.target.closest('.pagination a').getAttribute('href')
           const url = new URL(href, window.location.origin)
           const page = url.searchParams.get('page')
-          const search = url.searchParams.get('search') || ''
-    
-          searchInput.value = search
+          // Preserve current search/filter/sort selections; do not override from href
           performSearchWithPage(page)
         }
       })

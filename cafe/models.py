@@ -41,6 +41,8 @@ class CafeOrder(models.Model):
     service_type = models.CharField(max_length=100, choices=SERVICE_CHOICES)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    cash_tendered = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    change = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     card_number = models.CharField(max_length=20, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
     

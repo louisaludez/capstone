@@ -1,0 +1,40 @@
+/* Portrait modal for Add User */
+.modal-portrait .modal-dialog {
+    max-width: 420px;
+}
+
+.modal-portrait .modal-content {
+    border-radius: 12px;
+}
+
+.modal-portrait .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Landscape modal (wide, short) */
+.modal-landscape .modal-dialog {
+    max-width: 960px;
+    width: 95%;
+}
+
+.modal-landscape .modal-content {
+    border-radius: 12px;
+}
+
+.modal-landscape .modal-body {
+    max-height: 45vh;
+    overflow-y: auto;
+}
+
+/* Constrain input widths inside wide modal */
+.modal-landscape .modal-body .mb-3 {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.modal-landscape .modal-body .form-control,
+.modal-landscape .modal-body .form-select {
+    width: 100%;
+}

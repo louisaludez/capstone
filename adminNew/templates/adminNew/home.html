@@ -24,7 +24,11 @@
                     
                     
                     
+                    
+                    
                     success
+
+
 
 
 
@@ -32,7 +36,11 @@
                     
                     
                     
+                    
+                    
                     danger
+
+
 
 
 
@@ -136,34 +144,32 @@
     const canvasEl = document.getElementById('statsChart')
     const ctx = canvasEl.getContext('2d')
     
-    // Get chart data from Django context
-    const chartData = {{ chart_data|safe }};
-    const forecastMethod = '{{ forecast_method }}';
-    
     if (window.__hmsStatsChart) {
-      try { window.__hmsStatsChart.destroy() } catch (e) {}
+      try {
+        window.__hmsStatsChart.destroy()
+      } catch (e) {}
     }
     
     const statsChart = new Chart(ctx, {
       type: 'line',
-      data: chartData,
+      data: { labels: [], datasets: [] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Monthly Reservations'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Month'
-              }
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Monthly Reservations'
             }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Month'
+            }
+          }
         },
         plugins: {
           legend: {
@@ -181,26 +187,26 @@
             mode: 'index',
             intersect: false,
             callbacks: {
-              title: function(context) {
-                const label = context[0].label;
+              title: function (context) {
+                const label = context[0].label
                 // Label is already in "January 31, 2004" format, so return as is
-                return label;
+                return label
               },
-              label: function(context) {
-                const datasetLabel = context.dataset.label;
-                const value = context.parsed.y;
-                if (value === null) return '';
-                
+              label: function (context) {
+                const datasetLabel = context.dataset.label
+                const value = context.parsed.y
+                if (value === null) return ''
+    
                 if (datasetLabel === 'Historical Reservations') {
-                  return `Historical: ${value} reservations/month`;
+                  return `Historical: ${value} reservations/month`
                 } else if (datasetLabel === 'Forecast') {
-                  return `Forecast: ${value.toFixed(1)} reservations/month`;
+                  return `Forecast: ${value.toFixed(1)} reservations/month`
                 } else if (datasetLabel === 'Confidence Interval') {
-                  return `Upper bound: ${value.toFixed(1)}`;
+                  return `Upper bound: ${value.toFixed(1)}`
                 } else if (datasetLabel === '') {
-                  return `Lower bound: ${value.toFixed(1)}`;
+                  return `Lower bound: ${value.toFixed(1)}`
                 }
-                return `${datasetLabel}: ${value}`;
+                return `${datasetLabel}: ${value}`
               }
             }
           }
@@ -220,80 +226,134 @@
     })
     window.__hmsStatsChart = statsChart
     
-    // Add method indicator once
-    if (!document.getElementById('forecastMethodIndicator')) {
-      const methodIndicator = document.createElement('div');
-      methodIndicator.id = 'forecastMethodIndicator'
-      methodIndicator.className = 'mt-2 text-center';
-      methodIndicator.innerHTML = `
-        <small class="text-muted">
-          <i class="bi bi-info-circle"></i> 
-          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-        </small>
-      `;
-      canvasEl.parentNode.appendChild(methodIndicator);
-    }
+    fetch('{% url "admin_home_forecast_json" %}')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data) return
+        const historicalLabels = data.historical?.dates || []
+        const historicalValues = data.historical?.values || []
+        const forecastLabels = data.forecast?.dates || []
+        const forecastValues = data.forecast?.values || []
+        const lowerBound = data.forecast?.lower_bound || []
+        const upperBound = data.forecast?.upper_bound || []
+        const forecastMethod = data.method || 'fallback'
+    
+        const labels = historicalLabels.slice(-12).concat(forecastLabels)
+        const datasets = [
+          {
+            label: 'Historical Reservations',
+            data: historicalValues.slice(-12).concat(Array(forecastLabels.length).fill(null)),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: false
+          },
+          {
+            label: 'Forecast',
+            data: Array(historicalValues.slice(-12).length).fill(null).concat(forecastValues),
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.4,
+            fill: false,
+            borderDash: [5, 5]
+          },
+          {
+            label: 'Confidence Interval',
+            data: Array(historicalValues.slice(-12).length).fill(null).concat(upperBound),
+            borderColor: 'rgba(255, 99, 132, 0.3)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            fill: '+1',
+            pointRadius: 0,
+            borderWidth: 0
+          },
+          {
+            label: '',
+            data: Array(historicalValues.slice(-12).length).fill(null).concat(lowerBound),
+            borderColor: 'rgba(255, 99, 132, 0.3)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            fill: false,
+            pointRadius: 0,
+            borderWidth: 0
+          }
+        ]
+        window.__hmsStatsChart.data.labels = labels
+        window.__hmsStatsChart.data.datasets = datasets
+        window.__hmsStatsChart.update()
+    
+        if (!document.getElementById('forecastMethodIndicator')) {
+          const methodIndicator = document.createElement('div')
+          methodIndicator.id = 'forecastMethodIndicator'
+          methodIndicator.className = 'mt-2 text-center'
+          methodIndicator.innerHTML = `
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle"></i> 
+                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                    </small>
+                  `
+          canvasEl.parentNode.appendChild(methodIndicator)
+        }
+      })
     
     // Download Report functionality
-    document.getElementById('downloadReportBtn').addEventListener('click', function() {
-      downloadForecastReport(chartData, forecastMethod);
-    });
+    document.getElementById('downloadReportBtn').addEventListener('click', function () {
+      downloadForecastReport(chartData, forecastMethod)
+    })
     
     function downloadForecastReport(chartData, method) {
       // Prepare CSV data
-      let csvContent = "data:text/csv;charset=utf-8,";
-      
+      let csvContent = 'data:text/csv;charset=utf-8,'
+    
       // Add dashboard summary
-      csvContent += "DASHBOARD SUMMARY\n";
-      csvContent += `Total Guests,{{ total_guests }}\n`;
-      csvContent += `Peak Month,{{ peak_month }}\n`;
-      csvContent += `Total Revenue,₱ {{ total_revenue }}\n`;
-      csvContent += `Forecast Method,${method.toUpperCase()}\n`;
-      csvContent += `Report Generated,${new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
+      csvContent += 'DASHBOARD SUMMARY\n'
+      csvContent += `Total Guests,{{ total_guests }}\n`
+      csvContent += `Peak Month,{{ peak_month }}\n`
+      csvContent += `Total Revenue,₱ {{ total_revenue }}\n`
+      csvContent += `Forecast Method,${method.toUpperCase()}\n`
+      csvContent += `Report Generated,${new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
-      })}\n`;
-      csvContent += "\n";
-      
+      })}\n`
+      csvContent += '\n'
+    
       // Add forecast data header
-      csvContent += "FORECAST DATA\n";
-      csvContent += "Month,Historical Reservations,Forecast,Lower Bound,Upper Bound,Type\n";
-      
+      csvContent += 'FORECAST DATA\n'
+      csvContent += 'Month,Historical Reservations,Forecast,Lower Bound,Upper Bound,Type\n'
+    
       // Get historical data
-      const historicalLabels = chartData.labels.slice(0, chartData.datasets[0].data.filter(d => d !== null).length);
-      const historicalData = chartData.datasets[0].data.filter(d => d !== null);
-      
+      const historicalLabels = chartData.labels.slice(0, chartData.datasets[0].data.filter((d) => d !== null).length)
+      const historicalData = chartData.datasets[0].data.filter((d) => d !== null)
+    
       // Get forecast data
-      const forecastLabels = chartData.labels.slice(historicalLabels.length);
-      const forecastData = chartData.datasets[1].data.filter(d => d !== null);
-      const lowerBound = chartData.datasets[2].data.filter(d => d !== null);
-      const upperBound = chartData.datasets[3].data.filter(d => d !== null);
-      
+      const forecastLabels = chartData.labels.slice(historicalLabels.length)
+      const forecastData = chartData.datasets[1].data.filter((d) => d !== null)
+      const lowerBound = chartData.datasets[2].data.filter((d) => d !== null)
+      const upperBound = chartData.datasets[3].data.filter((d) => d !== null)
+    
       // Add historical data rows
       historicalLabels.forEach((label, index) => {
         // Label is already in "January 31, 2004" format
-        csvContent += `${label},${historicalData[index] || 0},,,"Historical"\n`;
-      });
-      
+        csvContent += `${label},${historicalData[index] || 0},,,"Historical"\n`
+      })
+    
       // Add forecast data rows
       forecastLabels.forEach((label, index) => {
         // Label is already in "January 31, 2004" format
-        csvContent += `${label},,${forecastData[index] || 0},${lowerBound[index] || 0},${upperBound[index] || 0},"Forecast"\n`;
-      });
-      
+        csvContent += `${label},,${forecastData[index] || 0},${lowerBound[index] || 0},${upperBound[index] || 0},"Forecast"\n`
+      })
+    
       // Create and trigger download
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `reservation_forecast_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+      const encodedUri = encodeURI(csvContent)
+      const link = document.createElement('a')
+      link.setAttribute('href', encodedUri)
+      link.setAttribute('download', `reservation_forecast_${new Date().toISOString().slice(0, 10)}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    
       // Show success message
       if (typeof Swal !== 'undefined') {
         Swal.fire({
@@ -302,9 +362,9 @@
           text: 'The forecast report has been downloaded as CSV.',
           timer: 2000,
           showConfirmButton: false
-        });
+        })
       } else {
-        alert('Forecast report downloaded successfully!');
+        alert('Forecast report downloaded successfully!')
       }
     }
   </script>

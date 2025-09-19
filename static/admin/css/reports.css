@@ -29,6 +29,8 @@
 
  .table-header {
      background-color: #dddddd;
+     border: 1px solid #bdbdbd;
+     border-radius: 10px;
  }
 
  .row-border {
@@ -61,6 +63,9 @@
      border: 2px solid black;
      margin: 10px;
      border-radius: 10px;
+     padding: 10px 14px;
+     /* add inner spacing so text isn't flush to border */
+     box-sizing: border-box;
 
      flex: 0 0 185px !important;
      height: 100px;
@@ -81,4 +86,18 @@
 
  .boxes {
      padding: 0 20px 0 20px;
+ }
+
+ /* Table font size - increased for better readability */
+ .table-header {
+     font-size: 1rem;
+     font-weight: bold;
+ }
+
+ .row-border {
+     font-size: 0.95rem;
+ }
+
+ .row-border .col {
+     padding: 0.4rem 0.2rem;
  }

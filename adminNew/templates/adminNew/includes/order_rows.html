@@ -64,7 +64,7 @@
     </div>
     <div class="col-1">
       {% if order.guest %}
-        ₱0
+        ₱{{ order.guest|total_other_charges }}
       {% else %}
         —
       {% endif %}

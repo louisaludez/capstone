@@ -109,6 +109,14 @@ def create_order(request):
             if payment_method == "card":
                 order_kwargs["card_number"] = card_number
 
+            # Compute cash/change only for cash payments
+            if payment_method == "cash":
+                order_kwargs["cash_tendered"] = cash_tendered
+                try:
+                    order_kwargs["change"] = max(0.0, cash_tendered - total)
+                except Exception:
+                    order_kwargs["change"] = 0.0
+
             # Create the CafeOrder
             order = CafeOrder.objects.create(**order_kwargs)
 
