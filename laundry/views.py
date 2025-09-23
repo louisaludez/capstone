@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 # Helper to map general and specific roles
 def get_related_roles(role):
     role_mappings = {
-        'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel'],
+        'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel', 'personnel', 'staff', 'manager'],
         'Concierge': ['staff_concierge', 'manager_concierge', 'Concierge'],
         'Laundry': ['staff_laundry', 'manager_laundry', 'Laundry'],
         'Cafe': ['staff_cafe', 'manager_cafe', 'Cafe'],
@@ -41,13 +41,26 @@ def staff_laundry_home(request):
 
 def staff_laundry_messages(request):
     receiver_role = request.GET.get('receiver_role', 'Admin')
-    user_role = request.user.role
+    # Base on app service, not user role
+    current_service = 'Laundry'
 
-    user_roles = get_related_roles(user_role)
+    user_roles = get_related_roles(current_service)
     receiver_roles = get_related_roles(receiver_role)
 
-    sorted_roles = sorted([user_role, receiver_role])
-    room_name = f"chat_{'_'.join(sorted_roles)}".replace(' ', '_')
+    # deterministic room with simplified roles
+    def simplify_role(role):
+        mapping = {
+            'staff_personnel': 'Personnel', 'manager_personnel': 'Personnel', 'personnel': 'Personnel', 'staff': 'Personnel', 'manager': 'Personnel',
+            'staff_concierge': 'Concierge', 'manager_concierge': 'Concierge',
+            'staff_laundry': 'Laundry', 'manager_laundry': 'Laundry',
+            'staff_cafe': 'Cafe', 'manager_cafe': 'Cafe',
+            'staff_room_service': 'Room Service', 'manager_room_service': 'Room Service',
+            'admin': 'Admin', 'Admin': 'Admin'
+        }
+        return mapping.get(role, role)
+
+    simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
+    room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
 
     messages_qs = Message.objects.filter(
         (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles)) |

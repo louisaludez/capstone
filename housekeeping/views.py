@@ -7,6 +7,9 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.db import models
+from chat.models import Message
+from users.models import CustomUser
 def housekeeping_home(request):
     hk = Housekeeping.objects.all()[:3]
     rooms = []
@@ -130,3 +133,60 @@ def delete_task(request, task_id):
     task.delete()
     messages.success(request, 'Task deleted successfully!')
     return JsonResponse({'success': True, 'message': 'Task deleted successfully!'})
+
+@login_required
+def messenger(request):
+    receiver_role = request.GET.get('receiver_role', 'Admin')
+    # Base on app service, not user role
+    current_service = 'Room Service'
+
+    # room name deterministic ordering with simplified roles
+    def simplify_role(role):
+        mapping = {
+            'staff_personnel': 'Personnel', 'manager_personnel': 'Personnel', 'personnel': 'Personnel', 'staff': 'Personnel', 'manager': 'Personnel',
+            'staff_concierge': 'Concierge', 'manager_concierge': 'Concierge',
+            'staff_laundry': 'Laundry', 'manager_laundry': 'Laundry',
+            'staff_cafe': 'Cafe', 'manager_cafe': 'Cafe',
+            'staff_room_service': 'Room Service', 'manager_room_service': 'Room Service',
+            'admin': 'Admin', 'Admin': 'Admin'
+        }
+        return mapping.get(role, role)
+
+    simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
+    room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
+
+    def get_related_roles(role):
+        role_mappings = {
+            'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel', 'personnel', 'staff', 'manager'],
+            'Concierge': ['staff_concierge', 'manager_concierge', 'Concierge'],
+            'Laundry': ['staff_laundry', 'manager_laundry', 'Laundry'],
+            'Cafe': ['staff_cafe', 'manager_cafe', 'Cafe'],
+            'Room Service': ['staff_room_service', 'manager_room_service', 'Room Service'],
+            'Admin': ['admin', 'Admin']
+        }
+        for general, specifics in role_mappings.items():
+            if role in specifics:
+                return specifics
+        return role_mappings.get(role, [role])
+
+    user_roles = get_related_roles(current_service)
+    receiver_roles = get_related_roles(receiver_role)
+
+    messages_qs = Message.objects.filter(
+        (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles)) |
+        (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
+    ).order_by('created_at')
+
+    for msg in messages_qs:
+        try:
+            sender = CustomUser.objects.get(id=msg.sender_id)
+            msg.sender_username = sender.username
+        except CustomUser.DoesNotExist:
+            msg.sender_username = "Unknown User"
+
+    return render(request, 'housekeeping/messenger.html', {
+        'room_name': room_name,
+        'receiver_role': receiver_role,
+        'messages': messages_qs,
+        'current_user_id': request.user.id,
+    })

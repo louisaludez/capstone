@@ -1,14 +1,18 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}
-  Admin Messenger
+  Cafe Messenger
 {% endblock %}
+
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'main.css' %}" />
 {% endblock %}
+
 {% block sidebar %}
   {% include './includes/sidebar.html' with active_page='messenger' %}
 {% endblock %}
+
 {% block content %}
   <div class="container-fluid vh-100 d-flex justify-content-center align-items-center p-0">
     <div class="row w-100" style="max-width: 900px;">
@@ -18,73 +22,13 @@
           <button class="btn {% if receiver_role == 'Personnel' %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% else %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-outline-dark
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% endif %} py-2 service-btn"
@@ -96,73 +40,13 @@
           <button class="btn {% if receiver_role == 'Laundry' %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% else %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-outline-dark
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% endif %} py-2 service-btn"
@@ -174,73 +58,13 @@
           <button class="btn {% if receiver_role == 'Cafe' %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% else %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-               l
-              
               btn-outline-dark
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% endif %} py-2 service-btn"
@@ -252,73 +76,13 @@
           <button class="btn {% if receiver_role == 'Room Service' %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% else %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-outline-dark
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% endif %} py-2 service-btn"
@@ -330,73 +94,13 @@
           <button class="btn {% if receiver_role == 'Admin' %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% else %}
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               btn-outline-dark
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             {% endif %} py-2 service-btn"
@@ -430,77 +134,13 @@
                 <div class="{% if msg.sender_id == current_user_id %}
                     
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     text-end me-2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                   {% else %}
                     
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     me-2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                   {% endif %}">
@@ -530,6 +170,7 @@
   </div>
   <div id="chat-config" data-room-name="{{ room_name }}" data-sender-id="{{ request.user.id }}" data-sender-username="{{ request.user.username }}" data-receiver-role="{{ receiver_role }}"></div>
 {% endblock %}
+
 {% block extra_js %}
   <script src="{% static 'cafe/js/messenger.js' %}"></script>
 {% endblock %}

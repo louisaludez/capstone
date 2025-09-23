@@ -6,7 +6,7 @@
   <div class="sidebar-menu mt-4 mb-5">
     <a href="{% url 'housekeeping_home' %}" class="{% if active_page == 'home' %}active{% endif %}">Tasks</a>
     <a href="{% url 'timeline' %}" class="{% if active_page == 'timeline' %}active{% endif %}">Timeline</a>
-    <a href="" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
+    <a href="{% url 'housekeeping_messenger' %}" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
     <a href="{% url 'activity_home' %}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
   </div>
   <div class="mt-auto p-3 d-flex flex-column align-items-center">

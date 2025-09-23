@@ -6,7 +6,7 @@ Messenger{% endblock %} {% block sidebar %} {% include './includes/concierge_sid
 
 {% endblock %}
  {% block content %}
- <div class="container-fluid vh-100 d-flex justify-content-center align-items-start p-0">
+ <div class="container-fluid vh-100 d-flex justify-content-center align-items-center p-0">
     <div class="row w-100" style="max-width: 900px;">
       <!-- Left section: Service navigation -->
       <div class="col-md-3">
@@ -15,16 +15,13 @@ Messenger{% endblock %} {% block sidebar %} {% include './includes/concierge_sid
           <button class="btn {% if receiver_role == 'Personnel' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Personnel">Personnel</button>
         </div>
         <div class="d-grid mb-4">
-          <button class="btn {% if receiver_role == 'Concierge' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Concierge">Concierge</button>
-        </div>
-        <div class="d-grid mb-4">
           <button class="btn {% if receiver_role == 'Laundry' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Laundry">Laundry</button>
         </div>
         <div class="d-grid mb-4">
           <button class="btn {% if receiver_role == 'Cafe' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Cafe">Cafe</button>
         </div>
         <div class="d-grid mb-4">
-          <button class="btn {% if receiver_role == 'Room Service' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Room Service">Room Service</button>
+          <button class="btn {% if receiver_role == 'Room Service' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Room Service">Housekeeping</button>
         </div>
         <div class="d-grid">
           <button class="btn {% if receiver_role == 'Admin' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Admin">Admin</button>
@@ -33,7 +30,7 @@ Messenger{% endblock %} {% block sidebar %} {% include './includes/concierge_sid
       </div>
   
       <!-- Right section: Chat area -->
-      <div class="col-md-9 mt-5">
+      <div class="col-md-9">
         <div class="card shadow-sm" style="max-width: 600px; margin: 0 auto;">
           <div class="card-header bg-white">
             <div class="d-flex align-items-center">

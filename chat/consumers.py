@@ -10,25 +10,33 @@ def simplify_role(role):
     role_mapping = {
         'staff_personnel': 'Personnel',
         'manager_personnel': 'Personnel',
+        'supervisor_personnel': 'Personnel',
+        'personnel': 'Personnel',
+        'staff': 'Personnel',
+        'manager': 'Personnel',
         'staff_concierge': 'Concierge',
         'manager_concierge': 'Concierge',
+        'supervisor_concierge': 'Concierge',
         'staff_laundry': 'Laundry',
         'manager_laundry': 'Laundry',
+        'supervisor_laundry': 'Laundry',
         'staff_cafe': 'Cafe',
         'manager_cafe': 'Cafe',
+        'supervisor_cafe': 'Cafe',
         'staff_room_service': 'Room Service',
         'manager_room_service': 'Room Service',
+        'supervisor_room_service': 'Room Service',
         'admin': 'Admin'
     }
     return role_mapping.get(role, role)
 
 def get_related_roles(role):
     role_mappings = {
-        'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel'],
-        'Concierge': ['staff_concierge', 'manager_concierge', 'Concierge'],
-        'Laundry': ['staff_laundry', 'manager_laundry', 'Laundry'],
-        'Cafe': ['staff_cafe', 'manager_cafe', 'Cafe'],
-        'Room Service': ['staff_room_service', 'manager_room_service', 'Room Service'],
+        'Personnel': ['staff_personnel', 'manager_personnel', 'supervisor_personnel', 'Personnel', 'personnel', 'staff', 'manager'],
+        'Concierge': ['staff_concierge', 'manager_concierge', 'supervisor_concierge', 'Concierge'],
+        'Laundry': ['staff_laundry', 'manager_laundry', 'supervisor_laundry', 'Laundry'],
+        'Cafe': ['staff_cafe', 'manager_cafe', 'supervisor_cafe', 'Cafe'],
+        'Room Service': ['staff_room_service', 'manager_room_service', 'supervisor_room_service', 'Room Service'],
         'Admin': ['admin', 'Admin']
     }
     for general_role, specific_roles in role_mappings.items():
@@ -44,7 +52,8 @@ def is_valid_role(role):
         'staff_laundry', 'manager_laundry',
         'staff_cafe', 'manager_cafe',
         'staff_room_service', 'manager_room_service',
-        'admin','personnel'
+        'supervisor_personnel', 'supervisor_concierge', 'supervisor_laundry', 'supervisor_cafe', 'supervisor_room_service',
+        'admin','personnel','staff','manager'
     ]
     return role in valid_roles
 
@@ -111,7 +120,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Save message to database
             message = await self.save_message(sender_id, receiver_role, subject, body)
-            
+
+            # Compute base conversation room (symmetric)
+            conv_roles = sorted([simplify_role(sender_role), simplify_role(receiver_role)])
+            base_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+
             # Prepare message data
             message_data = {
                 'type': 'chat_message',
@@ -122,7 +135,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'sender_username': sender_username,
                 'receiver_role': simplify_role(receiver_role),
                 'subject': subject,
-                'timestamp': str(message.created_at)
+                'timestamp': str(message.created_at),
+                'base_room': base_room,
             }
 
             # Get all related roles for the receiver
@@ -144,6 +158,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 sent_to_rooms.add(sender_role_room)
                 print(f"Sent message to sender's room {sender_role_room}")
 
+            # Additionally, send to the conversation base room (symmetric room both UIs join)
+            if base_room not in sent_to_rooms:
+                await self.channel_layer.group_send(base_room, message_data)
+                sent_to_rooms.add(base_room)
+                print(f"Sent message to base room {base_room}")
+
             print(f"Message sent to rooms: {sent_to_rooms}")
         except Exception as e:
             print(f"Error in receive: {str(e)}")
@@ -154,13 +174,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             receiver_role = event['receiver_role']
             receiver_roles = set(get_related_roles(receiver_role))
             sender_id = event['sender_id']
+            sender_role = event.get('sender_role')
+            sender_roles = set(get_related_roles(sender_role)) if sender_role else set()
             
             # Send the message if:
             # 1. The user is the sender, OR
             # 2. The user's roles overlap with the receiver roles
             should_receive = (
                 str(self.user.id) == str(sender_id) or
-                bool(self.user_roles.intersection(receiver_roles))
+                bool(self.user_roles.intersection(receiver_roles)) or
+                bool(self.user_roles.intersection(sender_roles))
             )
             
             if should_receive:
@@ -175,9 +198,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'subject': event['subject'],
                     'timestamp': event['timestamp']
                 }))
-                print(f"Message delivered to user {self.user.username} (ID: {self.user.id})")
-            else:
-                print(f"Message skipped for user {self.user.username} (ID: {self.user.id})")
+                # delivered
+                pass
         except Exception as e:
             print(f"Error in chat_message: {str(e)}")
 

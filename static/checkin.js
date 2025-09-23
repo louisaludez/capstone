@@ -139,6 +139,9 @@ document
     // Load latest pending reservations for selection
     loadPendingReservations("");
 
+    // Ensure addons popup is hidden initially
+    try { $("#checkin-addons-popup").hide(); } catch (e) { }
+
 
   });
 // When a name is chosen, map it to the reservation and prefill details
@@ -350,4 +353,32 @@ $(".checkin-book-btn").on("click", function (event) {
       console.log("Check-in error:", error);
     },
   });
+});
+
+// === Check-in Add-ons dropdown behavior ===
+// Toggle dropdown
+$(document).on('click', '.checkin-addons-dropdown', function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const $popup = $('#checkin-addons-popup');
+  $popup.toggle();
+});
+
+// Close when clicking outside
+$(document).on('click', function (e) {
+  if (!$(e.target).closest('.checkin-addons-dropdown').length) {
+    $('#checkin-addons-popup').hide();
+  }
+});
+
+// Plus/minus buttons inside popup
+$(document).on('click', '#checkin-bed-minus, #checkin-bed-plus, #checkin-pillow-minus, #checkin-pillow-plus, #checkin-towel-minus, #checkin-towel-plus', function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const isPlus = this.id.includes('plus');
+  const type = this.id.replace('checkin-', '').replace('-plus', '').replace('-minus', '');
+  const delta = isPlus ? 1 : -1;
+  if (typeof changeCheckinAddon === 'function') {
+    changeCheckinAddon(type, delta);
+  }
 });

@@ -144,7 +144,7 @@ function closeWalkinModal() {
   walkInTimerInterval = null;
 }
 // Add-ons dropdown functionality
-let addonsData = {
+window.addonsData = window.addonsData || {
   bed: 0,
   pillow: 0,
   towel: 0
