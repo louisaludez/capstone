@@ -5,6 +5,24 @@
 {% endblock %}
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}" />
+  <style>
+    /* Real-time search visual feedback */
+    #customSearch.searching {
+      border-color: #0d6efd !important;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+    }
+    
+    /* Search input focus state */
+    #customSearch:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Smooth transition for search input */
+    #customSearch {
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+  </style>
 {% endblock %}
 {% block sidebar %}
   {% include './includes/sidebar.html' with active_page='accounts' %}
@@ -16,7 +34,7 @@
       <div class="d-flex gap-2">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-plus-lg"></i> Add User</button>
         <div class="input-group">
-          <input id="customSearch" type="text" class="form-control form-control-sm" placeholder="Search" />
+          <input id="customSearch" type="text" class="form-control form-control-sm" placeholder="Search by username, role, or ID" />
         </div>
       </div>
     </div>

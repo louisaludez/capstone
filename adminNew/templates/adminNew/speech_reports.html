@@ -35,7 +35,7 @@
   {% include './includes/sidebar.html' with active_page='reports' %}
 {% endblock %}
 {% block content %}
-  <div class="container">
+  <div class="container px-4 px-md-5 py-4 py-md-5">
     <!-- Filters -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Speech to Text Reports</h2>
@@ -134,7 +134,7 @@
       </div>
     </div>
     <!-- Table Header -->
-    <div class="row table-header py-2 text-center">
+    <div class="row table-header py-2 text-center mx-2">
       <div class="col-1">
         <input type="checkbox" />
       </div>
@@ -152,7 +152,7 @@
     <!-- Table Rows -->
     <div id="orders-container">
       {% for attempt in attempts %}
-        <div class="row table-row py-2 text-center border-bottom">
+        <div class="row row-border text-center align-items-center mx-2">
           <div class="col-1">
             <input type="checkbox" />
           </div>
