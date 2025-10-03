@@ -19,7 +19,8 @@
     border-radius: 8px;
     width: 800px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: visible;
+    /* allow popups to overflow */
     padding: 0px 20px 20px 20px;
     border: 2px solid #004d4d;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -94,6 +95,20 @@
     max-width: 48%;
 }
 
+/* Addons popup visibility (match walk-in behavior) */
+.addons-popup {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.addons-popup.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 .checkin-addons {
     display: flex;
     align-items: center;
@@ -107,7 +122,7 @@
 }
 
 .checkin-book-btn {
-    background:#0c4d00;
+    background: #0c4d00;
     color: #fff;
     border: none;
     padding: 5px 14px;

@@ -78,6 +78,56 @@ def admin_home_forecast_json(request):
     import json
     data = get_reservation_forecast() or {}
     return JsonResponse(data, safe=False)
+
+@require_GET
+def admin_home_monthly_data(request):
+    """Get monthly guest and revenue data for a specific month"""
+    from datetime import datetime
+    from django.db.models import Q
+    
+    month_str = request.GET.get('month')
+    if not month_str:
+        return JsonResponse({'error': 'Month parameter required'}, status=400)
+    
+    try:
+        # Parse month string (format: YYYY-MM)
+        year, month = map(int, month_str.split('-'))
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+    except (ValueError, IndexError):
+        return JsonResponse({'error': 'Invalid month format. Use YYYY-MM'}, status=400)
+    
+    # Count guests for the selected month (based on their bookings)
+    monthly_guests = Guest.objects.filter(
+        Q(booking__check_in_date__gte=start_date, booking__check_in_date__lt=end_date) |
+        Q(booking__check_out_date__gte=start_date, booking__check_out_date__lt=end_date)
+    ).distinct().count()
+    
+    # Calculate revenue for the selected month
+    monthly_revenue = 0.0
+    for guest_obj in Guest.objects.filter(
+        Q(booking__check_in_date__gte=start_date, booking__check_in_date__lt=end_date) |
+        Q(booking__check_out_date__gte=start_date, booking__check_out_date__lt=end_date)
+    ).distinct():
+        try:
+            monthly_revenue += float(guest_obj.billing or 0)
+            monthly_revenue += float(guest_obj.room_service_billing or 0)
+            monthly_revenue += float(guest_obj.laundry_billing or 0)
+            monthly_revenue += float(guest_obj.cafe_billing or 0)
+            monthly_revenue += float(guest_obj.excess_pax_billing or 0)
+            monthly_revenue += float(guest_obj.additional_charge_billing or 0)
+        except (ValueError, TypeError):
+            continue
+    
+    return JsonResponse({
+        'month': month_str,
+        'month_display': start_date.strftime('%B %Y'),
+        'guests': monthly_guests,
+        'revenue': f"{monthly_revenue:.2f}"
+    })
 def admin_account(request):
     users = CustomUser.objects.all()
     return render(request, "adminNew/accounts.html", {"users": users})

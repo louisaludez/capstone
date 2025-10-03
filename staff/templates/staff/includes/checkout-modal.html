@@ -53,7 +53,7 @@
               </div>
             </div>
 
-            <div class="checkout-field"><label>Billing Address</label><input type="text"/></div>
+            <div class="checkout-field checkout-billing-wrapper"><label>Billing Address</label><input type="text"/></div>
           </div>
 
           <!-- RIGHT COLUMN -->
@@ -83,5 +83,24 @@
             </div>
           </div>
         </div>
+<script>
+  // Toggle billing/card visibility on checkout based on payment method
+  document.addEventListener('DOMContentLoaded', function () {
+    const method = document.querySelector('.checkout-payment-method')
+    const cardFields = document.querySelector('.checkout-card-fields')
+    const billingWrapper = document.querySelector('.checkout-billing-wrapper')
+
+    function applyPaymentVisibility() {
+      const isCash = method && method.value === 'cash'
+      if (cardFields) cardFields.style.display = isCash ? 'none' : ''
+      if (billingWrapper) billingWrapper.style.display = isCash ? 'none' : ''
+    }
+
+    if (method) {
+      method.addEventListener('change', applyPaymentVisibility)
+      applyPaymentVisibility()
+    }
+  })
+</script>
       </div>
     </div>

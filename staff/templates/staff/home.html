@@ -5,6 +5,80 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 
   <style>
+    /* Green-themed flatpickr to match provided design */
+    .flatpickr-calendar {
+      border: 1px solid #e5e7eb !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    /* Header */
+    .flatpickr-months,
+    .flatpickr-calendar .flatpickr-months .flatpickr-month {
+      background: #2e7d32 !important; /* green */
+      color: #fff !important;
+      border-bottom: none !important;
+    }
+    .flatpickr-current-month .cur-month,
+    .flatpickr-current-month input.cur-year {
+      color: #fff !important;
+      font-weight: 600 !important;
+    }
+    .flatpickr-current-month .numInputWrapper input,
+    .flatpickr-current-month .numInputWrapper span.arrowUp:after,
+    .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+      color: #fff !important;
+      fill: #fff !important;
+    }
+    .flatpickr-months .flatpickr-prev-month svg,
+    .flatpickr-months .flatpickr-next-month svg {
+      fill: #fff !important;
+      stroke: #fff !important;
+    }
+    
+    /* Month/Year dropdowns */
+    .flatpickr-monthDropdown-months,
+    .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month,
+    .flatpickr-yearDropdown,
+    .flatpickr-yearDropdown * {
+      background: #ffffff !important;
+      color: #111827 !important; /* slate-900 */
+    }
+    .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:hover,
+    .flatpickr-yearDropdown *:hover {
+      background: #eef2ff !important; /* light hover */
+    }
+    
+    /* Weekdays */
+    .flatpickr-weekday {
+      color: #6b7280 !important; /* gray-500 */
+      font-weight: 600 !important;
+    }
+    
+    /* Days */
+    .flatpickr-day {
+      color: #111827 !important;
+    }
+    .flatpickr-day:hover {
+      background: #f3f4f6 !important;
+    }
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+      background: #2e7d32 !important;
+      border-color: #2e7d32 !important;
+      color: #ffffff !important;
+    }
+    .flatpickr-day.today:not(.selected) {
+      background: #e6f4ea !important; /* subtle green */
+      border-color: #a7d7b5 !important;
+      color: #256c2c !important;
+    }
+    .flatpickr-day.prevMonthDay,
+    .flatpickr-day.nextMonthDay,
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.disabled {
+      color: #d1d5db !important; /* gray-300 */
+    }
     /* Date selector improvements */
     #date-select {
       border: 2px solid #dee2e6;
@@ -144,20 +218,42 @@
   {% include './includes/checkout-modal.html' %}
 {% endblock %} {% block extra_js %}
   <script>
+    // Front office log date selector with green-themed calendar
+    flatpickr('#date-select', {
+      dateFormat: 'Y-m-d',
+      disableMobile: true,
+      monthSelectorType: 'dropdown',
+      locale: { firstDayOfWeek: 1 }, // Monday first
+      defaultDate: new Date(),
+      onChange: function (selectedDates, dateStr) {
+        if (dateStr) {
+          // Refresh rooms when date changes
+          try {
+            refreshRooms(dateStr)
+          } catch (e) {
+            console.warn('refreshRooms not ready yet')
+          }
+        }
+      }
+    })
+    
     flatpickr('#calendar', {
       dateFormat: 'Y-m-d',
       disableMobile: true, // Forces desktop-style calendar on mobile
-      monthSelectorType: 'static' // Ensure month/year are always visible
+      monthSelectorType: 'dropdown',
+      locale: { firstDayOfWeek: 1 }
     })
     flatpickr('#check-in', {
       dateFormat: 'Y-m-d',
       disableMobile: true,
-      monthSelectorType: 'static' // Ensure month/year are always visible
+      monthSelectorType: 'dropdown',
+      locale: { firstDayOfWeek: 1 }
     })
     flatpickr('#check-out', {
       dateFormat: 'Y-m-d',
       disableMobile: true,
-      monthSelectorType: 'static' // Ensure month/year are always visible
+      monthSelectorType: 'dropdown',
+      locale: { firstDayOfWeek: 1 }
     })
   </script>
   <script>

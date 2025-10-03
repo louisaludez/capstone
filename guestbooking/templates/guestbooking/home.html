@@ -501,6 +501,14 @@
     let stayType = 'overnight' // Default to overnight stays
     const resultsUrl = "{% url 'guest_booking_results' %}"
     
+    // Helpers
+    function formatLocalDate(date) {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function () {
       updateDateDisplay() // Update date display first
@@ -915,13 +923,13 @@
     
       console.log('Searching with data:', searchData)
     
-      // Build query params and navigate to results page
-      const toIsoDate = (d) => new Date(d).toISOString().split('T')[0]
+      // Build query params and navigate to results page (use LOCAL date, avoid UTC shift)
+      const toLocal = (d) => formatLocalDate(new Date(d))
       const params = new URLSearchParams({
         stayType: stayType,
-        checkin: toIsoDate(selectedCheckin),
+        checkin: toLocal(selectedCheckin),
         // For overnight, ensure checkout is at least +1 day; for dayuse, same-day
-        checkout: toIsoDate(stayType === 'overnight' ? new Date(new Date(selectedCheckin).setDate(selectedCheckin.getDate() + 1)) : selectedCheckout),
+        checkout: toLocal(stayType === 'overnight' ? new Date(new Date(selectedCheckin).setDate(selectedCheckin.getDate() + 1)) : selectedCheckout),
         rooms: String(rooms),
         adults: String(adults),
         children: String(children),

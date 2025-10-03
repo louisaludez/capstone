@@ -45,7 +45,7 @@ python manage.py test_sarima
 - **Automatic Differencing**: Makes series stationary if needed
 
 ### Forecasting
-- **6-month Forecast**: Predicts next 6 months' reservation patterns
+- **12-month Forecast**: Predicts next 12 months' reservation patterns
 - **Confidence Intervals**: 95% confidence bounds for uncertainty
 - **Multiple Methods**: SARIMA, moving average, or constant fallback
 
@@ -53,7 +53,7 @@ python manage.py test_sarima
 
 The admin dashboard now displays:
 - **Historical Data**: Last 14 days of actual reservations
-- **Forecast Data**: Next 7 days of predicted reservations
+- **Forecast Data**: Next 12 months of predicted reservations
 - **Confidence Bands**: Visual uncertainty representation
 - **Method Indicator**: Shows which forecasting method is being used
 

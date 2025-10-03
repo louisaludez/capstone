@@ -199,15 +199,21 @@ function startCheckInTimer(duration, display) {
     console.log(`Timer: ${minutes}:${seconds}`);
     if (--timer < 0) {
       timer = duration;
-      clearInterval(walkInTimerInterval);
+      // Safely clear this timer only
+      if (checkInTimerInterval) {
+        clearInterval(checkInTimerInterval);
+        checkInTimerInterval = null;
+      }
     }
   }, 1000);
 }
 
 function closeCheckinModal() {
   checkinOverlay.style.display = "none";
-  clearInterval(InTimerInterval);
-  checkInTimerInterval = null;
+  if (checkInTimerInterval) {
+    clearInterval(checkInTimerInterval);
+    checkInTimerInterval = null;
+  }
 }
 
 $(".ci-addons-decrease, .ci-addons-increase").on("click", function () {
@@ -361,13 +367,18 @@ $(document).on('click', '.checkin-addons-dropdown', function (e) {
   e.preventDefault();
   e.stopPropagation();
   const $popup = $('#checkin-addons-popup');
-  $popup.toggle();
+  const willOpen = !$popup.hasClass('show');
+  console.log('[checkin] addons dropdown clicked — toggling popup (class-based)', { willOpen });
+  $popup.toggleClass('show', willOpen);
 });
 
 // Close when clicking outside
 $(document).on('click', function (e) {
   if (!$(e.target).closest('.checkin-addons-dropdown').length) {
-    $('#checkin-addons-popup').hide();
+    if ($('#checkin-addons-popup').hasClass('show')) {
+      console.log('[checkin] click outside — closing addons popup');
+    }
+    $('#checkin-addons-popup').removeClass('show');
   }
 });
 
@@ -378,6 +389,7 @@ $(document).on('click', '#checkin-bed-minus, #checkin-bed-plus, #checkin-pillow-
   const isPlus = this.id.includes('plus');
   const type = this.id.replace('checkin-', '').replace('-plus', '').replace('-minus', '');
   const delta = isPlus ? 1 : -1;
+  console.log('[checkin] addons adjust', { type, delta });
   if (typeof changeCheckinAddon === 'function') {
     changeCheckinAddon(type, delta);
   }

@@ -56,7 +56,7 @@
       </div>
       <div class="right-side">
         <div class="specifications-pos">
-          <span><i>Specifications</i></span>
+          <span><i>Specifications (Select Multiple)</i></span>
         </div>
         <div class="laundry-pos form-check">
           <label for="laundry" class="form-check-label">Laundry Detergent</label>
@@ -86,16 +86,23 @@
 {% block extra_js %}
   <script>
     $(document).ready(function () {
-      // Single checkbox logic
+      // Multiple checkbox logic - allow multiple selections
       $('.form-check-input').on('change', function () {
-        if ($(this).is(':checked')) {
-          $('.form-check-input').not(this).prop('checked', false)
-        }
+        // No need to uncheck others - allow multiple selections
+        console.log('Checkbox changed:', $(this).attr('id'), $(this).is(':checked'))
       })
     
       function getCheckedValue() {
         const checked = $('.form-check-input:checked')
-        return checked.length ? checked.attr('id') : null
+        if (checked.length === 0) return null
+        if (checked.length === 1) return checked.attr('id')
+        // Return comma-separated string of selected specifications for multiple selections
+        return checked
+          .map(function () {
+            return this.id
+          })
+          .get()
+          .join(', ')
       }
     
       let selectedGuest = null
@@ -156,12 +163,12 @@
                 Swal.fire({
                   title: '<bold>Transaction <br>Successful!</bold>',
                   html: `
-                                              <p style="color: #1a2d1e !important">
-                                                Transaction recorded to Guest <strong>${guestName}</strong>.<br>
-                                                Room no. <strong>${roomNo}</strong><br>
-                                                Reference no. <strong>${referenceNo}</strong>
-                                              </p>
-                                            `,
+                                                      <p style="color: #1a2d1e !important">
+                                                        Transaction recorded to Guest <strong>${guestName}</strong>.<br>
+                                                        Room no. <strong>${roomNo}</strong><br>
+                                                        Reference no. <strong>${referenceNo}</strong>
+                                                      </p>
+                                                    `,
                   icon: 'success',
                   showConfirmButton: false,
                   customClass: {
@@ -186,29 +193,29 @@
         Swal.fire({
           title: '<strong>Cash Payment</strong>',
           html: `
-                                      <div style="text-align: left;" class="cash-payment-modal">
-                                        <div style="margin-bottom: 10px;">
-                                          <label style="display: block; text-align: left;">Cash Tendered</label>
-                                          <div style="display: flex; justify-content: center;">
-                                            <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
-                                          </div>
-                                        </div>
-                            
-                                        <div style="margin-bottom: 10px;">
-                                          <label style="display: block; text-align: left;">Total</label>
-                                          <div style="display: flex; justify-content: center;">
-                                            <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                          </div>
-                                        </div>
-                            
-                                        <div>
-                                          <label style="display: block; text-align: left;">Change</label>
-                                          <div style="display: flex; justify-content: center;">
-                                            <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    `,
+                                              <div style="text-align: left;" class="cash-payment-modal">
+                                                <div style="margin-bottom: 10px;">
+                                                  <label style="display: block; text-align: left;">Cash Tendered</label>
+                                                  <div style="display: flex; justify-content: center;">
+                                                    <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
+                                                  </div>
+                                                </div>
+                                    
+                                                <div style="margin-bottom: 10px;">
+                                                  <label style="display: block; text-align: left;">Total</label>
+                                                  <div style="display: flex; justify-content: center;">
+                                                    <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                  </div>
+                                                </div>
+                                    
+                                                <div>
+                                                  <label style="display: block; text-align: left;">Change</label>
+                                                  <div style="display: flex; justify-content: center;">
+                                                    <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            `,
           showCancelButton: true,
           confirmButtonText: 'Cancel',
           cancelButtonText: 'Next',
@@ -277,39 +284,39 @@
                     title: '',
                     showCloseButton: true,
                     html: `
-                                                <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
-                                                  <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
-                                                  <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
-                                                  <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
-                                                  <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
-                                                  <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                  <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
-                                                  <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
-                                                  <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                  <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
-                                                    <tr>
-                                                      <th style="text-align: left;">Service Type</th>
-                                                      <th>Qty</th>
-                                                      <th style="text-align: right;">Price</th>
-                                                    </tr>
-                                                    <tr>
-                                                      <td>${serviceType}</td>
-                                                      <td>${noBags} bags</td>
-                                                      <td style="text-align: right;">${totalAmount}</td>
-                                                    </tr>
-                                                    <tr><td style="text-align: left;">Specifications</td></tr>
-                                                    <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
-                                                  </table>
-                                                  <table style="width: 100%; font-size: 13px; font-weight: bold;">
-                                                    <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
-                                                    <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
-                                                    <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
-                                                  </table>
-                                                  <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                  <p style="margin-top: 10px;">Thank you!</p>
-                                                  <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                </div>
-                                              `,
+                                                        <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
+                                                          <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
+                                                          <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
+                                                          <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
+                                                          <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
+                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                          <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
+                                                          <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
+                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                          <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
+                                                            <tr>
+                                                              <th style="text-align: left;">Service Type</th>
+                                                              <th>Qty</th>
+                                                              <th style="text-align: right;">Price</th>
+                                                            </tr>
+                                                            <tr>
+                                                              <td>${serviceType}</td>
+                                                              <td>${noBags} bags</td>
+                                                              <td style="text-align: right;">${totalAmount}</td>
+                                                            </tr>
+                                                            <tr><td style="text-align: left;">Specifications</td></tr>
+                                                            <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
+                                                          </table>
+                                                          <table style="width: 100%; font-size: 13px; font-weight: bold;">
+                                                            <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
+                                                            <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
+                                                            <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
+                                                          </table>
+                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                          <p style="margin-top: 10px;">Thank you!</p>
+                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                        </div>
+                                                      `,
                     showConfirmButton: true,
                     confirmButtonText: 'Print Receipt',
                     confirmButtonColor: '#1a2d1e',

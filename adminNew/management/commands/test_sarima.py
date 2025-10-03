@@ -54,7 +54,7 @@ class Command(BaseCommand):
                 forecast_values = forecast_data['forecast']['values']
                 forecast_dates = forecast_data['forecast']['dates']
                 
-                self.stdout.write('\n6-month forecast:')
+                self.stdout.write('\n12-month forecast:')
                 for date, value in zip(forecast_dates, forecast_values):
                     self.stdout.write(f'  {date}: {value:.1f} reservations')
                 

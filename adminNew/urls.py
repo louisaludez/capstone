@@ -3,6 +3,7 @@ from .views import *
 urlpatterns = [
     path('',admin_home, name='admin_home'),
     path('home/forecast.json', admin_home_forecast_json, name='admin_home_forecast_json'),
+    path('home/monthly-data/', admin_home_monthly_data, name='admin_home_monthly_data'),
     path('accounts/',admin_account,name='admin_accounts'),
     path("accounts/add-user/",add_user, name="add_user"),
     path("accounts/view-user/<int:user_id>/",view_user, name="view_user"),

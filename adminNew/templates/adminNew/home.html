@@ -12,6 +12,7 @@
 {% block content %}
   <div class="container p-5">
     <h1 class="mb-2" style="font-size: 2rem">Dashboard</h1>
+
     <div class="row g-2">
       <div class="col-lg-8 col-md-7 col-12">
         <div class="card mb-2 shadow-sm">
@@ -26,7 +27,27 @@
                     
                     
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     success
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -38,7 +59,27 @@
                     
                     
                     
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     danger
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -61,12 +102,28 @@
       </div>
       <div class="col-lg col-md-5 col-12 mb-2">
         <div class="row g-2">
+          <!-- Month Selection -->
+          <div class="col-12">
+            <div class="card shadow-sm">
+              <div class="card-body p-3">
+                <label for="monthSelect" class="form-label mb-2"><strong>Select Month to View:</strong></label>
+                <select id="monthSelect" class="form-select">
+                  <option value="">Choose a month...</option>
+                </select>
+              </div>
+            </div>
+          </div>
           <div class="col-12">
             <div class="card shadow-sm">
               <div class="card-body p-2">
                 <h6 class="text-muted mb-1" style="font-size: 0.9rem">Total No. of Guests</h6>
-                <div class="d-flex align-items-center">
-                  <h4 class="mb-0">{{ total_guests }}</h4>
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="d-flex align-items-center">
+                      <h4 class="mb-0 me-3">Total: {{ total_guests }}</h4>
+                      <h4 class="mb-0" id="monthlyGuests" style="display: none;"><span class="text-muted">|</span> <span id="monthlyGuestsValue">0</span></h4>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -85,8 +142,13 @@
             <div class="card shadow-sm">
               <div class="card-body p-2">
                 <h6 class="text-muted mb-1" style="font-size: 0.9rem">Overall Revenue</h6>
-                <div class="d-flex align-items-center">
-                  <h4 class="mb-0">₱ {{ total_revenue }}</h4>
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="d-flex align-items-center">
+                      <h4 class="mb-0 me-3">Total: ₱ {{ total_revenue }}</h4>
+                      <h4 class="mb-0" id="monthlyRevenue" style="display: none;"><span class="text-muted">|</span> <span id="monthlyRevenueValue">₱ 0.00</span></h4>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -141,6 +203,75 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
+    // Month selection functionality
+    function populateMonthDropdown() {
+      const monthSelect = document.getElementById('monthSelect')
+      const currentDate = new Date()
+      const months = []
+    
+      // Generate months from 2 years ago to current month
+      for (let i = 24; i >= 0; i--) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        months.push({
+          value: `${year}-${month}`,
+          text: monthName
+        })
+      }
+    
+      // Clear existing options except the first one
+      monthSelect.innerHTML = '<option value="">Choose a month...</option>'
+    
+      // Add month options
+      months.forEach((month) => {
+        const option = document.createElement('option')
+        option.value = month.value
+        option.textContent = month.text
+        monthSelect.appendChild(option)
+      })
+    }
+    
+    function loadMonthlyData(month) {
+      if (!month) {
+        // Hide monthly data if no month selected
+        document.getElementById('monthlyGuests').style.display = 'none'
+        document.getElementById('monthlyRevenue').style.display = 'none'
+        return
+      }
+    
+      fetch(`{% url "admin_home_monthly_data" %}?month=${month}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.error('Error loading monthly data:', data.error)
+            return
+          }
+    
+          // Update guest count
+          document.getElementById('monthlyGuestsValue').textContent = data.guests
+          document.getElementById('monthlyGuests').style.display = 'block'
+    
+          // Update revenue
+          document.getElementById('monthlyRevenueValue').textContent = `₱ ${data.revenue}`
+          document.getElementById('monthlyRevenue').style.display = 'block'
+        })
+        .catch((error) => {
+          console.error('Error fetching monthly data:', error)
+        })
+    }
+    
+    // Initialize month dropdown when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+      populateMonthDropdown()
+    
+      // Add event listener for month selection
+      document.getElementById('monthSelect').addEventListener('change', function () {
+        loadMonthlyData(this.value)
+      })
+    })
+    
     const canvasEl = document.getElementById('statsChart')
     const ctx = canvasEl.getContext('2d')
     
@@ -178,7 +309,7 @@
           },
           title: {
             display: true,
-            text: 'Monthly Reservation Forecast (SARIMA Model)',
+            text: '12-Month Reservation Forecast (SARIMA Model)',
             font: {
               size: 16
             }
@@ -285,12 +416,12 @@
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                    <small class="text-muted">
-                      <i class="bi bi-info-circle"></i> 
-                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                    </small>
-                  `
+                                                            <small class="text-muted">
+                                                              <i class="bi bi-info-circle"></i> 
+                                                              Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                                                              ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                                                            </small>
+                                                          `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })

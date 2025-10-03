@@ -78,21 +78,24 @@
             <label>No. of Children</label>
             <input id="ci-no-of-children" type="number" />
           </div>
-          <div class="checkin-field">
+          <div class="checkin-field" style="position: relative; overflow: visible;">
             <label>Add‑ons</label>
-            <div class="checkin-addons-dropdown" style="border: 1px solid #ccc; border-radius: 4px; padding: 2px 5px; background-color: #dddddd; cursor: pointer; position: relative; font-size: 11px; height: 18px; display: flex; align-items: center;">
+            <div class="checkin-addons-dropdown" style="border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px; background-color: #dddddd; cursor: pointer; position: relative; font-size: 11px; min-height: 44px; display: flex; align-items: flex-start; z-index: 10001; overflow: visible;">
               <div class="d-flex justify-content-between align-items-center" style="width: 100%;">
                 <div style="flex: 1;">
-                  <div style="font-size: 11px; line-height: 1;">
+                  <div style="font-size: 11px; line-height: 1.1;">
                     <i class="bi bi-plus-circle" style="font-size: 9px;"></i> <strong id="checkin-addons-summary" style="font-size: 11px;">No add-ons selected</strong>
                   </div>
-                  <small class="text-muted" id="checkin-addons-details" style="font-size: 8px; line-height: 0.8;">Select add-ons for your stay</small>
+                  <small class="text-muted" id="checkin-addons-details" style="font-size: 10px; line-height: 1; display:block;">Select add-ons for your stay</small>
                 </div>
                 <i class="bi bi-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>
               </div>
 
               <!-- Add-ons Popup -->
-              <div class="addons-popup" id="checkin-addons-popup" style="position: absolute; top: 100%; left: 0; background: #f0f0f0; border: 2px solid #2e7d32; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 9999; min-width: 250px; max-width: 250px; display: none; padding: 8px; margin-top: 5px;">
+              <div class="addons-popup" id="checkin-addons-popup" style="position: absolute; bottom: 100%; left: 0; background: #f0f0f0; border: 2px solid #2e7d32; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10002; min-width: 260px; max-width: 260px; display: none; padding: 8px; margin-bottom: 6px;">
+                <!-- Arrow pointing down to the trigger -->
+                <div style="position: absolute; bottom: -9px; left: 20px; width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 9px solid #2e7d32;"></div>
+                <div style="position: absolute; bottom: -7px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #f0f0f0;"></div>
                 <div class="addons-section" style="padding: 4px; border-bottom: 1px solid #eee;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <h6 style="margin: 0; color: #333; font-weight: 600; font-size: 12px;">Extra Bed</h6>
@@ -231,4 +234,59 @@
       document.getElementById('checkin-addons-details').textContent = `${totalAddons} add-on${totalAddons > 1 ? 's' : ''} selected`
     }
   }
+  
+  // Payment method -> toggle billing address and card fields
+  document.addEventListener('DOMContentLoaded', function () {
+    const method = document.getElementById('ci-payment-method')
+    const cardFields = document.querySelector('.checkin-card-fields')
+    const billingField = document.getElementById('ci-billing-address')
+    const addonsDropdown = document.querySelector('.checkin-addons-dropdown')
+    const addonsPopup = document.getElementById('checkin-addons-popup')
+  
+    function applyPaymentVisibility() {
+      const isCash = method && method.value === 'cash'
+      if (cardFields) cardFields.style.display = isCash ? 'none' : ''
+      if (billingField) {
+        billingField.closest('.checkin-field').style.display = isCash ? 'none' : ''
+        if (isCash) billingField.value = ''
+      }
+    }
+  
+    if (method) {
+      method.addEventListener('change', applyPaymentVisibility)
+      applyPaymentVisibility()
+    }
+  
+    // Add-ons dropdown toggle (robust delegation)
+    function toggleAddonsPopup(open) {
+      if (!addonsPopup) return
+      const willOpen = open !== undefined ? open : addonsPopup.style.display !== 'block'
+      addonsPopup.style.display = willOpen ? 'block' : 'none'
+    }
+  
+    if (addonsPopup) {
+      // Open/close when clicking the dropdown container or any child
+      document.addEventListener('click', function (e) {
+        const trigger = e.target.closest('.checkin-addons-dropdown')
+        const insidePopup = e.target.closest('#checkin-addons-popup')
+        if (trigger) {
+          e.preventDefault()
+          e.stopPropagation()
+          toggleAddonsPopup()
+          return
+        }
+        if (!insidePopup) {
+          toggleAddonsPopup(false)
+        }
+      })
+      // Prevent clicks inside popup from bubbling
+      addonsPopup.addEventListener('click', function (e) {
+        e.stopPropagation()
+      })
+      // Close with Escape
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') toggleAddonsPopup(false)
+      })
+    }
+  })
 </script>

@@ -170,9 +170,9 @@ class ReservationForecaster:
         }
         return True
     
-    def forecast(self, steps=6):
+    def forecast(self, steps=12):
         """
-        Generate forecast for the next 'steps' days
+        Generate forecast for the next 'steps' months
         """
         if self.fitted_model is not None:
             # SARIMA forecast
@@ -219,7 +219,7 @@ class ReservationForecaster:
         recent_data = series.tail(months)
         return recent_data.tolist()
     
-    def get_forecast_chart_data(self, series, forecast_months=6, historical_months=12):
+    def get_forecast_chart_data(self, series, forecast_months=12, historical_months=12):
         """
         Get complete chart data including historical and forecast
         """
