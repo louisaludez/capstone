@@ -15,7 +15,21 @@
     <h1>Room Service| Housekeeping</h1>
     <div class="room-parent" style="margin-bottom: 0;">
       {% for room in rooms %}
-        <div class="div{{ room.number }} room-box {{ room.status|lower }}" data-room="{{ room.number }}">R{{ room.number }}</div>
+        <div class="div{{ room.number }} room-box {{ room.status_class }}{% if not room.has_booking_today %} disabled-room{% endif %}"
+          data-room="{{ room.number }}"
+          data-has-booking="{% if room.has_booking_today %}
+            
+            
+            true
+
+
+          {% else %}
+            
+            
+            false
+
+
+          {% endif %}">R{{ room.number }}</div>
       {% endfor %}
       <div class="div13">
         <div>
@@ -36,6 +50,7 @@
       <div class="popover-arrow"></div>
       <div class="popover-content">
         <h4 class="select-request">Select Requests</h4>
+        <div id="no-booking-message" class="hidden">No booking on this room today.</div>
         <label><input type="radio" name="req" value="Clean room" />Clean room.</label><br />
         <label><input type="radio" name="req" value="Refill toiletries" />Refill toiletries.</label><br />
         <label><input type="radio" name="req" value="Refill convenience items" />Refill convenience items.</label><br />

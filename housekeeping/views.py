@@ -10,17 +10,40 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import models
 from chat.models import Message
 from users.models import CustomUser
+from django.utils import timezone
 def housekeeping_home(request):
     hk = Housekeeping.objects.all()[:3]
     rooms = []
+    today = timezone.localdate()
     for i in range(1, 13):  # Rooms 1–12
         room_number = str(i)
-        record = Housekeeping.objects.filter(room_number=room_number).order_by('-created_at').first()
-        status = record.status if record else "Vacant"
+
+        # Only show non-vacant colors if there is an active booking today
+        has_booking_today = Booking.objects.filter(
+            room=room_number,
+            status='Checked-in',
+            check_in_date__lte=today,
+            check_out_date__gte=today,
+        ).exists()
+
+        status_class = 'vacant'
+        if has_booking_today:
+            record = Housekeeping.objects.filter(room_number=room_number).order_by('-created_at').first()
+            if record and record.status:
+                s = record.status.strip().lower()
+                if 'pending' in s:
+                    status_class = 'pending'
+                elif 'progress' in s:
+                    status_class = 'progress'
+                else:
+                    status_class = 'vacant'
+
         rooms.append({
             "number": room_number,
-            "status": status
+            "status_class": status_class,
+            "has_booking_today": has_booking_today,
         })
+
     return render(request, 'housekeeping/housekeeping_home.html', {'housekeeping': hk, 'rooms': rooms})
 @csrf_exempt
 def update_status(request):
@@ -35,13 +58,23 @@ def update_status(request):
         print(f"POST data received - Room Number: {room_number}, Status: {status}, Request Type: {request_type}")  # Debug
 
         try:
-            booking = Booking.objects.get(room=room_number)
+            # Get the most recent active booking for this room for today's date
+            today = timezone.localdate()
+            booking = Booking.objects.filter(
+                room=room_number,
+                status='Checked-in',
+                check_in_date__lte=today,
+                check_out_date__gte=today,
+            ).order_by('-booking_date').first()
+            if not booking:
+                print("No active booking today for that room number.")  # Debug
+                return JsonResponse({'error': 'No active booking today for this room'}, status=404)
             print(f"Booking found: {booking}")  # Debug
             guest = booking.guest.name
             print(f"Guest name: {guest}")  # Debug
-        except Booking.DoesNotExist:
-            print("No booking found for that room number.")  # Debug
-            return JsonResponse({'error': 'Room not found'}, status=404)
+        except Exception as e:
+            print(f"Error finding booking: {e}")  # Debug
+            return JsonResponse({'error': 'Error finding booking for this room'}, status=500)
 
         try:
             hk, created = Housekeeping.objects.update_or_create(

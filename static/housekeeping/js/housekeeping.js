@@ -7,6 +7,7 @@ document.querySelectorAll('.room-box').forEach((box) => {
         const rect = box.getBoundingClientRect()
         const containerRect = document.querySelector('.main').getBoundingClientRect()
         const selectedRequest = document.querySelector('.select-request')
+        const noBookingMsg = document.getElementById('no-booking-message')
         selectedRoomNo = box.dataset.room
         selectedRequest.textContent = `Select Request for room : ${selectedRoomNo}`
         // Show popover offscreen temporarily to measure it
@@ -31,6 +32,24 @@ document.querySelectorAll('.room-box').forEach((box) => {
         // toggle arrow classes
         popover.classList.remove('arrow-left', 'arrow-right')
         popover.classList.add(`arrow-${arrowSide}`)
+
+        // toggle UI depending on booking availability
+        const hasBooking = !box.classList.contains('disabled-room')
+        if (noBookingMsg) {
+            if (hasBooking) {
+                noBookingMsg.classList.add('hidden')
+            } else {
+                noBookingMsg.classList.remove('hidden')
+            }
+        }
+        document.querySelectorAll('input[name="req"]').forEach((el) => {
+            el.disabled = !hasBooking
+        })
+        document.querySelectorAll('.status-button').forEach((el) => {
+            el.disabled = !hasBooking
+            el.style.opacity = '1'
+            el.style.pointerEvents = hasBooking ? 'auto' : 'none'
+        })
 
         // finally show it for real
         popover.style.visibility = 'visible'
@@ -63,6 +82,18 @@ statusButton.forEach((button) => {
                 status: btn.target.innerText
             },
             success: function (response) {
+                // Update room color based on selected status
+                const roomEl = document.querySelector(`.room-box[data-room="${selectedRoomNo}"]`)
+                if (roomEl) {
+                    roomEl.classList.remove('pending', 'progress', 'vacant')
+                    const s = btn.target.innerText.toLowerCase()
+                    if (s.includes('pending')) roomEl.classList.add('pending')
+                    else if (s.includes('progress')) roomEl.classList.add('progress')
+                    else roomEl.classList.add('vacant')
+                    // ensure booking flag remains true
+                    roomEl.setAttribute('data-has-booking', 'true')
+                    roomEl.classList.remove('disabled-room')
+                }
                 Swal.fire({
                     title: 'Success',
                     text: 'Status updated successfully!',
@@ -71,9 +102,19 @@ statusButton.forEach((button) => {
                 })
             },
             error: function (xhr, status, error) {
+                // If server says no active booking today, show green (vacant)
+                if (xhr && xhr.status === 404) {
+                    const roomEl = document.querySelector(`.room-box[data-room="${selectedRoomNo}"]`)
+                    if (roomEl) {
+                        roomEl.classList.remove('pending', 'progress')
+                        roomEl.classList.add('vacant')
+                        roomEl.setAttribute('data-has-booking', 'false')
+                        roomEl.classList.add('disabled-room')
+                    }
+                }
                 Swal.fire({
                     title: 'Error',
-                    text: 'Failed to update status.',
+                    text: xhr && xhr.status === 404 ? 'No booking on this room today.' : 'Failed to update status.',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 })

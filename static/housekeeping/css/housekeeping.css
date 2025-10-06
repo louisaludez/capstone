@@ -71,6 +71,11 @@
     cursor: pointer;
 }
 
+.disabled-room {
+    pointer-events: none;
+    cursor: default !important;
+}
+
 .main {
     padding-right: 100px;
     padding-top: 30px;
@@ -114,6 +119,16 @@
 
 .hidden {
     display: none !important;
+}
+
+#no-booking-message {
+    background: #fdecea;
+    color: #611a15;
+    border: 1px solid #f5c2c0;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 6px;
 }
 
 .popover-arrow {
