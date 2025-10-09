@@ -134,6 +134,14 @@ def save_reservation(request):
             check_out_date = data.get('check_out_date')
             num_of_adults = data.get('num_of_adults', 2)
             num_of_children = data.get('num_of_children', 0)
+            children_below_7 = data.get('children_below_7', 0)
+
+            # Debug log incoming reservation payload
+            try:
+                logger.info("[save_reservation] payload: %s", data)
+                print("[save_reservation] payload:", data)
+            except Exception:
+                pass
             
             # Create or get guest
             guest, created = Guest.objects.get_or_create(
@@ -142,9 +150,19 @@ def save_reservation(request):
                     'name': f"{guest_data.get('firstName', '')} {guest_data.get('lastName', '')}".strip(),
                     'address': guest_data.get('country', ''),
                     'email': guest_data.get('email'),
+                    'mobile': guest_data.get('phone') or None,
                     'date_of_birth': timezone.now().date(),  # Default date
                 }
             )
+
+            # If guest existed already, update mobile if provided
+            try:
+                incoming_mobile = guest_data.get('phone')
+                if incoming_mobile and getattr(guest, 'mobile', None) != incoming_mobile:
+                    guest.mobile = incoming_mobile
+                    guest.save(update_fields=['mobile'])
+            except Exception:
+                pass
             
             # Get room
             try:
@@ -161,6 +179,7 @@ def save_reservation(request):
                 total_of_guests=num_of_adults + num_of_children,
                 num_of_adults=num_of_adults,
                 num_of_children=num_of_children,
+                no_of_children_below_7=children_below_7,
                 status='Pending'
             )
             
@@ -181,6 +200,33 @@ def save_reservation(request):
             # Generate reference number
             reference_number = f"{booking.id:05d}"
             
+            # Debug log saved entities
+            try:
+                logger.info("[save_reservation] saved: guest=%s booking=%s payment=%s", guest.id, booking.id, payment.id)
+                print("[save_reservation] saved guest:", {
+                    'id': guest.id,
+                    'name': guest.name,
+                    'email': guest.email,
+                })
+                print("[save_reservation] saved booking:", {
+                    'id': booking.id,
+                    'room': booking.room,
+                    'check_in_date': str(booking.check_in_date),
+                    'check_out_date': str(booking.check_out_date),
+                    'total_of_guests': booking.total_of_guests,
+                    'num_of_adults': booking.num_of_adults,
+                    'num_of_children': booking.num_of_children,
+                    'no_of_children_below_7': booking.no_of_children_below_7,
+                    'status': booking.status,
+                })
+                print("[save_reservation] saved payment:", {
+                    'id': payment.id,
+                    'method': payment.method,
+                    'total_balance': float(payment.total_balance),
+                })
+            except Exception:
+                pass
+
             return JsonResponse({
                 'success': True,
                 'guest_name': guest.name,
@@ -225,14 +271,26 @@ def list_pending_reservations(request):
             'guest_name': b.guest.name,
             'guest_email': b.guest.email,
             'guest_address': b.guest.address,
+            'guest_mobile': getattr(b.guest, 'mobile', None),
             'check_in_date': b.check_in_date.strftime('%Y-%m-%d'),
             'check_out_date': b.check_out_date.strftime('%Y-%m-%d'),
             'room': b.room,
             'status': b.status,
+            'total_of_guests': getattr(b, 'total_of_guests', None),
+            'num_of_adults': getattr(b, 'num_of_adults', None),
+            'num_of_children': getattr(b, 'num_of_children', None),
+            'children_below_7': getattr(b, 'no_of_children_below_7', None),
             'payment_method': getattr(payment, 'method', None),
             'billing_address': getattr(payment, 'billing_address', None),
             'total_balance': float(getattr(payment, 'total_balance', 0) or 0),
         })
+
+    # Debug log the results count and sample
+    try:
+        logger.info("[list_pending_reservations] count=%d", len(results))
+        print("[list_pending_reservations] first item:", results[0] if results else None)
+    except Exception:
+        pass
 
     return JsonResponse({'reservations': results})
 
@@ -316,6 +374,46 @@ def checkin_reservation(request):
                 pass
 
         payment.save()
+
+        # Compute and store additional charges from add-ons on the Guest record
+        try:
+            def _safe_int(val):
+                try:
+                    return int(val)
+                except Exception:
+                    return 0
+
+            bed_count = _safe_int(request.POST.get('add_ons[bed]') or request.POST.get('add_ons.bed'))
+            pillow_count = _safe_int(request.POST.get('add_ons[pillow]') or request.POST.get('add_ons.pillow'))
+            towel_count = _safe_int(request.POST.get('add_ons[towel]') or request.POST.get('add_ons.towel'))
+
+            bed_price = 200
+            pillow_price = 50
+            towel_price = 30
+            addons_total = (bed_count * bed_price) + (pillow_count * pillow_price) + (towel_count * towel_price)
+
+            # Accumulate on guest.additional_charge_billing (string field)
+            current_additional_raw = getattr(booking.guest, 'additional_charge_billing', '0') or '0'
+            try:
+                current_additional = float(current_additional_raw)
+            except Exception:
+                current_additional = 0.0
+            booking.guest.additional_charge_billing = str(current_additional + addons_total)
+            booking.guest.save(update_fields=['additional_charge_billing'])
+
+            # Debug log
+            try:
+                logger.info("[checkin_reservation] addons: bed=%d pillow=%d towel=%d total=%.2f -> guest.additional_charge_billing=%s",
+                            bed_count, pillow_count, towel_count, addons_total, booking.guest.additional_charge_billing)
+                print("[checkin_reservation] addons computed:", {
+                    'bed': bed_count, 'pillow': pillow_count, 'towel': towel_count, 'total': addons_total,
+                    'guest_additional_charge_billing': booking.guest.additional_charge_billing
+                })
+            except Exception:
+                pass
+        except Exception:
+            # Do not fail check-in if addons parse fails
+            pass
 
         return JsonResponse({'success': True, 'message': f'Reservation {booking_id} checked in successfully.'})
 

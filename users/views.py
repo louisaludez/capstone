@@ -4,7 +4,9 @@ from django.urls import reverse_lazy
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from .forms import CustomUserCreationForm
+from django.contrib.auth.decorators import login_required
 
+from globals import decorator
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/signup.html'
@@ -25,6 +27,8 @@ def login(request):
             messages.success(request, f"Welcome back, {user.username}!")
             
             # Redirect based on role
+            if getattr(user, 'role', '').upper() == 'SUPER_ADMIN':
+                return redirect('super_admin_portal')
             if user.role == 'admin':
                 return redirect('admin_home')  
             elif user.role == 'personnel':
@@ -65,3 +69,11 @@ def logout_view(request):
     auth_logout(request)
     messages.info(request, "You have been successfully logged out.")
     return redirect('login')
+
+
+@decorator.role_required('SUPER_ADMIN')
+def super_admin_portal(request):
+    # Only SUPER_ADMIN can access this portal selection page
+    if not hasattr(request.user, 'role') or str(request.user.role).upper() != 'SUPER_ADMIN':
+        return redirect('login')
+    return render(request, 'users/super_admin_portal.html')

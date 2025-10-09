@@ -5,6 +5,7 @@ class Guest(models.Model):
     address = models.TextField()
     zip_code = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField()
+    mobile = models.CharField(max_length=20, blank=True, null=True)
     date_of_birth = models.DateField()
     billing = models.TextField(blank=True, null=True, default='1000')
     room_service_billing = models.TextField(blank=True, null=True, default='0')

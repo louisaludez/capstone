@@ -16,7 +16,7 @@ from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date
 import re
 from datetime import timedelta
-@decorator.role_required('staff')
+@decorator.role_required('staff', 'SUPER_ADMIN')
 def home(request):
     # Only guests with at least one Checked-in booking should appear for checkout selection
     guest = Guest.objects.filter(booking__status='Checked-in').distinct()
@@ -136,7 +136,7 @@ def message(request):
 
 
 
-@decorator.role_required('staff')
+@decorator.role_required('staff', 'SUPER_ADMIN')
 def view_reservations(request):
     selected_date = request.GET.get('date', date.today().strftime('%Y-%m-%d'))
     try:
@@ -153,7 +153,7 @@ def view_reservations(request):
         'today': date.today().strftime('%Y-%m-%d')
     })
 
-@decorator.role_required('staff')
+@decorator.role_required('staff', 'SUPER_ADMIN')
 def book_room(request):
     if request.method == 'POST':
         try:
@@ -207,16 +207,49 @@ def book_room(request):
             room.save()
             print(f"[DEBUG] Room status updated: {room}")
 
+            # Parse add-ons from POST and update guest additional charges
+            def _safe_int(val):
+                try:
+                    return int(val)
+                except Exception:
+                    return 0
+
+            bed_count = _safe_int(request.POST.get('add_ons[bed]', request.POST.get('add_ons.bed', request.POST.get('bed'))))
+            pillow_count = _safe_int(request.POST.get('add_ons[pillow]', request.POST.get('add_ons.pillow', request.POST.get('pillow'))))
+            towel_count = _safe_int(request.POST.get('add_ons[towel]', request.POST.get('add_ons.towel', request.POST.get('towel'))))
+
+            bed_price = 200
+            pillow_price = 50
+            towel_price = 30
+            addons_total = (bed_count * bed_price) + (pillow_count * pillow_price) + (towel_count * towel_price)
+            print(f"[DEBUG] Add-ons -> bed={bed_count}, pillow={pillow_count}, towel={towel_count}, total={addons_total}")
+
+            try:
+                current_additional = float(guest.additional_charge_billing or 0)
+            except Exception:
+                current_additional = 0.0
+            guest.additional_charge_billing = str(current_additional + addons_total)
+            guest.save(update_fields=['additional_charge_billing'])
+            print(f"[DEBUG] Updated guest.additional_charge_billing = {guest.additional_charge_billing}")
+
             # Create payment
             print("[DEBUG] Creating payment")
+            exp_date_val = request.POST.get('exp_date', request.POST.get('card_expiry'))
+            cvc_val = request.POST.get('cvv', request.POST.get('cvc'))
+            try:
+                initial_balance = Decimal(str(request.POST.get('current_balance') or 0))
+            except Exception:
+                initial_balance = Decimal(0)
+            total_balance_with_addons = initial_balance + Decimal(addons_total)
+
             Payment.objects.create(
                 booking=booking,
                 method=request.POST.get('payment_method'),
                 card_number=request.POST.get('card_number'),
-                exp_date=request.POST.get('exp_date'),
-                cvc_code=request.POST.get('cvv'),
+                exp_date=exp_date_val,
+                cvc_code=cvc_val,
                 billing_address=request.POST.get('billing_address'),
-                total_balance=Decimal(request.POST.get('current_balance') or 0)
+                total_balance=total_balance_with_addons
             )
             print("[DEBUG] Payment created")
 
@@ -599,7 +632,11 @@ def perform_checkout(request):
                 print("Room availability update failed:", room_e)
 
             # Guest billing
-            guest.billing = request.POST.get('room_charges') or '0'
+            # Sum existing additional charges into billing if provided
+            existing_additional = float(guest.additional_charge_billing or 0)
+            base_room_charges = float(request.POST.get('room_charges') or 0)
+            total_billing = base_room_charges + existing_additional
+            guest.billing = str(total_billing)
             guest.room_service_billing = request.POST.get('room_service') or '0'
             guest.laundry_billing = request.POST.get('laundry') or '0'
             guest.cafe_billing = request.POST.get('cafe') or '0'
@@ -619,8 +656,8 @@ def perform_checkout(request):
             payment, created = Payment.objects.get_or_create(booking=booking)
             payment.method = request.POST.get('payment_method')
             payment.card_number = request.POST.get('card_number')
-            payment.exp_date = request.POST.get('exp_date')
-            payment.cvc_code = request.POST.get('cvv')
+            payment.exp_date = request.POST.get('exp_date', request.POST.get('card_expiry'))
+            payment.cvc_code = request.POST.get('cvv', request.POST.get('card_cvc'))
             payment.billing_address = request.POST.get('billing_address')
             payment.total_balance = Decimal(request.POST.get('balance') or 0)
             print('total balance : ' + str(payment.total_balance))
@@ -648,7 +685,7 @@ def perform_checkout(request):
     print("Invalid request method (not POST).")
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
-@decorator.role_required('staff')
+@decorator.role_required('staff', 'SUPER_ADMIN')
 def room_list(request):
     """Display all rooms with their current status"""
     rooms = Room.objects.all().order_by('room_number')
@@ -659,7 +696,7 @@ def room_list(request):
     })
 
 
-@decorator.role_required('staff')
+@decorator.role_required('staff', 'SUPER_ADMIN')
 def room_availability(request):
     """
     Returns blocked date ranges for a given room number.

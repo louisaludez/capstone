@@ -279,10 +279,7 @@
           toggleAddonsPopup(false)
         }
       })
-      // Prevent clicks inside popup from bubbling
-      addonsPopup.addEventListener('click', function (e) {
-        e.stopPropagation()
-      })
+      // Note: allow clicks inside popup to bubble so delegated handlers (for +/-) fire
       // Close with Escape
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') toggleAddonsPopup(false)

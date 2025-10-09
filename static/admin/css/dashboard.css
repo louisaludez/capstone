@@ -38,3 +38,81 @@
 .modal-landscape .modal-body .form-select {
     width: 100%;
 }
+
+/* KPI cards styling */
+.kpi-card {
+    border: 1px solid #1a2d1a;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.kpi-title {
+    color: #1a2d1a;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.kpi-value-big {
+    color: #1a2d1a;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.kpi-sep {
+    color: rgba(26, 45, 26, 0.6);
+    margin: 0 8px;
+    font-weight: 600;
+    display: flex;
+    /* allow vertical centering of the '|' */
+    align-items: center;
+    /* center the '|' within this column */
+    align-self: stretch;
+    /* make the separator fill the row height */
+}
+
+.kpi-monthly {
+    color: #1a2d1a;
+    line-height: 1.1;
+}
+
+.kpi-badge-up,
+.kpi-badge-down {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-left: 8px;
+}
+
+.kpi-badge-up {
+    color: #0f5132;
+    background: #d1e7dd;
+}
+
+.kpi-badge-down {
+    color: #842029;
+    background: #f8d7da;
+}
+
+.kpi-select .form-select {
+    border: 1px solid #1a2d1a;
+    border-radius: 12px;
+}
+
+/* KPI inline labels */
+.kpi-label-current {
+    color: #1a2d1a;
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.1;
+}
+
+.kpi-label-overall {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.1;
+}

@@ -9,6 +9,9 @@
     <a href="{% url 'admin_reports' %}" class="{% if active_page == 'reports' %}active{% endif %}">Reports</a>
     <a href="{% url 'admin_training' %}" class="{% if active_page == 'training' %}active{% endif %}">Assessment</a>
     <a href="{% url 'admin_messenger' %}" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
+    {% if request.user.role == 'SUPER_ADMIN' %}
+      <a href="{% url 'HomeStaff' %}">Staff</a>
+    {% endif %}
   </div>
   <div class="p-3 d-flex flex-column align-items-center">
     <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold; ">

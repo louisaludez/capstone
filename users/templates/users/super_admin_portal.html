@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACES Hotel Management System</title>
+    <link rel="icon" href="{% static 'images/aces-logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'users/css/portal.css' %}" />
+  </head>
+  <body>
+    <div class="portal-bg">
+      <div class="portal-container">
+        <div class="portal-header">
+          <div style="display: inline-flex; align-items: center; gap: 12px;">
+            <img src="{% static 'images/aces-logo.png' %}" alt="ACES Logo" class="portal-logo" />
+            <h4 style="margin: 0;">ACES Hotel Management System</h4>
+          </div>
+          <p style="margin-top: 16px; font-size: 28px; color: black; font-weight: bold;">Select portal</p>
+        </div>
+
+        <div class="portal-options">
+          <a href="{% url 'HomeStaff' %}" class="portal-card">
+            <img src="{% static 'images/student-portal.png' %}" alt="Student Portal" />
+            <div class="portal-title">Student Portal</div>
+            <button class="portal-btn">Enter</button>
+          </a>
+
+          <a href="{% url 'admin_home' %}" class="portal-card">
+            <img src="{% static 'images/admin-portal.png' %}" alt="Admin Portal" />
+            <div class="portal-title">Admin Portal</div>
+            <button class="portal-btn">Enter</button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

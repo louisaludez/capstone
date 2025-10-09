@@ -24,8 +24,17 @@ function populateCISelect(reservations) {
   reservations.forEach(function (r) {
     var opt = document.createElement("option");
     opt.value = r.guest_name;
-    opt.textContent = r.guest_name + " — Ref:" + r.ref + " — Room " + r.room + " — " + r.check_in_date + " → " + r.check_out_date;
+    opt.textContent = r.guest_name; // show only the guest name
     opt.setAttribute("data-id", r.id);
+    // Optional details for auto-fill
+    if (typeof r.guest_mobile !== "undefined" && r.guest_mobile !== null) opt.setAttribute("data-mobile", r.guest_mobile);
+    else if (typeof r.mobile !== "undefined" && r.mobile !== null) opt.setAttribute("data-mobile", r.mobile);
+    if (typeof r.total_guests !== "undefined") opt.setAttribute("data-totalguests", r.total_guests);
+    else if (typeof r.total_of_guests !== "undefined") opt.setAttribute("data-totalguests", r.total_of_guests);
+    if (typeof r.num_of_adults !== "undefined") opt.setAttribute("data-adults", r.num_of_adults);
+    if (typeof r.num_of_children !== "undefined") opt.setAttribute("data-children", r.num_of_children);
+    if (typeof r.children_below_7 !== "undefined") opt.setAttribute("data-children7", r.children_below_7);
+    else if (typeof r.no_of_children_below_7 !== "undefined") opt.setAttribute("data-children7", r.no_of_children_below_7);
     if (r.guest_email) opt.setAttribute("data-email", r.guest_email);
     if (r.guest_address) opt.setAttribute("data-address", r.guest_address);
     opt.setAttribute("data-checkin", r.check_in_date);
@@ -156,20 +165,56 @@ $(document).on("change", "#ci-guest-name", function () {
   // Prefill optional fields
   var email = $opt.data("email") || "";
   var address = $opt.data("address") || "";
+  var mobile = $opt.data("mobile") || "";
   var cin = $opt.data("checkin") || "";
   var cout = $opt.data("checkout") || "";
   var room = ($opt.data("room") || "").toString().replace(/^R/, "");
   var payMethod = $opt.data("paymethod") || "";
   var billingAddr = $opt.data("billingaddr") || "";
   var balance = $opt.data("balance");
+  var totalGuests = $opt.data("totalguests");
+  var adults = $opt.data("adults");
+  var children = $opt.data("children");
+  var children7 = $opt.data("children7");
   if (email) $("#ci-guest-email").val(email);
   if (address) $("#ci-guest-address").val(address);
+  if (mobile) $("#ci-guest-mobile").val(mobile);
+  if (typeof totalGuests !== "undefined") $("#ci-total-guests").val(totalGuests);
+  if (typeof adults !== "undefined") $("#ci-no-of-adults").val(adults);
+  if (typeof children !== "undefined") $("#ci-no-of-children").val(children);
+  if (typeof children7 !== "undefined") $("#ci-children-below-7").val(children7);
   if (cin) $("#ci-checkin-date").val(cin);
   if (cout) $("#ci-checkout-date").val(cout);
   if (room) $("#ci-room-type").val(room);
   if (payMethod) $("#ci-payment-method").val(payMethod).trigger("change");
   if (billingAddr) $("#ci-billing-address").val(billingAddr);
   if (typeof balance !== "undefined") $("#ci-current-balance").val(balance);
+  // Debug print of all gathered details for the selected guest/reservation
+  try {
+    const selectedName = $("#ci-guest-name").val();
+    const debugDetails = {
+      id: id || null,
+      name: selectedName || "",
+      email: email || "",
+      address: address || "",
+      mobile: mobile || "",
+      check_in_date: cin || "",
+      check_out_date: cout || "",
+      room: room || "",
+      totalGuests: typeof totalGuests !== "undefined" ? totalGuests : "",
+      adults: typeof adults !== "undefined" ? adults : "",
+      children: typeof children !== "undefined" ? children : "",
+      childrenBelow7: typeof children7 !== "undefined" ? children7 : "",
+      payMethod: payMethod || "",
+      billingAddress: billingAddr || "",
+      balance: typeof balance !== "undefined" ? balance : ""
+    };
+    console.log("[checkin] Selected guest details:", debugDetails);
+    if (console.table) console.table(debugDetails);
+    console.log("[checkin] Raw data-* attributes:", $opt.data());
+  } catch (e) {
+    try { console.warn("[checkin] debug print failed", e); } catch (_) { }
+  }
 });
 checkinOverlay.addEventListener("click", function (e) {
   if (!checkinModal.contains(e.target)) {
@@ -250,7 +295,10 @@ $(".checkin-book-btn").on("click", function (event) {
     total_guests: $("#ci-total-guests").val(),
     adults: $("#ci-no-of-adults").val(),
     children: $("#ci-no-of-children").val(),
-    add_ons: $("#ci-addons-count").text(),
+    // Send detailed add-ons
+    'add_ons[bed]': checkinAddonsData && typeof checkinAddonsData.bed !== 'undefined' ? checkinAddonsData.bed : 0,
+    'add_ons[pillow]': checkinAddonsData && typeof checkinAddonsData.pillow !== 'undefined' ? checkinAddonsData.pillow : 0,
+    'add_ons[towel]': checkinAddonsData && typeof checkinAddonsData.towel !== 'undefined' ? checkinAddonsData.towel : 0,
     children_7_years: $("#ci-children-below-7").val(),
     payment_method: $("#ci-payment-method").val(),
     card_number: $("#ci-card-number").val(),

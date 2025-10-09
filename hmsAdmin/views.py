@@ -9,6 +9,9 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from .models import SpeechToTextActivity, MCQActivity
 import locale
+from django.core.cache import cache
+from datetime import date, datetime, timedelta
+import calendar
 
 @decorator.role_required('admin')
 def home(request):
@@ -158,9 +161,111 @@ def delete_user(request, user_id):
 
 
 def occupancy_forecast(request):
-    return JsonResponse({
-        'error': 'Forecasting disabled. No data available from updated models.'
-    }, status=400)
+    """Return lightweight historical and naive forecast for occupancy rate with caching.
+
+    - Historical: last 12 months of approximated occupancy rates
+    - Forecast: next 6 months using a simple moving average of recent months
+    """
+    try:
+        from staff.models import Booking, Room
+
+        # Cache key based on latest booking date and counts to avoid stale data
+        latest_booking_dt = (
+            Booking.objects.order_by('-booking_date')
+            .values_list('booking_date', flat=True)
+            .first()
+        )
+        latest_marker = latest_booking_dt.isoformat() if latest_booking_dt else 'none'
+        cache_key = f"hmsAdmin:occupancy_forecast:v1:{latest_marker}"
+
+        cached = cache.get(cache_key)
+        if cached:
+            return JsonResponse(cached)
+
+        # Time window: last 12 months historical
+        today = date.today()
+        # First day of this month
+        this_month_start = today.replace(day=1)
+        # 12 months back start
+        def add_months(d, months):
+            year = d.year + (d.month - 1 + months) // 12
+            month = (d.month - 1 + months) % 12 + 1
+            day = 1
+            return date(year, month, day)
+
+        start_month = add_months(this_month_start, -11)
+        end_month_exclusive = add_months(this_month_start, 1)  # include current month
+
+        # Relevant bookings overlapping the historical window
+        bookings = Booking.objects.filter(
+            status__in=['Checked-in', 'Pending'],
+            check_out_date__gte=start_month,
+            check_in_date__lt=end_month_exclusive,
+        ).only('check_in_date', 'check_out_date', 'status')
+
+        rooms_count = Room.objects.count() or 0
+        # Avoid division by zero
+        if rooms_count == 0:
+            result = {
+                'historical': [],
+                'forecast': []
+            }
+            cache.set(cache_key, result, 60 * 15)
+            return JsonResponse(result)
+
+        # Prebuild month boundaries for 12 months
+        months = []  # list of (month_start, month_end_exclusive, label)
+        for i in range(12):
+            m_start = add_months(start_month, i)
+            m_end_excl = add_months(m_start, 1)
+            label = f"{m_start.year}-{m_start.month:02d}"
+            months.append((m_start, m_end_excl, label))
+
+        # Helper: overlap nights between [a_start, a_end) and [b_start, b_end)
+        def overlap_nights(a_start, a_end, b_start, b_end):
+            start = max(a_start, b_start)
+            end = min(a_end, b_end)
+            delta = (end - start).days
+            return max(0, delta)
+
+        # Compute occupied room-nights per month
+        historical = []
+        for m_start, m_end_excl, label in months:
+            # Days in month
+            days_in_month = (m_end_excl - m_start).days
+            total_room_nights = rooms_count * days_in_month
+            occupied_nights = 0
+
+            for b in bookings:
+                # Treat booking interval as [check_in, check_out)
+                occupied_nights += overlap_nights(b.check_in_date, b.check_out_date, m_start, m_end_excl)
+
+            rate = (occupied_nights / total_room_nights) if total_room_nights > 0 else 0.0
+            # Clamp to [0,1]
+            rate = max(0.0, min(1.0, rate))
+            historical.append({'date': label, 'occupancy_rate': round(rate, 4)})
+
+        # Forecast next 6 months using simple moving average of last 3 historical points
+        recent = [h['occupancy_rate'] for h in historical[-3:]] or [0.0]
+        avg_recent = sum(recent) / max(1, len(recent))
+        forecast = []
+        next_start = add_months(this_month_start, 1)
+        for i in range(6):
+            m_start = add_months(next_start, i)
+            label = f"{m_start.year}-{m_start.month:02d}"
+            forecast.append({'date': label, 'occupancy_rate': round(avg_recent, 4)})
+
+        result = {
+            'historical': historical,
+            'forecast': forecast
+        }
+
+        # Cache for 15 minutes
+        cache.set(cache_key, result, 60 * 15)
+        return JsonResponse(result)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @decorator.role_required('admin')
 def mcq_page(request):

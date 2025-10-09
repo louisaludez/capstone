@@ -28,7 +28,7 @@ def search_items_ajax(request):
 def staff_cafe_home(request):
     search_query = request.GET.get('search', '')
     category_filter = request.GET.get('category', '')
-    guest = Guest.objects.all()
+    guest = Guest.objects.filter(booking__status='Checked-in').distinct().order_by('name')
     items = CafeItem.objects.all().order_by('category','name')
     total_items = items.count()
     pasta_count = items.filter(category="1").count()

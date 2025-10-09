@@ -33,7 +33,7 @@ def get_related_roles(role):
 
 
 def staff_laundry_home(request):
-    guests = Guest.objects.all()
+    guests = Guest.objects.filter(booking__status='Checked-in').distinct().order_by('name')
     return render(request, 'laundry/home.html',{
         'guests': guests,                                     
     })
