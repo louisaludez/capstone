@@ -5,7 +5,7 @@
   </div>
   <div class="sidebar-menu mt-4 mb-5">
     <a href="{% url 'HomeStaff' %}" class="{% if active_page == 'dashboard' %}active{% endif %}">Front Office</a>
-    <a href="{% url 'MessageStaff' %}" class="{% if active_page == 'messages' %}active{% endif %}">Messenger</a>
+    <a href="{% url 'MessageStaff' %}" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
     <a href="{% url 'activity_home' %}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
     {% if request.user.role == 'SUPER_ADMIN' %}
       <a href="{% url 'admin_home' %}">Admin</a>
