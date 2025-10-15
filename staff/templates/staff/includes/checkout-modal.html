@@ -1,106 +1,256 @@
 {% load static %}
 <div class="checkout-overlay">
-      <div class="checkout-modal">
-        <h2 class="checkout-modal-title">Check‑out</h2>
-        <div class="checkout-container">
-          <!-- LEFT COLUMN -->
-          <div class="checkout-section">
-            <div class="checkout-section-title">Guest and Stay Information</div>
-            <div class="checkout-field"><label>Name</label>
-              <select name="" id="" class="guests-name-checkout">
-                <option value="" disabled selected>Select guest</option>
-                {% for guests in guest %}
-                  <option value="{{ guests.id }}">{{ guests.name }}</option>
-                {% endfor %} 
-              </select></div>
-            <div class="checkout-field"><label>Address</label><input type="text"/ class="guest-address-checkout"></div>
-            <div class="checkout-field"><label>Email</label><input type="text"/ class="guest-email-checkout"></div>
-            <div class="checkout-inline-row">
-              <div class="checkout-field">
-                <label>Check‑in Date</label><input id="co-checkin" type="text"class="guest-check-in-date-co"/>
-              </div>
-              <div class="checkout-field">
-                <label>Check‑out Date</label><input id="co-checkout" type="text" class="guest-check-out-date-co"/>
-              </div>
-            </div>
-            <div class="checkout-field">
-              <label>Room Type</label><input type="text" name="" id="" class="guest-room-type-checkout"/>
-            </div>
-            <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Total Guests</label><input type="text" class="total-guest-checkout"/></div>
-              <div class="checkout-field"><label>No. of Adults</label><input type="text" class="no-adults-checkout"/></div>
-            </div>
-            <div class="checkout-inline-row">
-              <div class="checkout-field"><label>No. of Children</label><input type="text" class="no-children-checkout"/></div>
-              <div class="checkout-field"><label>Children below 7</label><input type="text" class="no-below-7-checkout"/></div>
-            </div>
-
-            <div class="checkout-section-title">Payment Information</div>
-            <div class="checkout-field">
-              <label>Payment Method</label>
-              <select class="checkout-payment-method">
-                <option value="card" selected>Card Payment</option>
-                <option value="cash">Cash Payment</option>
-              </select>
-            </div>
-
-            <!-- Visible by default -->
-            <div class="checkout-card-fields">
-              <div class="checkout-field"><label>Card Number</label><input type="text"/></div>
-              <div class="checkout-inline-row">
-                <div class="checkout-field"><label>Exp. Date</label><input type="text"/></div>
-                <div class="checkout-field"><label>CVC Code</label><input type="text"/></div>
-              </div>
-            </div>
-
-            <div class="checkout-field checkout-billing-wrapper"><label>Billing Address</label><input type="text"/></div>
+  <div class="checkout-modal">
+    <h2 class="checkout-modal-title">Check‑out</h2>
+    <div class="checkout-container">
+      <!-- LEFT COLUMN -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">Guest and Stay Information</div>
+        <div class="checkout-field">
+          <label>Name</label>
+          <select name="" id="" class="guests-name-checkout">
+            <option value="" disabled selected>Select guest</option>
+            {% for guests in guest %}
+              <option value="{{ guests.id }}" data-address="{{ guests.address|default_if_none:''|escape }}" data-email="{{ guests.email|default_if_none:''|escape }}" data-checkin="{{ guests.check_in_date|default_if_none:''|date:'Y-m-d' }}" data-checkout="{{ guests.check_out_date|default_if_none:''|date:'Y-m-d' }}" data-room-type="{{ guests.room_type|default_if_none:''|escape }}" data-total-guests="{{ guests.total_guests|default_if_none:'' }}" data-no-adults="{{ guests.no_of_adults|default_if_none:'' }}" data-no-children="{{ guests.no_of_children|default_if_none:'' }}" data-below-7="{{ guests.children_below_7|default_if_none:'' }}" data-payment-method="{{ guests.payment_method|default_if_none:''|lower }}" data-billing-address="{{ guests.billing_address|default_if_none:''|escape }}" data-card-number="{{ guests.card_number|default_if_none:''|escape }}" data-card-exp="{{ guests.card_exp|default_if_none:''|escape }}" data-card-cvc="{{ guests.card_cvc|default_if_none:''|escape }}" data-room-charges="{{ guests.room_charges|default_if_none:'' }}" data-room-service="{{ guests.room_service|default_if_none:'' }}" data-laundry="{{ guests.laundry|default_if_none:'' }}" data-cafe="{{ guests.cafe|default_if_none:'' }}" data-excess-pax="{{ guests.excess_pax|default_if_none:'' }}" data-additional-charges="{{ guests.additional_charges|default_if_none:'' }}" data-total-balance="{{ guests.total_balance|default_if_none:'' }}" data-guest-url="{% url 'get_guest' guests.id %}">{{ guests.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="checkout-field">
+          <label>Address</label><input type="text" class="guest-address-checkout" />
+        </div>
+        <div class="checkout-field">
+          <label>Email</label><input type="text" class="guest-email-checkout" />
+        </div>
+        <div class="checkout-inline-row">
+          <div class="checkout-field">
+            <label>Check‑in Date</label><input id="co-checkin" type="text" class="guest-check-in-date-co" />
           </div>
+          <div class="checkout-field">
+            <label>Check‑out Date</label><input id="co-checkout" type="text" class="guest-check-out-date-co" />
+          </div>
+        </div>
+        <div class="checkout-field">
+          <label>Room Type</label><input type="text" name="" id="" class="guest-room-type-checkout" />
+        </div>
+        <div class="checkout-inline-row">
+          <div class="checkout-field">
+            <label>Total Guests</label><input type="text" class="total-guest-checkout" />
+          </div>
+          <div class="checkout-field">
+            <label>No. of Adults</label><input type="text" class="no-adults-checkout" />
+          </div>
+        </div>
+        <div class="checkout-inline-row">
+          <div class="checkout-field">
+            <label>No. of Children</label><input type="text" class="no-children-checkout" />
+          </div>
+          <div class="checkout-field">
+            <label>Children below 7</label><input type="text" class="no-below-7-checkout" />
+          </div>
+        </div>
 
-          <!-- RIGHT COLUMN -->
-          <div class="checkout-section">
-            <div class="checkout-section-title">Billing Summary</div>
-            <div class="checkout-field"><label>Room Charges</label><input type="text" class="guest-billing-checkout"/></div>
-            <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Room Service</label><input type="text" class="guest-rm-billing-checkout"/></div>
-              <div class="checkout-field"><label>Laundry</label><input type="text" class="guest-laundry-billing-checkout"/></div>
-            </div>
-            <div class="checkout-inline-row">
-              <div class="checkout-field"><label>Cafe</label><input type="text" class="guest-cafe-billing-checkout"/></div>
-              <div class="checkout-field"><label>Excess Pax</label><input type="text" class="guest-ep-billing-checkout"/></div>
-            </div>
-            <div class="checkout-field"><label>Additional Charges</label><input type="text" class="guest-additional-charge-checkout"/></div>
-            <div class="checkout-field"><label>Total Balance</label><input type="text" class="guest-total-balance-checkout"/></div>
+        <div class="checkout-section-title">Payment Information</div>
+        <div class="checkout-field">
+          <label>Payment Method</label>
+          <select class="checkout-payment-method">
+            <option value="card" selected>Card Payment</option>
+            <option value="cash">Cash Payment</option>
+          </select>
+        </div>
 
-            <div class="checkout-btn-wrapper">
-              <button class="checkout-submit-btn">Check‑out</button>
+        <!-- Visible by default -->
+        <div class="checkout-card-fields">
+          <div class="checkout-field">
+            <label>Card Number</label><input type="text" class="checkout-card-number" />
+          </div>
+          <div class="checkout-inline-row">
+            <div class="checkout-field">
+              <label>Exp. Date</label><input type="text" class="checkout-card-exp" />
             </div>
-            <div class="checkout-countdown">
-              <div class="checkout-countdown-text">
-                <div class="checkout-countdown-time">5:00</div>
-                <div>Time Remaining</div>
-              </div>
-               <img src="{% static 'images/clock-timer.png' %}" alt="" />
+            <div class="checkout-field">
+              <label>CVC Code</label><input type="text" class="checkout-card-cvc" />
             </div>
           </div>
         </div>
-<script>
-  // Toggle billing/card visibility on checkout based on payment method
-  document.addEventListener('DOMContentLoaded', function () {
-    const method = document.querySelector('.checkout-payment-method')
-    const cardFields = document.querySelector('.checkout-card-fields')
-    const billingWrapper = document.querySelector('.checkout-billing-wrapper')
 
-    function applyPaymentVisibility() {
-      const isCash = method && method.value === 'cash'
-      if (cardFields) cardFields.style.display = isCash ? 'none' : ''
-      if (billingWrapper) billingWrapper.style.display = isCash ? 'none' : ''
-    }
+        <div class="checkout-field checkout-billing-wrapper">
+          <label>Billing Address</label><input type="text" />
+        </div>
+      </div>
 
-    if (method) {
-      method.addEventListener('change', applyPaymentVisibility)
-      applyPaymentVisibility()
-    }
-  })
-</script>
+      <!-- RIGHT COLUMN -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">Billing Summary</div>
+        <div class="checkout-field">
+          <label>Room Charges</label><input type="text" class="guest-billing-checkout" />
+        </div>
+        <div class="checkout-inline-row">
+          <div class="checkout-field">
+            <label>Room Service</label><input type="text" class="guest-rm-billing-checkout" />
+          </div>
+          <div class="checkout-field">
+            <label>Laundry</label><input type="text" class="guest-laundry-billing-checkout" />
+          </div>
+        </div>
+        <div class="checkout-inline-row">
+          <div class="checkout-field">
+            <label>Cafe</label><input type="text" class="guest-cafe-billing-checkout" />
+          </div>
+          <div class="checkout-field">
+            <label>Excess Pax</label><input type="text" class="guest-ep-billing-checkout" />
+          </div>
+        </div>
+        <div class="checkout-field">
+          <label>Additional Charges</label><input type="text" class="guest-additional-charge-checkout" />
+        </div>
+        <div class="checkout-field">
+          <label>Total Balance</label><input type="text" class="guest-total-balance-checkout" />
+        </div>
+
+        <div class="checkout-btn-wrapper">
+          <button class="checkout-submit-btn">Check‑out</button>
+        </div>
+        <div class="checkout-countdown">
+          <div class="checkout-countdown-text">
+            <div class="checkout-countdown-time">5:00</div>
+            <div>Time Remaining</div>
+          </div>
+          <img src="{% static 'images/clock-timer.png' %}" alt="" />
+        </div>
       </div>
     </div>
+    <script>
+      // Toggle billing/card visibility on checkout based on payment method
+      document.addEventListener('DOMContentLoaded', function () {
+        const method = document.querySelector('.checkout-payment-method')
+        const cardFields = document.querySelector('.checkout-card-fields')
+        const billingWrapper = document.querySelector('.checkout-billing-wrapper')
+        const guestSelect = document.querySelector('.guests-name-checkout')
+      
+        function applyPaymentVisibility() {
+          const isCash = method && method.value === 'cash'
+          if (cardFields) cardFields.style.display = isCash ? 'none' : ''
+          if (billingWrapper) billingWrapper.style.display = isCash ? 'none' : ''
+        }
+      
+        if (method) {
+          method.addEventListener('change', applyPaymentVisibility)
+          applyPaymentVisibility()
+        }
+      
+        function setInputValue(selector, value) {
+          const el = document.querySelector(selector)
+          if (!el) return
+          el.value = value != null ? value : ''
+        }
+      
+        function fillCheckoutFromSelection() {
+          if (!guestSelect) return
+          const opt = guestSelect.options[guestSelect.selectedIndex]
+          if (!opt || !opt.dataset) return
+          const ds = opt.dataset
+      
+          // Guest and stay info
+          setInputValue('.guest-address-checkout', ds.address || '')
+          setInputValue('.guest-email-checkout', ds.email || '')
+          setInputValue('.guest-check-in-date-co', ds.checkin || '')
+          setInputValue('.guest-check-out-date-co', ds.checkout || '')
+          setInputValue('.guest-room-type-checkout', ds.roomType || '')
+          setInputValue('.total-guest-checkout', ds.totalGuests || '')
+          setInputValue('.no-adults-checkout', ds.noAdults || '')
+          setInputValue('.no-children-checkout', ds.noChildren || '')
+          setInputValue('.no-below-7-checkout', ds.below7 || '')
+      
+          // Payment info
+          if (ds.paymentMethod && method) {
+            method.value = ds.paymentMethod
+            applyPaymentVisibility()
+          }
+          const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+          if (billingInput) billingInput.value = ds.billingAddress || ''
+      
+          // Card fields
+          setInputValue('.checkout-card-number', ds.cardNumber || '')
+          setInputValue('.checkout-card-exp', ds.cardExp || '')
+          setInputValue('.checkout-card-cvc', ds.cardCvc || '')
+      
+          // Billing summary
+          setInputValue('.guest-billing-checkout', ds.roomCharges || '')
+          setInputValue('.guest-rm-billing-checkout', ds.roomService || '')
+          setInputValue('.guest-laundry-billing-checkout', ds.laundry || '')
+          setInputValue('.guest-cafe-billing-checkout', ds.cafe || '')
+          setInputValue('.guest-ep-billing-checkout', ds.excessPax || '')
+          setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
+          setInputValue('.guest-total-balance-checkout', ds.totalBalance || '')
+        }
+      
+        async function fetchAndFillPayment() {
+          if (!guestSelect) return
+          const opt = guestSelect.options[guestSelect.selectedIndex]
+          if (!opt) return
+          const url = opt.getAttribute('data-guest-url')
+          if (!url) return
+          try {
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            if (!res.ok) throw new Error('Failed to fetch guest info')
+            const data = await res.json()
+            console.log('[Checkout] Fetched guest data:', data)
+      
+            // Attempt to read the most relevant booking's payment (prefer Checked-in)
+            const sorted = Array.isArray(data.bookings)
+              ? [...data.bookings].sort((a, b) => {
+                  const da = new Date(a.booking_date || 0).getTime()
+                  const db = new Date(b.booking_date || 0).getTime()
+                  return db - da
+                })
+              : []
+            const latest = sorted.length ? sorted[0] : null
+            const checkedInLatest = sorted.find((b) => b && b.status === 'Checked-in')
+            const checkedInWithPayment = sorted.find((b) => b && b.status === 'Checked-in' && b.payment)
+            const anyWithPayment = sorted.find((b) => b && b.payment)
+            const payment = (checkedInWithPayment && checkedInWithPayment.payment) || (anyWithPayment && anyWithPayment.payment) || (latest && latest.payment) || null
+            console.log(
+              '[Checkout] Bookings summary:',
+              sorted.map((b) => ({ id: b.id, status: b.status, hasPayment: !!(b && b.payment), date: b.booking_date }))
+            )
+            console.log('[Checkout] Latest booking:', latest)
+      
+            if (payment) {
+              const maskedCard = (payment.card_number || '').replace(/.(?=.{4})/g, '*')
+              console.log('[Checkout] Payment info:', {
+                method: payment.method,
+                card_number: maskedCard,
+                exp_date: payment.exp_date,
+                cvc_code: payment.cvc_code ? '***' : '',
+                billing_address: payment.billing_address,
+                total_balance: payment.total_balance
+              })
+              // Map payment fields to inputs
+              if (method && payment.method) {
+                method.value = (payment.method || '').toLowerCase()
+                applyPaymentVisibility()
+              }
+              setInputValue('.checkout-card-number', payment.card_number || '')
+              setInputValue('.checkout-card-exp', payment.exp_date || '')
+              setInputValue('.checkout-card-cvc', payment.cvc_code || '')
+              const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+              if (billingInput) billingInput.value = payment.billing_address || ''
+              setInputValue('.guest-total-balance-checkout', payment.total_balance != null ? payment.total_balance : '')
+            } else {
+              console.warn('[Checkout] No payment found for latest booking.')
+            }
+          } catch (e) {
+            console.error('Error fetching payment details:', e)
+          }
+        }
+      
+        if (guestSelect) {
+          guestSelect.addEventListener('change', function () {
+            fillCheckoutFromSelection()
+            fetchAndFillPayment()
+          })
+        }
+      })
+    </script>
+  </div>
+</div>

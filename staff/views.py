@@ -297,7 +297,8 @@ def getGuest(request, guest_id):
                 'booking_status': None
             }
 
-            bookings = Booking.objects.filter(guest=guest)
+            # Order bookings with newest first so consumers can reliably pick index 0
+            bookings = Booking.objects.filter(guest=guest).order_by('-booking_date')
 
             for index, booking in enumerate(bookings):
                 booking_data = {

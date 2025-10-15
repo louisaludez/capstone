@@ -4,7 +4,7 @@ from globals import decorator
 from chat.models import Message
 from django.db import models
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from users.models import CustomUser
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
@@ -412,6 +412,97 @@ def admin_front_office_reports(request):
         'current_sort': sort_by,
     }
     return render(request, "adminNew/front_office_reports.html", context)
+
+@require_GET
+def admin_front_office_reports_export(request):
+    """Export Front Office reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from staff.models import Room, Payment
+
+    # Base queryset similar to admin_front_office_reports
+    orders_query = Booking.objects.select_related('guest')
+
+    # Filters
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    # Apply filter type
+    if filter_type == 'walkins':
+        orders_query = orders_query.filter(status='Checked-in').annotate(bd=TruncDate('booking_date')).filter(bd=models.F('check_in_date'))
+    elif filter_type == 'checkins':
+        orders_query = orders_query.filter(status='Checked-in')
+    elif filter_type == 'checkouts':
+        orders_query = orders_query.filter(status='Checked-out')
+
+    # Apply search
+    if search_query:
+        orders_query = orders_query.filter(
+            models.Q(guest__name__icontains=search_query) |
+            models.Q(guest__email__icontains=search_query) |
+            models.Q(room__icontains=search_query) |
+            models.Q(id__icontains=search_query)
+        )
+
+    # Sort
+    if sort_by == 'date_asc':
+        orders_query = orders_query.order_by('booking_date')
+    elif sort_by == 'date_desc':
+        orders_query = orders_query.order_by('-booking_date')
+    elif sort_by == 'guest_asc':
+        orders_query = orders_query.order_by('guest__name')
+    elif sort_by == 'guest_desc':
+        orders_query = orders_query.order_by('-guest__name')
+    elif sort_by == 'room_asc':
+        orders_query = orders_query.order_by('room')
+    elif sort_by == 'room_desc':
+        orders_query = orders_query.order_by('-room')
+    else:
+        orders_query = orders_query.order_by('-booking_date')
+
+    # Room mapping for type labels
+    room_mapping = {r.room_number: r.get_room_type_display() for r in Room.objects.all()}
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Receipt #', 'Room No.', 'Room Type', 'Guest Name', 'Booking Date', 'Check-in', 'Check-out',
+        'Status', 'Adults', 'Children', 'Total Guests', 'Room Charges', 'Other Charges', 'Payment Method', 'Total Balance'
+    ])
+
+    for b in orders_query:
+        guest = b.guest
+        room_type = room_mapping.get(str(b.room), '')
+        # Compute charges
+        def _to_float(v):
+            try:
+                return float(v or 0)
+            except Exception:
+                return 0.0
+        room_charges = _to_float(guest.billing)
+        other_charges = _to_float(guest.room_service_billing) + _to_float(guest.laundry_billing) + _to_float(guest.cafe_billing) + _to_float(guest.excess_pax_billing) + _to_float(guest.additional_charge_billing)
+        # Payment
+        pay = Payment.objects.filter(booking=b).first()
+        payment_method = getattr(pay, 'method', '')
+        total_balance = getattr(pay, 'total_balance', '')
+
+        writer.writerow([
+            f"{b.id:05d}", str(b.room), room_type, guest.name,
+            b.booking_date.strftime('%Y-%m-%d %H:%M:%S'),
+            b.check_in_date.strftime('%Y-%m-%d'),
+            b.check_out_date.strftime('%Y-%m-%d'),
+            b.status, b.num_of_adults, b.num_of_children, b.total_of_guests,
+            f"{room_charges:.2f}", f"{other_charges:.2f}", payment_method, str(total_balance)
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="front_office_report.csv"'
+    return response
 def admin_cafe_reports(request):
     from cafe.models import CafeOrder, CafeOrderItem
 
