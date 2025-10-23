@@ -344,11 +344,26 @@ $(".walkin-book-btn").on("click", function (event) {
             html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
             icon: "success",
             customClass: {
-              confirmButton: "my-confirm-btn-checkin",
+              confirmButton: "my-confirm-btn-checkin  ",
               title: "my-title-checkin",
             },
             confirmButtonText: "Close",
+          }); Swal.fire({
+            title: "<strong>Finished activity on <br>time!</strong>",
+            html: '<p style="color:#1a2d1e">Time Remaining: 1:12 Minutes<br>Time Consumed: 3:48 Minutes</p>',
+            icon: "success",
+            showDenyButton: true,
+            confirmButtonText: "Close",
+            denyButtonText: "Back",
+            customClass: {
+              confirmButton: "my-confirm-btn-checkin",
+              denyButton: "my-deny-btn-checkin",
+              title: "my-title-checkin",
+            },
+          }).then((result) => {
+
           });
+
         }
       });
     },
