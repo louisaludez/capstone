@@ -573,6 +573,91 @@ def admin_cafe_reports(request):
         'current_sort': sort_by,
     }
     return render(request, "adminNew/cafe_reports.html", context)
+
+@require_GET
+def admin_cafe_reports_export(request):
+    """Export Cafe reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from cafe.models import CafeOrder, CafeOrderItem
+    from django.db.models import Q, Sum
+
+    # Base queryset similar to admin_cafe_reports
+    orders_qs = CafeOrder.objects.select_related('guest')
+
+    # Filters
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    # Apply filter type
+    if filter_type == 'cash':
+        orders_qs = orders_qs.filter(payment_method='cash')
+    elif filter_type == 'card':
+        orders_qs = orders_qs.filter(payment_method='card')
+
+    # Apply search
+    if search_query:
+        orders_qs = orders_qs.filter(
+            Q(id__icontains=search_query) |
+            Q(customer_name__icontains=search_query) |
+            Q(payment_method__icontains=search_query)
+        )
+
+    # Sort
+    if sort_by == 'date_asc':
+        orders_qs = orders_qs.order_by('order_date')
+    elif sort_by == 'date_desc':
+        orders_qs = orders_qs.order_by('-order_date')
+    elif sort_by == 'total_asc':
+        orders_qs = orders_qs.order_by('total')
+    elif sort_by == 'total_desc':
+        orders_qs = orders_qs.order_by('-total')
+    elif sort_by == 'receipt_asc':
+        orders_qs = orders_qs.order_by('id')
+    elif sort_by == 'receipt_desc':
+        orders_qs = orders_qs.order_by('-id')
+    else:
+        orders_qs = orders_qs.order_by('-order_date')
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Receipt No.', 'Date and Time', 'Items Sold', 'Qty', 'Total', 
+        'Cash Tendered', 'Change', 'Payment Method'
+    ])
+
+    for order in orders_qs:
+        # Get items for this order
+        items = CafeOrderItem.objects.filter(order=order)
+        items_text = ', '.join([f"{item.item.name} (x{item.quantity})" for item in items])
+        total_qty = sum([item.quantity for item in items])
+        
+        # Handle None values safely
+        total = order.total if order.total is not None else 0.0
+        cash_tendered = order.cash_tendered if order.cash_tendered is not None else 0.0
+        change = order.change if order.change is not None else 0.0
+        payment_method = order.payment_method if order.payment_method is not None else 'N/A'
+        
+        writer.writerow([
+            f"{order.id:05d}",
+            order.order_date.strftime('%Y-%m-%d %H:%M:%S'),
+            items_text,
+            total_qty,
+            f"{total:.2f}",
+            f"{cash_tendered:.2f}",
+            f"{change:.2f}",
+            payment_method
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="cafe_report.csv"'
+    return response
+
 def admin_housekeeping_reports(request):
     from housekeeping.models import Housekeeping
     from django.core.paginator import Paginator
@@ -635,6 +720,86 @@ def admin_housekeeping_reports(request):
         'current_sort': sort_by,
     }
     return render(request, "adminNew/housekeeping_reports.html", context)
+
+@require_GET
+def admin_housekeeping_reports_export(request):
+    """Export Housekeeping reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from housekeeping.models import Housekeeping
+    from django.db.models import Q
+
+    # Base queryset similar to admin_housekeeping_reports
+    qs = Housekeeping.objects.all()
+
+    # Filters
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    # Apply filter type
+    if filter_type == 'pending':
+        qs = qs.filter(status__iexact='pending')
+    elif filter_type == 'in_progress':
+        qs = qs.filter(status__iexact='in progress')
+    elif filter_type == 'finished':
+        qs = qs.filter(status__iexact='finished')
+
+    # Apply search
+    if search_query:
+        qs = qs.filter(
+            Q(room_number__icontains=search_query) |
+            Q(guest_name__icontains=search_query) |
+            Q(request_type__icontains=search_query) |
+            Q(status__icontains=search_query)
+        )
+
+    # Sort
+    if sort_by == 'date_asc':
+        qs = qs.order_by('created_at')
+    elif sort_by == 'date_desc':
+        qs = qs.order_by('-created_at')
+    elif sort_by == 'room_asc':
+        qs = qs.order_by('room_number')
+    elif sort_by == 'room_desc':
+        qs = qs.order_by('-room_number')
+    elif sort_by == 'status_asc':
+        qs = qs.order_by('status')
+    elif sort_by == 'status_desc':
+        qs = qs.order_by('-status')
+    else:
+        qs = qs.order_by('-created_at')
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Room No.', 'Guest Name', 'Service Type', 'Date', 'Time', 'Status'
+    ])
+
+    for hk in qs:
+        # Handle None values safely
+        room_number = hk.room_number if hk.room_number is not None else 'N/A'
+        guest_name = hk.guest_name if hk.guest_name is not None else 'N/A'
+        request_type = hk.request_type if hk.request_type is not None else 'N/A'
+        status = hk.status if hk.status is not None else 'N/A'
+        
+        writer.writerow([
+            room_number,
+            guest_name,
+            request_type,
+            hk.created_at.strftime('%Y-%m-%d'),
+            hk.created_at.strftime('%H:%M:%S'),
+            status
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="housekeeping_report.csv"'
+    return response
+
 def admin_laundry_reports(request):
     from laundry.models import LaundryTransaction
 
@@ -705,6 +870,91 @@ def admin_laundry_reports(request):
         'current_sort': sort_by,
     }
     return render(request, "adminNew/laundry_reports.html", context)
+
+@require_GET
+def admin_laundry_reports_export(request):
+    """Export Laundry reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from laundry.models import LaundryTransaction
+    from django.db.models import Q, Sum
+    from decimal import Decimal
+
+    # Base queryset similar to admin_laundry_reports
+    orders_qs = LaundryTransaction.objects.select_related('guest')
+
+    # Filters
+    search_query = request.GET.get('search', '')
+    filter_type = request.GET.get('filter', 'all')
+    sort_by = request.GET.get('sort', 'date_desc')
+
+    # Apply filter type
+    if filter_type == 'pending':
+        orders_qs = orders_qs.filter(status='pending')
+    elif filter_type == 'in_progress':
+        orders_qs = orders_qs.filter(status='in_progress')
+    elif filter_type == 'completed':
+        orders_qs = orders_qs.filter(status='completed')
+    elif filter_type == 'cancelled':
+        orders_qs = orders_qs.filter(status='cancelled')
+
+    # Apply search
+    if search_query:
+        orders_qs = orders_qs.filter(
+            Q(id__icontains=search_query) |
+            Q(guest__name__icontains=search_query) |
+            Q(service_type__icontains=search_query) |
+            Q(payment_method__icontains=search_query)
+        )
+
+    # Sort
+    if sort_by == 'date_asc':
+        orders_qs = orders_qs.order_by('date_time', 'created_at')
+    elif sort_by == 'date_desc':
+        orders_qs = orders_qs.order_by('-date_time', '-created_at')
+    elif sort_by == 'amount_asc':
+        orders_qs = orders_qs.order_by('total_amount')
+    elif sort_by == 'amount_desc':
+        orders_qs = orders_qs.order_by('-total_amount')
+    elif sort_by == 'receipt_asc':
+        orders_qs = orders_qs.order_by('id')
+    elif sort_by == 'receipt_desc':
+        orders_qs = orders_qs.order_by('-id')
+    else:
+        orders_qs = orders_qs.order_by('-date_time', '-created_at')
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Receipt No.', 'Customer', 'Service Type', 'Date and Time', 
+        'Amount', 'Status', 'Payment Method'
+    ])
+
+    for transaction in orders_qs:
+        # Handle None values safely
+        total_amount = transaction.total_amount if transaction.total_amount is not None else 0.0
+        service_type = transaction.service_type if transaction.service_type is not None else 'N/A'
+        status = transaction.status if transaction.status is not None else 'N/A'
+        payment_method = transaction.payment_method if transaction.payment_method is not None else 'N/A'
+        
+        writer.writerow([
+            f"{transaction.id:05d}",
+            transaction.guest.name if transaction.guest else 'N/A',
+            service_type,
+            transaction.date_time.strftime('%Y-%m-%d %H:%M:%S'),
+            f"{total_amount:.2f}",
+            status,
+            payment_method
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="laundry_report.csv"'
+    return response
+
 def admin_mcq_reports(request):
     from assessment.models import McqAttempt
     from django.core.paginator import Paginator
@@ -765,6 +1015,84 @@ def admin_mcq_reports(request):
     }
     
     return render(request, "adminNew/mcq_reports.html", context)
+
+@require_GET
+def admin_mcq_reports_export(request):
+    """Export MCQ reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from assessment.models import McqAttempt
+
+    # Base queryset similar to admin_mcq_reports
+    attempts = McqAttempt.objects.select_related('activity', 'started_by').order_by('-started_at')
+
+    # Apply filters
+    filter_status = request.GET.get('filter', '')
+    if filter_status == 'passed':
+        attempts = attempts.filter(passed=True, status=McqAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'failed':
+        attempts = attempts.filter(passed=False, status=McqAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'in_progress':
+        attempts = attempts.filter(status=McqAttempt.STATUS_IN_PROGRESS)
+
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'date_desc')
+    if sort_by == 'date_asc':
+        attempts = attempts.order_by('started_at')
+    elif sort_by == 'date_desc':
+        attempts = attempts.order_by('-started_at')
+    elif sort_by == 'score_asc':
+        attempts = attempts.order_by('score')
+    elif sort_by == 'score_desc':
+        attempts = attempts.order_by('-score')
+    elif sort_by == 'participant_asc':
+        attempts = attempts.order_by('participant_info')
+    elif sort_by == 'participant_desc':
+        attempts = attempts.order_by('-participant_info')
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Test No.', 'Name', 'Test Type', 'Date and Time', 'No. of Items', 
+        'No. of Corrects', 'No. of Mistakes', 'Score', 'Status'
+    ])
+
+    for attempt in attempts:
+        correct_count = attempt.answers.filter(is_correct=True).count()
+        incorrect_count = attempt.answers.filter(is_correct=False).count()
+        total_items = attempt.activity.items.count()
+        
+        # Determine status
+        if attempt.status == McqAttempt.STATUS_SUBMITTED:
+            if attempt.passed:
+                status = 'Passed'
+            else:
+                status = 'Failed'
+        elif attempt.status == McqAttempt.STATUS_IN_PROGRESS:
+            status = 'In Progress'
+        else:
+            status = attempt.status.title()
+
+        writer.writerow([
+            f"#{attempt.id}",
+            attempt.participant_info,
+            'MCQ',
+            attempt.started_at.strftime('%b %d, %Y %H:%M'),
+            total_items,
+            correct_count,
+            incorrect_count,
+            f"{attempt.score:.1f}%" if attempt.score is not None else 'N/A',
+            status
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="mcq_report.csv"'
+    return response
+
 def admin_speech_reports(request):
     from assessment.models import SpeechAttempt
     from django.core.paginator import Paginator
@@ -834,6 +1162,92 @@ def admin_speech_reports(request):
     }
     
     return render(request, "adminNew/speech_reports.html", context)
+
+@require_GET
+def admin_speech_reports_export(request):
+    """Export Speech reports as CSV using current filters and sort."""
+    import csv
+    from io import StringIO
+    from assessment.models import SpeechAttempt
+
+    # Base queryset similar to admin_speech_reports
+    attempts = SpeechAttempt.objects.select_related('activity', 'started_by').order_by('-started_at')
+
+    # Apply filters
+    filter_status = request.GET.get('filter', '')
+    if filter_status == 'passed':
+        attempts = attempts.filter(passed=True, status=SpeechAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'failed':
+        attempts = attempts.filter(passed=False, status=SpeechAttempt.STATUS_SUBMITTED)
+    elif filter_status == 'in_progress':
+        attempts = attempts.filter(status=SpeechAttempt.STATUS_IN_PROGRESS)
+
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'date_desc')
+    if sort_by == 'date_asc':
+        attempts = attempts.order_by('started_at')
+    elif sort_by == 'date_desc':
+        attempts = attempts.order_by('-started_at')
+    elif sort_by == 'score_asc':
+        attempts = attempts.order_by('score')
+    elif sort_by == 'score_desc':
+        attempts = attempts.order_by('-score')
+    elif sort_by == 'participant_asc':
+        attempts = attempts.order_by('participant_info')
+    elif sort_by == 'participant_desc':
+        attempts = attempts.order_by('-participant_info')
+
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Test No.', 'Name', 'Test Type', 'Date and Time', 'No. of Items', 
+        'No. of Corrects', 'No. of Mistakes', 'Score', 'Status'
+    ])
+
+    for attempt in attempts:
+        # For speech, we consider it "correct" if score >= 70%, "incorrect" otherwise
+        if attempt.status == SpeechAttempt.STATUS_SUBMITTED and attempt.score is not None:
+            if attempt.score >= 70:
+                correct_count = 1
+                incorrect_count = 0
+            else:
+                correct_count = 0
+                incorrect_count = 1
+        else:
+            correct_count = 0
+            incorrect_count = 0
+        
+        # Determine status
+        if attempt.status == SpeechAttempt.STATUS_SUBMITTED:
+            if attempt.passed:
+                status = 'Passed'
+            else:
+                status = 'Failed'
+        elif attempt.status == SpeechAttempt.STATUS_IN_PROGRESS:
+            status = 'In Progress'
+        else:
+            status = attempt.status.title()
+
+        writer.writerow([
+            f"#{attempt.id}",
+            attempt.participant_info,
+            'Speech',
+            attempt.started_at.strftime('%b %d, %Y %H:%M'),
+            1,  # Speech tests have 1 item
+            correct_count,
+            incorrect_count,
+            f"{attempt.score:.1f}%" if attempt.score is not None else 'N/A',
+            status
+        ])
+
+    csv_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="speech_report.csv"'
+    return response
+
 def admin_training(request):
     return render(request, "adminNew/training.html")
 

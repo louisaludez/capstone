@@ -15,18 +15,18 @@
     <div class="d-flex justify-content-between align-items-center mb-3 reports-header">
       <h2 class="mb-0">Front Office Reports</h2>
       <div class="d-flex">
-        <a id="download-report" class="btn btn-outline-secondary btn-lg text-black me-2" href="#" role="button" style="width: auto; min-width: 100px; font-size: 12px;">
+        <a id="download-report" class="btn btn-outline-secondary btn-lg text-black me-2" href="#" role="button" style="width: 200px !important; min-width: 100px; height: 50px !important; font-size: 10px !important;">
           <i class="bi bi-download text-black"></i> Download Report
         </a>
         <div class="dropdown me-2">
-          <button class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px;">
+          <button class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px; height: 50px !important;">
             <i class="bi bi-filter text-black"></i>Filter
           </button>
           <ul class="dropdown-menu" aria-labelledby="filterDropdown">
             <li><h6 class="dropdown-header">Select Guest Cycle</h6></li>
             <li>
               <label class="dropdown-item">
-                <input type="radio" name="guest_cycle" value="all" class="me-2" {% if not filter_type or filter_type == 'all' %}checked{% endif %}>
+                <input type="radio" name="guest_cycle" value="all" class="me-2"  {% if filter_type == 'all' %}checked{% elif not filter_type %}checked{% endif %}>
                 All
               </label>
             </li>
@@ -51,18 +51,18 @@
           </ul>
         </div>
         <div class="dropdown me-2">
-          <button id="sortButton" class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px;">
+          <button id="sortButton" class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px; height: 50px !important;">
             Sort <i class="bi bi-sort-down text-black"></i>
           </button>
           <ul class="dropdown-menu">
             <li><h6 class="dropdown-header">Sort By</h6></li>
             <li>
+            <li>
               <label class="dropdown-item">
-                <input type="radio" name="sort_by" value="date_desc" class="me-2" {% if current_sort == 'date_desc' or not current_sort %}checked{% endif %}>
+                <input type="radio" name="sort_by" value="date_desc" class="me-2" {% if current_sort == 'date_desc' %}checked{% elif not current_sort %}checked{% endif %}>
                 Date (Newest)
               </label>
             </li>
-            <li>
               <label class="dropdown-item">
                 <input type="radio" name="sort_by" value="date_asc" class="me-2" {% if current_sort == 'date_asc' %}checked{% endif %}>
                 Date (Oldest)

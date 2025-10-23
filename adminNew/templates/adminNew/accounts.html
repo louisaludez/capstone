@@ -131,7 +131,10 @@
                 <select class="form-select" id="role" name="role" required>
                   <option value="">Select Role</option>
                   <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
+                  {% if request.user.role == 'SUPER_ADMIN' %}
+       <option value="admin">Admin</option>
+    {% endif %}
+                 
                 </select>
               </div>
 
