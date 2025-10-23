@@ -6,6 +6,8 @@
 {% endblock %}
 
 {% block extra_head %}
+  <!-- SweetAlert2 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
   <style>
     .main-content {
       background: #fff;
@@ -199,6 +201,20 @@
     .modal-btn:hover {
       background: #0b440c;
     }
+    
+    /* SweetAlert Custom Styles */
+    .swal-wide {
+      width: 500px !important;
+    }
+    
+    .swal2-popup {
+      border-radius: 12px !important;
+    }
+    
+    .swal2-title {
+      color: #1a2d1a !important;
+      font-weight: 600 !important;
+    }
   </style>
 {% endblock %}
 
@@ -251,39 +267,11 @@
   </div>
 
   <!-- Confirmation Modal -->
-  <div class="modal-overlay" id="confirmationModal">
-    <div class="confirmation-modal">
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-
-      <div class="success-icon">
-        <div class="outer-circle">
-          <div class="inner-circle">
-            <span class="checkmark">✓</span>
-          </div>
-        </div>
-        <div class="refresh-arrow">↻</div>
-      </div>
-
-      <h2 class="confirmation-title">Your reservation has been confirmed!</h2>
-
-      <div class="transaction-details">
-        <p>
-          <strong>Transaction recorded!</strong>
-        </p>
-        <p id="guestName">Guest Name: Loading...</p>
-        <p id="roomNumber">Room no. Loading...</p>
-        <p id="referenceNumber">Reference no. Loading...</p>
-      </div>
-
-      <div class="modal-buttons">
-        <button class="modal-btn" onclick="viewDetails()">View Details</button>
-        <button class="modal-btn" onclick="goToActivities()">Activity Results</button>
-      </div>
-    </div>
-  </div>
 {% endblock %}
 
 {% block extra_js %}
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     // Card number formatting
     document.getElementById('cardNumber').addEventListener('input', function (e) {
@@ -411,28 +399,34 @@
       }
     }
     
-    // Show confirmation modal
+    // Show confirmation modal with SweetAlert
     function showConfirmationModal(result) {
-      document.getElementById('guestName').textContent = `Guest Name: ${result.guest_name}`
-      document.getElementById('roomNumber').textContent = `Room no. ${result.room_number}`
-      document.getElementById('referenceNumber').textContent = `Reference no. ${result.reference_number}`
+      Swal.fire({
+        title: 'Your reservation has been confirmed!',
+        html: `
+                              <div style="text-align: center; margin: 20px 0;">
+                               
+                                <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                  <p style="margin: 5px 0;"><strong>Guest Name:</strong> ${result.guest_name}</p>
+                                  <p style="margin: 5px 0;"><strong>Room no.:</strong> ${result.room_number}</p>
+                                  <p style="margin: 5px 0;"><strong>Reference no.:</strong> ${result.reference_number}</p>
+                                </div>
+                              </div>
+                            `,
+        icon: 'success',
+        confirmButtonText: 'View Details',
+        confirmButtonColor: '#1a2d1a',
     
-      document.getElementById('confirmationModal').style.display = 'flex'
-    }
-    
-    // Close modal
-    function closeModal() {
-      document.getElementById('confirmationModal').style.display = 'none'
-    }
-    
-    // View details function
-    function viewDetails() {
-      window.location.href = '/guestbooking/confirmation/'
-    }
-    
-    // Go to activities function
-    function goToActivities() {
-      window.location.href = '/assessment/'
+        customClass: {
+          popup: 'swal-wide'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/guestbooking/confirmation/'
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          window.location.href = '/assessment/'
+        }
+      })
     }
     
     // Get CSRF token

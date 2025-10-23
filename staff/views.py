@@ -196,7 +196,8 @@ def book_room(request):
                 total_of_guests=request.POST.get('total_guests'),
                 num_of_adults=request.POST.get('adults'),
                 num_of_children=request.POST.get('children'),
-                status='Checked-in'
+                status='Checked-in',
+                source='walkin'
             )
             print(f"[DEBUG] Booking created: {booking}")
 
@@ -229,18 +230,39 @@ def book_room(request):
             except Exception:
                 current_additional = 0.0
             guest.additional_charge_billing = str(current_additional + addons_total)
-            guest.save(update_fields=['additional_charge_billing'])
+            
+            # Calculate billing based on room type and number of nights
+            room_prices = {
+                'standard': 1500,
+                'family': 2500,
+                'deluxe': 4500
+            }
+            
+            # Get room type from room number
+            room_obj = Room.objects.get(room_number=room_number)
+            room_type = room_obj.room_type
+            price_per_night = room_prices.get(room_type, 1500)
+            
+            # Calculate number of nights
+            nights = (check_out_date - check_in_date).days
+            if nights <= 0:
+                nights = 1  # Minimum 1 night
+            
+            # Calculate total room cost
+            total_room_cost = price_per_night * nights
+            print(f"[DEBUG] Room type: {room_type}, Price per night: {price_per_night}, Nights: {nights}, Total room cost: {total_room_cost}")
+            
+            guest.billing = str(total_room_cost)
+            
+            guest.save(update_fields=['additional_charge_billing', 'billing'])
             print(f"[DEBUG] Updated guest.additional_charge_billing = {guest.additional_charge_billing}")
+            print(f"[DEBUG] Updated guest.billing = {guest.billing}")
 
             # Create payment
             print("[DEBUG] Creating payment")
             exp_date_val = request.POST.get('exp_date', request.POST.get('card_expiry'))
             cvc_val = request.POST.get('cvv', request.POST.get('cvc'))
-            try:
-                initial_balance = Decimal(str(request.POST.get('current_balance') or 0))
-            except Exception:
-                initial_balance = Decimal(0)
-            total_balance_with_addons = initial_balance + Decimal(addons_total)
+            total_balance_with_addons = total_room_cost + addons_total
 
             Payment.objects.create(
                 booking=booking,

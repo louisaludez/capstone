@@ -180,6 +180,21 @@
     const roomSelect = document.querySelector('.walkin-room')
     const checkinField = document.querySelector('.walkin-check-in')
     const checkoutField = document.querySelector('.walkin-check-out')
+    const balanceField = document.querySelector('.walkin-balance')
+  
+    // Room type to price mapping
+    const roomPrices = {
+      Standard: 1500,
+      Family: 2500,
+      Deluxe: 4500
+    }
+  
+    // Add-on prices
+    const addonPrices = {
+      bed: 200,
+      pillow: 50,
+      towel: 30
+    }
   
     function applyPaymentVisibility() {
       const isCash = method && method.value === 'cash'
@@ -212,14 +227,99 @@
       }
     }
   
+    function calculateBalance() {
+      if (!roomSelect || !roomSelect.value || !checkinField || !checkoutField || !balanceField) {
+        return
+      }
+  
+      // Get room type from selected option
+      const selectedOption = roomSelect.options[roomSelect.selectedIndex]
+      const roomText = selectedOption.text
+      let roomType = null
+  
+      // Extract room type from option text (e.g., "Room 1 : Standard" -> "Standard")
+      if (roomText.includes('Standard')) {
+        roomType = 'Standard'
+      } else if (roomText.includes('Family')) {
+        roomType = 'Family'
+      } else if (roomText.includes('Deluxe')) {
+        roomType = 'Deluxe'
+      }
+  
+      if (!roomType || !roomPrices[roomType]) {
+        balanceField.value = ''
+        return
+      }
+  
+      // Calculate number of nights
+      const checkinDate = new Date(checkinField.value)
+      const checkoutDate = new Date(checkoutField.value)
+  
+      if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate <= checkinDate) {
+        balanceField.value = ''
+        return
+      }
+  
+      const timeDiff = checkoutDate.getTime() - checkinDate.getTime()
+      const nights = Math.ceil(timeDiff / (1000 * 3600 * 24))
+  
+      // Calculate add-on costs
+      const bedCount = parseInt(document.getElementById('bed-count')?.textContent || '0')
+      const pillowCount = parseInt(document.getElementById('pillow-count')?.textContent || '0')
+      const towelCount = parseInt(document.getElementById('towel-count')?.textContent || '0')
+  
+      const addonCost = bedCount * addonPrices.bed + pillowCount * addonPrices.pillow + towelCount * addonPrices.towel
+  
+      // Calculate total balance
+      const roomCost = roomPrices[roomType] * nights
+      const totalBalance = roomCost + addonCost
+  
+      balanceField.value = `₱${totalBalance.toLocaleString()}`
+    }
+  
+    function setupAddonListeners() {
+      // Add event listeners for add-on buttons
+      const addonButtons = [
+        { minus: 'bed-minus', plus: 'bed-plus' },
+        { minus: 'pillow-minus', plus: 'pillow-plus' },
+        { minus: 'towel-minus', plus: 'towel-plus' }
+      ]
+  
+      addonButtons.forEach(({ minus, plus }) => {
+        const minusBtn = document.getElementById(minus)
+        const plusBtn = document.getElementById(plus)
+  
+        if (minusBtn) {
+          minusBtn.addEventListener('click', calculateBalance)
+        }
+        if (plusBtn) {
+          plusBtn.addEventListener('click', calculateBalance)
+        }
+      })
+    }
+  
     if (method) {
       method.addEventListener('change', applyPaymentVisibility)
       applyPaymentVisibility()
     }
   
     if (roomSelect) {
-      roomSelect.addEventListener('change', toggleDateFields)
+      roomSelect.addEventListener('change', function () {
+        toggleDateFields()
+        calculateBalance()
+      })
       toggleDateFields() // Initialize on page load
     }
+  
+    if (checkinField) {
+      checkinField.addEventListener('change', calculateBalance)
+    }
+  
+    if (checkoutField) {
+      checkoutField.addEventListener('change', calculateBalance)
+    }
+  
+    // Setup add-on listeners
+    setupAddonListeners()
   })
 </script>

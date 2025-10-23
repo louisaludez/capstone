@@ -232,7 +232,14 @@ $(".walkin-book-btn").on("click", function (event) {
     exp_date: document.querySelector(".walkin-card-exp-date").value,
     cvc: document.querySelector(".walkin-card-cvc").value,
     billing_address: document.querySelector(".walkin-billing-address").value,
-    current_balance: document.querySelector(".walkin-balance").value,
+    current_balance: (() => {
+      const rawValue = document.querySelector(".walkin-balance").value;
+      // Simply remove peso symbol and commas
+      const cleanValue = rawValue.replace('₱', '').replace(/,/g, '');
+      console.log('[DEBUG] Raw balance value:', rawValue);
+      console.log('[DEBUG] Clean balance value:', cleanValue);
+      return cleanValue;
+    })(),
     csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
   };
 

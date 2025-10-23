@@ -67,6 +67,13 @@ class Booking(models.Model):
         ('Checked-in', 'Checked-in'),
         ('Cancelled', 'Cancelled'),
     ]
+    
+    SOURCE_CHOICES = [
+        ('walkin', 'Walk-in'),
+        ('reservation', 'Reservation'),
+        ('checkin', 'Check-in'),
+    ]
+    
     guest = models.ForeignKey(Guest, on_delete=models.CASCADE)
     room= models.CharField(max_length=50)  # Keep as CharField for now
     booking_date = models.DateTimeField(auto_now_add=True)
@@ -77,6 +84,7 @@ class Booking(models.Model):
     num_of_children = models.PositiveIntegerField(default=0)
     no_of_children_below_7 = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='reservation')
 
     def __str__(self):
         return f"Booking for {self.guest.name} from {self.check_in_date} to {self.check_out_date}"

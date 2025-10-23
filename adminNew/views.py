@@ -330,14 +330,8 @@ def admin_front_office_reports(request):
     total_reservations = Booking.objects.filter(status='Pending').count()
     total_checkins = Booking.objects.filter(status='Checked-in').count()
     total_checkouts = Booking.objects.filter(status='Checked-out').count()
-    # Walk-ins heuristic: checked-in bookings created on the same date as check-in
-    walkins = (
-        Booking.objects
-        .filter(status='Checked-in')
-        .annotate(bd=TruncDate('booking_date'))
-        .filter(bd=models.F('check_in_date'))
-        .count()
-    )
+    # Walk-ins: bookings with source='walkin'
+    walkins = Booking.objects.filter(source='walkin').count()
 
     # Search, filter, and sort functionality
     search_query = request.GET.get('search', '')
@@ -352,17 +346,11 @@ def admin_front_office_reports(request):
     
     # Apply filters based on guest cycle
     if filter_type == 'walkins':
-        # Walk-ins: checked-in bookings created on the same date as check-in
-        orders_query = orders_query.filter(
-            status='Checked-in'
-        ).annotate(
-            bd=TruncDate('booking_date')
-        ).filter(
-            bd=models.F('check_in_date')
-        )
+        # Walk-ins: bookings with source='walkin'
+        orders_query = orders_query.filter(source='walkin')
     elif filter_type == 'checkins':
-        # Check-ins: all checked-in bookings
-        orders_query = orders_query.filter(status='Checked-in')
+        # Check-ins: checked-in bookings that are NOT walk-ins
+        orders_query = orders_query.filter(status='Checked-in').exclude(source='walkin')
     elif filter_type == 'checkouts':
         # Check-outs: all checked-out bookings
         orders_query = orders_query.filter(status='Checked-out')
@@ -430,9 +418,9 @@ def admin_front_office_reports_export(request):
 
     # Apply filter type
     if filter_type == 'walkins':
-        orders_query = orders_query.filter(status='Checked-in').annotate(bd=TruncDate('booking_date')).filter(bd=models.F('check_in_date'))
+        orders_query = orders_query.filter(source='walkin')
     elif filter_type == 'checkins':
-        orders_query = orders_query.filter(status='Checked-in')
+        orders_query = orders_query.filter(status='Checked-in').exclude(source='walkin')
     elif filter_type == 'checkouts':
         orders_query = orders_query.filter(status='Checked-out')
 
