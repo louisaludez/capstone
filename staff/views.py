@@ -1,3 +1,4 @@
+from urllib import request
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -656,24 +657,7 @@ def perform_checkout(request):
 
             # Guest billing
             # Sum existing additional charges into billing if provided
-            existing_additional = float(guest.additional_charge_billing or 0)
-            base_room_charges = float(request.POST.get('room_charges') or 0)
-            total_billing = base_room_charges + existing_additional
-            guest.billing = str(total_billing)
-            guest.room_service_billing = request.POST.get('room_service') or '0'
-            guest.laundry_billing = request.POST.get('laundry') or '0'
-            guest.cafe_billing = request.POST.get('cafe') or '0'
-            guest.excess_pax_billing = request.POST.get('excess_pax') or '0'
-            guest.additional_charge_billing = request.POST.get('additional_charges') or '0'
-            guest.save()
-            print("Guest billing updated:", {
-                'billing': guest.billing,
-                'room_service_billing': guest.room_service_billing,
-                'laundry_billing': guest.laundry_billing,
-                'cafe_billing': guest.cafe_billing,
-                'excess_pax_billing': guest.excess_pax_billing,
-                'additional_charge_billing': guest.additional_charge_billing,
-            })
+          
 
             # Payment
             payment, created = Payment.objects.get_or_create(booking=booking)

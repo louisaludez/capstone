@@ -64,43 +64,61 @@ def staff_cafe_home(request):
 def create_order(request):
     if request.method == "POST":
         try:
+            print("\n=== STARTING CAFE ORDER CREATION ===")
+
+            # Decode and parse JSON body
             raw_body = request.body.decode("utf-8")
             print("RAW BODY:", raw_body)
-
             data = json.loads(raw_body)
             print("PARSED DATA:", data)
 
+            # Extract main order data
             items = data.get("items", [])
             subtotal = float(data.get("subtotal", 0))
             total = float(data.get("total", subtotal))
             cash_tendered = float(data.get("cash_tendered") or 0)
+            change = float(data.get("change") or 0)
             guest_id = data.get("guest")
-
             dine_type = data.get("dine_type")
             payment_method = data.get("payment_method")
-            
             card_number = str(data.get("card", "")).strip()
-            print("Customer Name", guest_id)
-            # Map payment and service type from frontend text to model choices
+
+            print("--- ORDER INPUT DETAILS ---")
+            print("Guest ID:", guest_id)
+            print("Dine Type (Raw):", dine_type)
+            print("Payment Method (Raw):", payment_method)
+            print("Subtotal:", subtotal)
+            print("Total:", total)
+            print("Cash Tendered:", cash_tendered)
+            print("Card Number:", card_number)
+            print("Change:", change)
+            # Map frontend text to model choices
             payment_map = { 
                 "Cash Payment": "cash",
                 "Charge to room": "room",
                 "Card Payment": "card"
             }
             payment_method = payment_map.get(payment_method, payment_method)
+            print("Mapped Payment Method:", payment_method)
 
             dine_map = {
                 "Dine In": "dine_in",
                 "Takeout": "take_out"
             }
             dine_type = dine_map.get(dine_type, dine_type)
+            print("Mapped Dine Type:", dine_type)
 
-            # Get guest instance if provided
-            guest = Guest.objects.get(id=int(guest_id)) if guest_id else None
-            
-            # Prepare order kwargs
+            # Get guest instance
+            guest = None
+            if guest_id:
+                guest = Guest.objects.get(id=int(guest_id))
+                print("Fetched Guest:", guest.name)
+            else:
+                print("No guest provided (possible walk-in order).")
+
+            # Prepare base order fields
             order_kwargs = {
-                "customer_name": guest.name,
+                "customer_name": guest.name if guest else "Walk-in Customer",
                 "guest": guest,
                 "payment_method": payment_method,
                 "service_type": dine_type,
@@ -108,46 +126,63 @@ def create_order(request):
                 "total": total
             }
 
-            # Add card number only if payment method is card
+            # Add card info if card payment
             if payment_method == "card":
                 order_kwargs["card_number"] = card_number
+                print("Added card info to order.")
 
-            # Compute cash/change only for cash payments
+            # Handle cash payment calculations
             if payment_method == "cash":
                 order_kwargs["cash_tendered"] = cash_tendered
                 try:
                     order_kwargs["change"] = max(0.0, cash_tendered - total)
-                except Exception:
+                except Exception as calc_error:
+                    print("Error computing change:", calc_error)
                     order_kwargs["change"] = 0.0
+                print("Cash Payment - Tendered:", cash_tendered, "Change:", order_kwargs["change"])
 
-            # Create the CafeOrder
+            print("--- ORDER KWARGS PREPARED ---")
+            for key, val in order_kwargs.items():
+                print(f"{key}: {val}")
+
+            # Create CafeOrder
             order = CafeOrder.objects.create(**order_kwargs)
+            print("CafeOrder created with ID:", order.id)
 
-            # Add items to CafeOrderItem
+            # Create order items
+            print("--- CREATING ORDER ITEMS ---")
             for item_data in items:
                 item_name = item_data.get("name")
-                quantity = int(item_data.get("quantity"))
-                price = float(item_data.get("price"))
+                quantity = int(item_data.get("quantity", 0))
+                price = float(item_data.get("price", 0))
                 subtotal_item = price * quantity
+
+                print(f"Processing Item: {item_name} | Qty: {quantity} | Price: {price} | Subtotal: {subtotal_item}")
 
                 try:
                     cafe_item = CafeItem.objects.get(name=item_name)
+                    CafeOrderItem.objects.create(
+                        order=order,
+                        item=cafe_item,
+                        quantity=quantity,
+                        price=price,
+                        subtotal=subtotal_item
+                    )
+                    print(f"Added item '{item_name}' to order {order.id}")
                 except CafeItem.DoesNotExist:
+                    print(f"ERROR: Item '{item_name}' not found in database.")
                     return JsonResponse({"error": f"Item '{item_name}' not found"}, status=404)
 
-                CafeOrderItem.objects.create(
-                    order=order,
-                    item=cafe_item,
-                    quantity=quantity,
-                    price=price,
-                    subtotal=subtotal_item
-                )
-
-            # If payment is charged to room, update guest billing
+            # Handle charge-to-room payment
             if payment_method == "room" and guest:
-                guest.cafe_billing = str(float(guest.cafe_billing) + total)
+                print("Payment method: ROOM CHARGE. Updating guest billing.")
+                print("Previous guest.cafe_billing:", guest.cafe_billing)
+                new_billing = float(guest.cafe_billing or 0) + total
+                guest.cafe_billing = str(new_billing)
                 guest.save()
+                print("Updated guest.cafe_billing to:", guest.cafe_billing)
 
+            print("=== ORDER CREATION SUCCESSFUL ===")
             return JsonResponse({
                 "message": "Order placed successfully",
                 "order_id": order.id
@@ -155,10 +190,12 @@ def create_order(request):
 
         except Exception as e:
             import traceback
-            print("ERROR:", e)
+            print("=== ERROR OCCURRED DURING ORDER CREATION ===")
+            print("ERROR MESSAGE:", e)
             traceback.print_exc()
             return JsonResponse({"error": str(e)}, status=400)
 
+    print("Invalid request method (not POST).")
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 

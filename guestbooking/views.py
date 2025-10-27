@@ -1,4 +1,5 @@
 from django.shortcuts import render
+
 from staff.models import Room, Guest, Booking, Payment  # Import models from staff app
 from django.db.models import Q
 from django.http import JsonResponse
@@ -135,27 +136,19 @@ def save_reservation(request):
             num_of_adults = data.get('num_of_adults', 2)
             num_of_children = data.get('num_of_children', 0)
             children_below_7 = data.get('children_below_7', 0)
+            check_in = datetime.strptime(check_in_date, '%Y-%m-%d')
+            check_out = datetime.strptime(check_out_date, '%Y-%m-%d')
 
+            # Calculate number of days
+            number_of_days = (check_out - check_in).days
+            print(f"[save_reservation] number_of_days={number_of_days}")
             # Debug log incoming reservation payload
             try:
                 logger.info("[save_reservation] payload: %s", data)
                 print("[save_reservation] payload:", data)
             except Exception:
                 pass
-            
-            # Create or get guest
-            guest, created = Guest.objects.get_or_create(
-                email=guest_data.get('email'),
-                defaults={
-                    'name': f"{guest_data.get('firstName', '')} {guest_data.get('lastName', '')}".strip(),
-                    'address': guest_data.get('country', ''),
-                    'email': guest_data.get('email'),
-                    'mobile': guest_data.get('phone') or None,
-                    'date_of_birth': timezone.now().date(),  # Default date
-                }
-            )
-
-            # If guest existed already, update mobile if provided
+              # If guest existed already, update mobile if provided
             try:
                 incoming_mobile = guest_data.get('phone')
                 if incoming_mobile and getattr(guest, 'mobile', None) != incoming_mobile:
@@ -170,6 +163,20 @@ def save_reservation(request):
             except Room.DoesNotExist:
                 return JsonResponse({'error': 'Room not found'}, status=400)
             
+            # Create or get guest
+            guest, created = Guest.objects.get_or_create(
+                email=guest_data.get('email'),
+                defaults={
+                    'name': f"{guest_data.get('firstName', '')} {guest_data.get('lastName', '')}".strip(),
+                    'address': guest_data.get('country', ''),
+                    'email': guest_data.get('email'),
+                    'mobile': guest_data.get('phone') or None,
+                    'billing': number_of_days * room.price_per_night,
+                    'date_of_birth': timezone.now().date(),  # Default date
+                }
+            )
+
+          
             # Create booking
             booking = Booking.objects.create(
                 guest=guest,
@@ -190,7 +197,7 @@ def save_reservation(request):
                 card_number=payment_data.get('cardNumber', ''),
                 exp_date=payment_data.get('expiryDate', ''),
                 cvc_code=payment_data.get('cvc', ''),
-                total_balance=room.price_per_night
+                total_balance=room.price_per_night * Decimal(number_of_days)
             )
             
             # Update room status

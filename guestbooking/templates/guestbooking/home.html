@@ -928,8 +928,7 @@
       const params = new URLSearchParams({
         stayType: stayType,
         checkin: toLocal(selectedCheckin),
-        // For overnight, ensure checkout is at least +1 day; for dayuse, same-day
-        checkout: toLocal(stayType === 'overnight' ? new Date(new Date(selectedCheckin).setDate(selectedCheckin.getDate() + 1)) : selectedCheckout),
+        checkout: toLocal(selectedCheckout),
         rooms: String(rooms),
         adults: String(adults),
         children: String(children),

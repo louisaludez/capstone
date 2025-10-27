@@ -3,8 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const filterDivs = document.querySelectorAll(".filter-box");
   const rowItems = document.querySelector(".items");
   const subtotal = document.getElementById("subtotal");
-  const cashTentered = document.getElementById("cash-tentered");
-  const change = document.getElementById("change");
+
   const totalText = document.getElementById("total");
   const dtButtons = document.querySelectorAll(".dt-button");
   const placeOrderBtn = document.querySelector(".po-btn");
@@ -251,7 +250,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let dineMethod = document.querySelector(".dt-button.active")?.textContent || "";
     let paymentMethod = document.querySelector(".pm.active")?.textContent || "";
     const cardnumber = document.getElementById("card-number")?.value || 0;
+    const cashTentered = document.getElementById("cash-tentered")?.value || 0;
 
+    const change = document.getElementById("change")?.value || 0;
+    console.log("cash tendered", cashTentered);
+    console.log("change", change);
     // Place order logic here
     const orderItems = [];
     document.querySelectorAll('input[data-quantity]').forEach(input => {
@@ -268,12 +271,13 @@ document.addEventListener("DOMContentLoaded", () => {
       data: JSON.stringify({
         items: orderItems,
         subtotal: subtotal.value,
-        cash_tendered: cashTentered.value,
+        cash_tendered: cashTentered,
+        change: change,
         guest: guest.value,
         dine_type: dineMethod,
         payment_method: paymentMethod,
-        cashTentered: cashTentered.value,
-        card: cardnumber
+
+        card: cardnumber,
 
       }),
       success: function (response) {
@@ -283,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showConfirmButton: false,
           timer: 1500
         }).then(() => {
-          location.reload();
+          window.location.reload();
         });
       },
       error: function (error) {
