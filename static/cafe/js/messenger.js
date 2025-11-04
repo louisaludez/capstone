@@ -25,17 +25,50 @@
     let chatSocket = null;
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
+    let isConnecting = false; // Flag to prevent duplicate connections
+    const seenMessageIds = new Set(); // Track seen messages to prevent duplicates
 
     function connectWebSocket() {
+        // Prevent duplicate connections
+        if (isConnecting || (chatSocket && chatSocket.readyState === WebSocket.OPEN)) {
+            return;
+        }
+        
+        // Close existing connection if any
+        if (chatSocket) {
+            try {
+                chatSocket.close();
+            } catch (e) {
+                // Ignore errors
+            }
+        }
+        
+        isConnecting = true;
         chatSocket = new WebSocket((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/chat/' + roomName + '/');
 
         chatSocket.onopen = function () {
             reconnectAttempts = 0;
+            isConnecting = false;
         };
 
         chatSocket.onmessage = function (e) {
             try {
                 const data = JSON.parse(e.data);
+                
+                // Check for duplicate messages using message_id if available
+                const messageId = data.message_id || data.timestamp + '_' + data.sender_id + '_' + data.body;
+                if (seenMessageIds.has(messageId)) {
+                    console.log('Duplicate message detected, ignoring:', messageId);
+                    return;
+                }
+                seenMessageIds.add(messageId);
+                
+                // Keep only last 100 message IDs to prevent memory issues
+                if (seenMessageIds.size > 100) {
+                    const firstId = seenMessageIds.values().next().value;
+                    seenMessageIds.delete(firstId);
+                }
+                
                 const chatBody = document.getElementById('chat-body');
                 if (!chatBody) return;
 
@@ -86,6 +119,7 @@
         };
 
         chatSocket.onclose = function () {
+            isConnecting = false;
             if (reconnectAttempts < maxReconnectAttempts) {
                 reconnectAttempts++;
                 setTimeout(connectWebSocket, 1000);
@@ -96,6 +130,7 @@
 
         chatSocket.onerror = function (error) {
             console.error('WebSocket error:', error);
+            isConnecting = false;
         };
     }
 
@@ -111,30 +146,56 @@
         });
     });
 
+    let isSending = false; // Flag to prevent duplicate sends
+    let listenersAttached = false; // Flag to prevent duplicate event listeners
+
     function sendMessage() {
+        // Prevent duplicate sends
+        if (isSending) return;
+        
         const input = document.getElementById('chat-input');
         if (!input) return;
-        const message = input.value;
-        if (!message || message.trim() === '') return;
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Set flag to prevent duplicate sends
+        isSending = true;
 
         if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
             chatSocket.send(JSON.stringify({ body: message, sender_id: senderId, receiver_role: receiverRole }));
             input.value = '';
+            // Reset flag after a short delay
+            setTimeout(() => {
+                isSending = false;
+            }, 300);
         } else {
             connectWebSocket();
+            isSending = false;
         }
     }
 
-    const sendBtn = document.getElementById('send-btn');
-    if (sendBtn) sendBtn.onclick = sendMessage;
+    // Attach event listeners only once
+    if (!listenersAttached) {
+        const sendBtn = document.getElementById('send-btn');
+        if (sendBtn) {
+            // Remove any existing onclick handler
+            sendBtn.onclick = null;
+            // Use addEventListener
+            sendBtn.addEventListener('click', sendMessage);
+        }
 
-    const inputEl = document.getElementById('chat-input');
-    if (inputEl) {
-        inputEl.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+        const inputEl = document.getElementById('chat-input');
+        if (inputEl) {
+            // Add event listener for Enter key
+            inputEl.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent form submission if any
+                    sendMessage();
+                }
+            });
+        }
+        
+        listenersAttached = true;
     }
 
     setInterval(function () {

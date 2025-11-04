@@ -15,17 +15,14 @@ function toggleCF() {
 }
 const checkoutOverlay = document.querySelector(".checkout-overlay");
 const checkoutModal = document.querySelector(".checkout-modal");
-let timerDisplayCheckout = document.querySelector(".checkout-countdown-time");
-let checkOutTimerInterval = null;
+
 document
   .getElementById("check-out-modal-btn")
   .addEventListener("click", function () {
-    var minutes = 5 * 60;
+
     console.log("Checkout button clicked");
     checkoutOverlay.style.display = "flex";
-    timerDisplayCheckout.textContent = '5:00'
-    startCheckOutTimer(minutes,timerDisplayCheckout)
-   // Start the timer when the modal opens
+
   });
 
 document.querySelector(".checkout-overlay").addEventListener("click", (e) => {
@@ -38,33 +35,30 @@ document.querySelector(".checkout-overlay").addEventListener("click", (e) => {
 pm.addEventListener("change", toggleCF);
 
 
-function startCheckOutTimer(duration, display) {
-  if (checkOutTimerInterval) {
-    clearInterval(checkOutTimerInterval);
-  }
-  let timer = duration - 1,
-    minutes,
-    seconds;
-  checkOutTimerInterval = setInterval(function () {
-    minutes = parseInt(timer / 60, 10);
-    seconds = parseInt(timer % 60, 10);
-    minutes = minutes < 1 ? "" + minutes : minutes;
-    seconds = seconds < 10 ? "0" + seconds : seconds;
+// function startCheckOutTimer(duration, display) {
+//   if (checkOutTimerInterval) {
+//     clearInterval(checkOutTimerInterval);
+//   }
+//   let timer = duration - 1,
+//     minutes,
+//     seconds;
+//   checkOutTimerInterval = setInterval(function () {
+//     minutes = parseInt(timer / 60, 10);
+//     seconds = parseInt(timer % 60, 10);
+//     minutes = minutes < 1 ? "" + minutes : minutes;
+//     seconds = seconds < 10 ? "0" + seconds : seconds;
 
-    display.textContent = `${minutes}:${seconds}`;
-    console.log(`Timer: ${minutes}:${seconds}`);
-    if (--timer < 0) {
-      timer = duration;
-      clearInterval(walkInTimerInterval);
-    }
-  }, 1000);
-}
+//     display.textContent = `${minutes}:${seconds}`;
+//     console.log(`Timer: ${minutes}:${seconds}`);
+//     if (--timer < 0) {
+//       timer = duration;
+//       clearInterval(walkInTimerInterval);
+//     }
+//   }, 1000);
+// }
 
 function closeCheckoutModal() {
   checkoutOverlay.style.display = "none";
- 
-  clearInterval(checkOutTimerInterval);
-  checkOutTimerInterval = null;
 }
 
 
@@ -118,50 +112,50 @@ $(".guests-name-checkout").on("change", function () {
   });
 });
 
- $(".checkout-submit-btn").on("click", function () {
-   
+$(".checkout-submit-btn").on("click", function () {
+
   console.log("Checkout button clicked");
-   $.ajax({
-     url: "/staff/api/checkout/",
-     type: "POST",
-     data: {
-       csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+  $.ajax({
+    url: "/staff/api/checkout/",
+    type: "POST",
+    data: {
+      csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
 
-       guest_id: $(".guests-name-checkout").val(),
-       check_in: $(".guest-check-in-date-co").val(),
-       check_out: $(".guest-check-out-date-co").val(),
-       room: $(".guest-room-type-checkout").val(),
+      guest_id: $(".guests-name-checkout").val(),
+      check_in: $(".guest-check-in-date-co").val(),
+      check_out: $(".guest-check-out-date-co").val(),
+      room: $(".guest-room-type-checkout").val(),
 
-       // Billing Breakdown
-       total_billing: $(".guest-billing-checkout").val(),
-       room_service: $(".guest-rm-billing-checkout").val(),
-       laundry: $(".guest-laundry-billing-checkout").val(),
-       cafe: $(".guest-cafe-billing-checkout").val(),
-       excess_pax: $(".guest-ep-billing-checkout").val(),
-       additional_charges: $(".guest-additional-charge-checkout").val(),
+      // Billing Breakdown
+      total_billing: $(".guest-billing-checkout").val(),
+      room_service: $(".guest-rm-billing-checkout").val(),
+      laundry: $(".guest-laundry-billing-checkout").val(),
+      cafe: $(".guest-cafe-billing-checkout").val(),
+      excess_pax: $(".guest-ep-billing-checkout").val(),
+      additional_charges: $(".guest-additional-charge-checkout").val(),
 
-       // Payment info
-       payment_method: $(".checkout-payment-method").val(),
-       card_number: $(".checkout-card-number").val(),
-       card_expiry: $(".checkout-card-exp-date").val(),
-       card_cvc: $(".checkout-card-cvc").val(),
-       billing_address: $(".checkout-billing-address").val(),
-       balance: $(".guest-total-balance-checkout").val(),
-     },
-     success: function (response) {
-       Swal.fire({
-         icon: "success",
-         title: "Checkout Successful",
-         text: response.message || "Guest has been checked out.",
-       });
-       closeCheckoutModal();
-     },
-     error: function (xhr) {
-       Swal.fire({
-         icon: "error",
-         title: "Checkout Failed",
-         text: xhr.responseText || "Something went wrong.",
-       });
-     },
-   });
- });
+      // Payment info
+      payment_method: $(".checkout-payment-method").val(),
+      card_number: $(".checkout-card-number").val(),
+      card_expiry: $(".checkout-card-exp-date").val(),
+      card_cvc: $(".checkout-card-cvc").val(),
+      billing_address: $(".checkout-billing-address").val(),
+      balance: $(".guest-total-balance-checkout").val(),
+    },
+    success: function (response) {
+      Swal.fire({
+        icon: "success",
+        title: "Checkout Successful",
+        text: response.message || "Guest has been checked out.",
+      });
+      closeCheckoutModal();
+    },
+    error: function (xhr) {
+      Swal.fire({
+        icon: "error",
+        title: "Checkout Failed",
+        text: xhr.responseText || "Something went wrong.",
+      });
+    },
+  });
+});

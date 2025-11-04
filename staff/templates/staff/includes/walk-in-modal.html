@@ -53,15 +53,15 @@
         </div>
         <div class="walkin-inline-row">
           <div class="walkin-field">
-            <label>Total Guests</label><input type="number" class="walkin-total-guest" />
+            <label>No. of Adults</label><input type="number" class="walkin-no-of-adults" />
           </div>
           <div class="walkin-field">
-            <label>No. of Adults</label><input type="number" class="walkin-no-of-adults" />
+            <label>No. of Children</label><input type="number" class="walkin-no-of-children" />
           </div>
         </div>
         <div class="walkin-inline-row">
           <div class="walkin-field">
-            <label>No. of Children</label><input type="number" class="walkin-no-of-children" />
+            <label>Total Guests</label><input type="number" class="walkin-total-guest" readonly />
           </div>
           <div class="walkin-field">
             <label>Add-ons</label>
@@ -159,13 +159,6 @@
         <div class="walkin-btn-wrapper">
           <button class="walkin-book-btn">Book Room</button>
         </div>
-        <div class="walkin-countdown">
-          <div class="walkin-countdown-text">
-            <div class="walkin-countdown-time">5:00</div>
-            <div>Time Remaining</div>
-          </div>
-          <img src="{% static 'images/clock-timer.png' %}" alt="" />
-        </div>
       </div>
     </div>
   </div>
@@ -181,6 +174,29 @@
     const checkinField = document.querySelector('.walkin-check-in')
     const checkoutField = document.querySelector('.walkin-check-out')
     const balanceField = document.querySelector('.walkin-balance')
+    const adultsInput = document.querySelector('.walkin-no-of-adults')
+    const childrenInput = document.querySelector('.walkin-no-of-children')
+    const totalGuestsInput = document.querySelector('.walkin-total-guest')
+  
+    // Auto-calculate total guests
+    function calculateTotalGuests() {
+      const adults = parseInt(adultsInput?.value || 0, 10)
+      const children = parseInt(childrenInput?.value || 0, 10)
+      const total = adults + children
+      if (totalGuestsInput) {
+        totalGuestsInput.value = total || ''
+      }
+    }
+  
+    if (adultsInput) {
+      adultsInput.addEventListener('input', calculateTotalGuests)
+      adultsInput.addEventListener('change', calculateTotalGuests)
+    }
+  
+    if (childrenInput) {
+      childrenInput.addEventListener('input', calculateTotalGuests)
+      childrenInput.addEventListener('change', calculateTotalGuests)
+    }
   
     // Room type to price mapping
     const roomPrices = {

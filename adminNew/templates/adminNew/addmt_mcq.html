@@ -255,6 +255,8 @@
       </div>
       <div class="col-6 d-flex justify-content-end align-items-center">
         <div class="header-buttons">
+          <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
+          <span>|</span>
           <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
           <span>|</span>
           <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
@@ -454,14 +456,14 @@
         var template = document.createElement('div')
         template.className = 'input-container'
         template.innerHTML = `
-                  <span class="input-header">Activity Title</span>
-                  <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
-                  <div class="div">
-                    <a href="{% url 'add_activity_mcq' %}?new_item=true"><span><i class="bi bi-upload"></i></span></a>
-                    <span>AddActivity</span>
-                  </div>
-                  <input type="checkbox" class="corner-checkbox" />
-                `
+                          <span class="input-header">Activity Title</span>
+                          <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+                          <div class="div">
+                            <a href="{% url 'add_activity_mcq' %}?new_item=true"><span><i class="bi bi-upload"></i></span></a>
+                            <span>AddActivity</span>
+                          </div>
+                          <input type="checkbox" class="corner-checkbox" />
+                        `
     
         // append the new template to the list
         list.appendChild(template)

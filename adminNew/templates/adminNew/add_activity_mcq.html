@@ -225,8 +225,11 @@
       <div class="col-6">
         <h1>Activity Materials</h1>
       </div>
+
       <div class="col-6 d-flex justify-content-end align-items-center">
         <div class="header-buttons">
+          <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
+          <span>|</span>
           <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
           <span>|</span>
           <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
@@ -298,9 +301,6 @@
       </div>
     </div>
     <div class="row footer">
-      <button id="prevItemBtn" {% if item_number <= 1 %}disabled{% endif %}>
-        <i class="bi bi-arrow-left"></i> Previous Item
-      </button>
       <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
       <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
@@ -423,41 +423,8 @@
           saveCurrentItem('add_next')
         })
       }
-
-      // Previous Item button functionality
-      var prevBtn = document.getElementById('prevItemBtn')
-      if (prevBtn) {
-        // Ensure button state is correct based on current item
-        var params = new URLSearchParams(window.location.search)
-        var currentItem = parseInt(params.get('item') || '1')
-        if (currentItem <= 1) {
-          prevBtn.disabled = true
-        } else {
-          prevBtn.disabled = false
-        }
-        
-        prevBtn.addEventListener('click', function (e) {
-          e.preventDefault()
-          if (prevBtn.disabled) return
-          
-          var id = params.get('id')
-          var currentItem = parseInt(params.get('item') || '1')
-          
-          if (currentItem > 1) {
-            var prevItem = currentItem - 1
-            var redirectUrl = window.location.pathname
-            if (id) {
-              redirectUrl += '?id=' + encodeURIComponent(id) + '&item=' + prevItem
-            } else {
-              redirectUrl += '?item=' + prevItem
-            }
-            console.log('Previous Item: Redirecting to', redirectUrl)
-            window.location.href = redirectUrl
-          }
-        })
-      }
     
-            function saveCurrentItem(action) {
+      function saveCurrentItem(action) {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
         var scenario = document.getElementById('scenario')?.value || ''
@@ -468,7 +435,7 @@
           .filter(function (choice) {
             return choice.trim() !== ''
           })
-
+    
         // Client-side validation - only prompt for "Add Next Item"
         if (!scenario.trim() && action === 'add_next') {
           Swal.fire({
@@ -479,11 +446,11 @@
           })
           return
         }
-
+    
         var params = new URLSearchParams(window.location.search)
         var id = params.get('id')
         var item = params.get('item') || '1'
-
+    
         var payload = {
           id: id,
           title: title,

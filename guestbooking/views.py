@@ -197,6 +197,7 @@ def save_reservation(request):
                 card_number=payment_data.get('cardNumber', ''),
                 exp_date=payment_data.get('expiryDate', ''),
                 cvc_code=payment_data.get('cvc', ''),
+                billing_address=payment_data.get('billingAddress', ''),
                 total_balance=room.price_per_night * Decimal(number_of_days)
             )
             
@@ -229,6 +230,9 @@ def save_reservation(request):
                 print("[save_reservation] saved payment:", {
                     'id': payment.id,
                     'method': payment.method,
+                    'card_number': payment.card_number,
+                    'exp_date': payment.exp_date,
+                    'billing_address': payment.billing_address,
                     'total_balance': float(payment.total_balance),
                 })
             except Exception:
@@ -289,6 +293,9 @@ def list_pending_reservations(request):
             'children_below_7': getattr(b, 'no_of_children_below_7', None),
             'payment_method': getattr(payment, 'method', None),
             'billing_address': getattr(payment, 'billing_address', None),
+            'card_number': getattr(payment, 'card_number', None),
+            'card_exp': getattr(payment, 'exp_date', None),
+            'card_cvc': getattr(payment, 'cvc_code', None),
             'total_balance': float(getattr(payment, 'total_balance', 0) or 0),
         })
 

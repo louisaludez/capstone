@@ -26,7 +26,9 @@ import calendar
 def admin_home(request):
     
     users = CustomUser.objects.all()
-    guest = Guest.objects.all().count()
+    guest = Guest.objects.filter(
+        booking__status__in=['Checked-in', 'Checked-out']
+    ).distinct().count()
     
     # Calculate total revenue from all billing fields
     total_revenue = 0.0
@@ -136,8 +138,9 @@ def admin_home_monthly_data(request):
     except (ValueError, IndexError):
         return JsonResponse({'error': 'Invalid month format. Use YYYY-MM'}, status=400)
 
-    # Count guests for the selected month (based on their bookings)
+    # Count guests for the selected month (based on their bookings with Checked-in or Checked-out status)
     monthly_guests = Guest.objects.filter(
+        Q(booking__status__in=['Checked-in', 'Checked-out']),
         Q(booking__check_in_date__gte=start_date, booking__check_in_date__lt=end_date) |
         Q(booking__check_out_date__gte=start_date, booking__check_out_date__lt=end_date)
     ).distinct().count()

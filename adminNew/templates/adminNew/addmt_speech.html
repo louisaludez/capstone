@@ -19,7 +19,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 300px;
+      width: auto;
+      min-width: 300px;
+      padding: 5px 10px;
       border-radius: 13px;
     }
     .activity-box {
@@ -252,6 +254,8 @@
       </div>
       <div class="col-6 d-flex justify-content-end align-items-center">
         <div class="header-buttons">
+          <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d; background: transparent; border: none; padding: 5px 10px;"><i class="bi bi-arrow-left"></i> Back</button>
+          <span>|</span>
           <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
           <span>|</span>
           <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>

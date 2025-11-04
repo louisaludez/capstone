@@ -48,7 +48,15 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                     success
+
+
+
+
 
 
 
@@ -102,7 +110,15 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                     danger
+
+
+
+
 
 
 
@@ -181,92 +197,6 @@
                 <h6 class="kpi-title mb-1">Peak Month</h6>
                 <div class="d-flex align-items-center">
                   <div class="kpi-value-big me-2">{{ peak_month }}</div>
-                  <span class="{% if growth_percentage|add:0 >= 0 %}
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      kpi-badge-up
-
-
-
-
-
-
-
-
-
-                    {% else %}
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      kpi-badge-down
-
-
-
-
-
-
-
-
-
-                    {% endif %}">
-                    <i class="bi {% if growth_percentage|add:0 >= 0 %}
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        bi-arrow-up
-
-
-
-
-
-
-
-
-
-                      {% else %}
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        bi-arrow-down
-
-
-
-
-
-
-
-
-
-                      {% endif %}">
-
-                    </i>
-                    {% if growth_percentage|add:0 >= 0 %}+{% endif %}{{ growth_percentage }}%
-                  </span>
                 </div>
               </div>
             </div>
@@ -505,6 +435,10 @@
     })
     window.__hmsStatsChart = statsChart
     
+    // Store chart data and forecast method globally for download
+    let chartData = null
+    let forecastMethod = 'fallback'
+    
     fetch('{% url "admin_home_forecast_json" %}')
       .then((res) => res.json())
       .then((data) => {
@@ -515,7 +449,7 @@
         const forecastValues = data.forecast?.values || []
         const lowerBound = data.forecast?.lower_bound || []
         const upperBound = data.forecast?.upper_bound || []
-        const forecastMethod = data.method || 'fallback'
+        forecastMethod = data.method || 'fallback'
     
         const labels = historicalLabels.slice(-12).concat(forecastLabels)
         const datasets = [
@@ -559,23 +493,33 @@
         window.__hmsStatsChart.data.datasets = datasets
         window.__hmsStatsChart.update()
     
+        // Store chart data for download
+        chartData = {
+          labels: labels,
+          datasets: datasets
+        }
+    
         if (!document.getElementById('forecastMethodIndicator')) {
           const methodIndicator = document.createElement('div')
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                                                                                                        <small class="text-muted">
-                                                                                                          <i class="bi bi-info-circle"></i> 
-                                                                                                          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                                                                                                          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                                                                                                        </small>
-                                                                                                      `
+                                                                                                                        <small class="text-muted">
+                                                                                                                          <i class="bi bi-info-circle"></i> 
+                                                                                                                          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                                                                                                                          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                                                                                                                        </small>
+                                                                                                                      `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })
     
     // Download Report functionality
     document.getElementById('downloadReportBtn').addEventListener('click', function () {
+      if (!chartData) {
+        alert('Chart data is still loading. Please wait a moment and try again.')
+        return
+      }
       downloadForecastReport(chartData, forecastMethod)
     })
     
@@ -586,16 +530,17 @@
       // Add dashboard summary
       csvContent += 'DASHBOARD SUMMARY\n'
       csvContent += `Total Guests,{{ total_guests }}\n`
-      csvContent += `Peak Month,{{ peak_month }}\n`
+      csvContent += `Peak Month,"{{ peak_month }}"\n`
       csvContent += `Total Revenue,₱ {{ total_revenue }}\n`
+      csvContent += `Growth Percentage,{{ growth_percentage }}%\n`
       csvContent += `Forecast Method,${method.toUpperCase()}\n`
-      csvContent += `Report Generated,${new Date().toLocaleDateString('en-US', {
+      csvContent += `Report Generated,"${new Date().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
-      })}\n`
+      })}"\n`
       csvContent += '\n'
     
       // Add forecast data header
@@ -603,32 +548,33 @@
       csvContent += 'Month,Historical Reservations,Forecast,Lower Bound,Upper Bound,Type\n'
     
       // Get historical data
-      const historicalLabels = chartData.labels.slice(0, chartData.datasets[0].data.filter((d) => d !== null).length)
       const historicalData = chartData.datasets[0].data.filter((d) => d !== null)
+      const historicalLabels = chartData.labels.slice(0, historicalData.length)
     
       // Get forecast data
-      const forecastLabels = chartData.labels.slice(historicalLabels.length)
       const forecastData = chartData.datasets[1].data.filter((d) => d !== null)
-      const lowerBound = chartData.datasets[2].data.filter((d) => d !== null)
-      const upperBound = chartData.datasets[3].data.filter((d) => d !== null)
+      const lowerBound = chartData.datasets[3].data.filter((d) => d !== null)
+      const upperBound = chartData.datasets[2].data.filter((d) => d !== null)
+      const forecastLabels = chartData.labels.slice(historicalLabels.length)
     
       // Add historical data rows
       historicalLabels.forEach((label, index) => {
-        // Label is already in "January 31, 2004" format
-        csvContent += `${label},${historicalData[index] || 0},,,"Historical"\n`
+        csvContent += `"${label}",${historicalData[index] || 0},,,"Historical"\n`
       })
     
       // Add forecast data rows
       forecastLabels.forEach((label, index) => {
-        // Label is already in "January 31, 2004" format
-        csvContent += `${label},,${forecastData[index] || 0},${lowerBound[index] || 0},${upperBound[index] || 0},"Forecast"\n`
+        const forecastVal = forecastData[index] || 0
+        const lowerVal = lowerBound[index] || 0
+        const upperVal = upperBound[index] || 0
+        csvContent += `"${label}",,${forecastVal.toFixed(1)},${lowerVal.toFixed(1)},${upperVal.toFixed(1)},"Forecast"\n`
       })
     
       // Create and trigger download
       const encodedUri = encodeURI(csvContent)
       const link = document.createElement('a')
       link.setAttribute('href', encodedUri)
-      link.setAttribute('download', `reservation_forecast_${new Date().toISOString().slice(0, 10)}.csv`)
+      link.setAttribute('download', `dashboard_report_${new Date().toISOString().slice(0, 10)}.csv`)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -638,12 +584,12 @@
         Swal.fire({
           icon: 'success',
           title: 'Report Downloaded!',
-          text: 'The forecast report has been downloaded as CSV.',
+          text: 'The dashboard report has been downloaded as CSV.',
           timer: 2000,
           showConfirmButton: false
         })
       } else {
-        alert('Forecast report downloaded successfully!')
+        alert('Dashboard report downloaded successfully!')
       }
     }
   </script>

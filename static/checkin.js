@@ -41,6 +41,9 @@ function populateCISelect(reservations) {
     opt.setAttribute("data-checkout", r.check_out_date);
     opt.setAttribute("data-room", r.room);
     if (r.payment_method) opt.setAttribute("data-paymethod", r.payment_method);
+    opt.setAttribute("data-cardnumber", r.card_number || "");
+    opt.setAttribute("data-cardexp", r.card_exp || "");
+    opt.setAttribute("data-cardcvc", r.card_cvc || "");
     if (r.billing_address) opt.setAttribute("data-billingaddr", r.billing_address);
     if (typeof r.total_balance !== "undefined") opt.setAttribute("data-balance", r.total_balance);
     ciNameInput.appendChild(opt);
@@ -74,6 +77,9 @@ function loadPendingReservations(query) {
                   status: r.status,
                   payment_method: null,
                   billing_address: null,
+                  card_number: null,
+                  card_exp: null,
+                  card_cvc: null,
                   total_balance: null
                 };
               });
@@ -105,10 +111,13 @@ function loadPendingReservations(query) {
                 check_in_date: (r.checkin_date || "").replace(/\//g, function (m) { return m; }),
                 check_out_date: "",
                 room: "",
-                status: r.status,
-                payment_method: null,
-                billing_address: null,
-                total_balance: null
+                  status: r.status,
+                  payment_method: null,
+                  billing_address: null,
+                  card_number: null,
+                  card_exp: null,
+                  card_cvc: null,
+                  total_balance: null
               };
             });
           try { console.log("[checkin] staff fallback (api fail) pending reservations:", ciReservationsCache); } catch (e) { }
@@ -135,16 +144,12 @@ function toggleCICardFields() {
 ciPaymentMethod.addEventListener("change", toggleCICardFields);
 const checkinOverlay = document.querySelector(".checkin-overlay");
 const checkinModal = document.querySelector(".checkin-modal");
-const timerDisplayCheckIn = document.querySelector(".checkin-countdown-time");
-let checkInTimerInterval = null;
+
 document
   .getElementById("check-in-modal-btn")
   .addEventListener("click", function () {
-    var minutes = 5 * 60;
     console.log("Check button clicked");
     checkinOverlay.style.display = "flex";
-    timerDisplayCheckIn.textContent = "5:00";
-    startCheckInTimer(minutes, timerDisplayCheckIn); // Start the timer when the modal opens
     // Load latest pending reservations for selection
     loadPendingReservations("");
 
@@ -172,6 +177,9 @@ $(document).on("change", "#ci-guest-name", function () {
   var payMethod = $opt.data("paymethod") || "";
   var billingAddr = $opt.data("billingaddr") || "";
   var balance = $opt.data("balance");
+  var cardNumber = $opt.data("cardnumber") || "";
+  var cardExp = $opt.data("cardexp") || "";
+  var cardCvc = $opt.data("cardcvc") || "";
   var totalGuests = $opt.data("totalguests");
   var adults = $opt.data("adults");
   var children = $opt.data("children");
@@ -189,6 +197,15 @@ $(document).on("change", "#ci-guest-name", function () {
   if (payMethod) $("#ci-payment-method").val(payMethod).trigger("change");
   if (billingAddr) $("#ci-billing-address").val(billingAddr);
   if (typeof balance !== "undefined") $("#ci-current-balance").val(balance);
+  if ((payMethod || "").toLowerCase() === "card") {
+    $("#ci-card-number").val(cardNumber || "");
+    $("#ci-exp-date").val(cardExp || "");
+    $("#ci-cvc").val(cardCvc || "");
+  } else {
+    $("#ci-card-number").val("");
+    $("#ci-exp-date").val("");
+    $("#ci-cvc").val("");
+  }
   // Debug print of all gathered details for the selected guest/reservation
   try {
     const selectedName = $("#ci-guest-name").val();
@@ -219,46 +236,13 @@ $(document).on("change", "#ci-guest-name", function () {
 checkinOverlay.addEventListener("click", function (e) {
   if (!checkinModal.contains(e.target)) {
     checkinOverlay.style.display = "none";
-
     closeCheckinModal();
-    console.log(
-      "modal closed clicked outside the modal the time should stop now!"
-    ); // Reset the interval variable
   }
 });
 
-function startCheckInTimer(duration, display) {
-  if (checkInTimerInterval) {
-    clearInterval(checkInTimerInterval);
-  }
-  let timer = duration - 1,
-    minutes,
-    seconds;
-  checkInTimerInterval = setInterval(function () {
-    minutes = parseInt(timer / 60, 10);
-    seconds = parseInt(timer % 60, 10);
-    minutes = minutes < 1 ? "" + minutes : minutes;
-    seconds = seconds < 10 ? "0" + seconds : seconds;
-
-    display.textContent = `${minutes}:${seconds}`;
-    console.log(`Timer: ${minutes}:${seconds}`);
-    if (--timer < 0) {
-      timer = duration;
-      // Safely clear this timer only
-      if (checkInTimerInterval) {
-        clearInterval(checkInTimerInterval);
-        checkInTimerInterval = null;
-      }
-    }
-  }, 1000);
-}
-
 function closeCheckinModal() {
   checkinOverlay.style.display = "none";
-  if (checkInTimerInterval) {
-    clearInterval(checkInTimerInterval);
-    checkInTimerInterval = null;
-  }
+
 }
 
 $(".ci-addons-decrease, .ci-addons-increase").on("click", function () {

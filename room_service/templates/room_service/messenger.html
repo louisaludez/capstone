@@ -12,7 +12,7 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
       <div class="col-md-3">
         <h1 class="mb-4 text-center" style="font-size: 1.5rem;">Special Services</h1>
         <div class="d-grid mb-4">
-          <button class="btn {% if receiver_role == 'Personnel' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Personnel">Personnel</button>
+          <button class="btn {% if receiver_role == 'Personnel' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Personnel">Staff</button>
         </div>
         <div class="d-grid mb-4">
           <button class="btn {% if receiver_role == 'Concierge' %}btn-success{% else %}btn-outline-dark{% endif %} py-2 service-btn" data-role="Concierge">Concierge</button>
@@ -86,8 +86,26 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
     let chatSocket = null;
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
+    let isConnecting = false; // Flag to prevent duplicate connections
+    let isSending = false; // Flag to prevent duplicate sends
+    const seenMessageIds = new Set(); // Track seen messages to prevent duplicates
   
     function connectWebSocket() {
+      // Prevent duplicate connections
+      if (isConnecting || (chatSocket && chatSocket.readyState === WebSocket.OPEN)) {
+        return;
+      }
+      
+      // Close existing connection if any
+      if (chatSocket) {
+        try {
+          chatSocket.close();
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+      
+      isConnecting = true;
       chatSocket = new WebSocket(
         (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
         window.location.host + 
@@ -98,31 +116,54 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
       chatSocket.onopen = function() {
         console.log('WebSocket connected');
         reconnectAttempts = 0;
+        isConnecting = false;
       };
   
       chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        const chatBody = document.getElementById('chat-body');
-        const messageDiv = document.createElement('div');
-        const isSender = data.sender_id == senderId;
-        messageDiv.className = 'd-flex mb-3' + (isSender ? ' justify-content-end' : '');
-        messageDiv.innerHTML = `
-          <div class="${isSender ? 'text-end me-2' : 'me-2'}">
-            <div class="small text-muted mb-1">${isSender ? senderUsername : data.sender_username}</div>
-            <div class="p-3 bg-light rounded-3">${data.body}</div>
-            <div class="small text-muted mt-1">${new Date().toLocaleTimeString()}</div>
-          </div>
-          <div class="avatar bg-secondary rounded-circle text-white"
-            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-            <i class="bi bi-person"></i>
-          </div>
-        `;
-        chatBody.appendChild(messageDiv);
-        chatBody.scrollTop = chatBody.scrollHeight;
+        try {
+          const data = JSON.parse(e.data);
+          
+          // Check for duplicate messages using message_id if available
+          const messageId = data.message_id || data.timestamp + '_' + data.sender_id + '_' + data.body;
+          if (seenMessageIds.has(messageId)) {
+            console.log('Duplicate message detected, ignoring:', messageId);
+            return;
+          }
+          seenMessageIds.add(messageId);
+          
+          // Keep only last 100 message IDs to prevent memory issues
+          if (seenMessageIds.size > 100) {
+            const firstId = seenMessageIds.values().next().value;
+            seenMessageIds.delete(firstId);
+          }
+          
+          const chatBody = document.getElementById('chat-body');
+          if (!chatBody) return;
+          
+          const messageDiv = document.createElement('div');
+          const isSender = data.sender_id == senderId;
+          messageDiv.className = 'd-flex mb-3' + (isSender ? ' justify-content-end' : '');
+          messageDiv.innerHTML = `
+            <div class="${isSender ? 'text-end me-2' : 'me-2'}">
+              <div class="small text-muted mb-1">${isSender ? senderUsername : data.sender_username}</div>
+              <div class="p-3 bg-light rounded-3">${data.body}</div>
+              <div class="small text-muted mt-1">${new Date().toLocaleTimeString()}</div>
+            </div>
+            <div class="avatar bg-secondary rounded-circle text-white"
+              style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-person"></i>
+            </div>
+          `;
+          chatBody.appendChild(messageDiv);
+          chatBody.scrollTop = chatBody.scrollHeight;
+        } catch (err) {
+          console.error('Message handling error', err);
+        }
       };
   
       chatSocket.onclose = function(e) {
         console.log('WebSocket connection closed');
+        isConnecting = false;
         if (reconnectAttempts < maxReconnectAttempts) {
           console.log('Attempting to reconnect...');
           reconnectAttempts++;
@@ -135,6 +176,7 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
   
       chatSocket.onerror = function(error) {
         console.error('WebSocket error:', error);
+        isConnecting = false;
       };
     }
   
@@ -150,9 +192,16 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
     });
   
     function sendMessage() {
+      // Prevent duplicate sends
+      if (isSending) return;
+      
       const input = document.getElementById('chat-input');
-      const message = input.value;
-      if (message.trim() === '') return;
+      if (!input) return;
+      const message = input.value.trim();
+      if (!message) return;
+      
+      // Set flag to prevent duplicate sends
+      isSending = true;
       
       if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
         chatSocket.send(JSON.stringify({
@@ -161,19 +210,32 @@ Dashboard{% endblock %} {% block sidebar %} {% include './includes/room_service_
           'receiver_role': receiverRole
         }));
         input.value = '';
+        // Reset flag after a short delay
+        setTimeout(() => {
+          isSending = false;
+        }, 300);
       } else {
         console.log('WebSocket is not connected. Attempting to reconnect...');
         connectWebSocket();
+        isSending = false;
       }
     }
   
-    document.getElementById('send-btn').onclick = sendMessage;
+    const sendBtn = document.getElementById('send-btn');
+    if (sendBtn) {
+      sendBtn.onclick = null; // Clear any existing handler
+      sendBtn.addEventListener('click', sendMessage);
+    }
   
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
+    const inputEl = document.getElementById('chat-input');
+    if (inputEl) {
+      inputEl.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // Prevent form submission if any
+          sendMessage();
+        }
+      });
+    }
   
     // Check connection status periodically
     setInterval(function() {

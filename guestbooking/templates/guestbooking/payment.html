@@ -348,6 +348,7 @@
         cardNumber: formData.get('cardNumber'),
         cvc: formData.get('cvc'),
         expiryDate: formData.get('expiryDate'),
+        billingAddress: formData.get('cardHolderName'), // Use card holder name as billing address
         paymentMethod: formData.get('paymentMethod')
       }
     
@@ -404,15 +405,15 @@
       Swal.fire({
         title: 'Your reservation has been confirmed!',
         html: `
-                              <div style="text-align: center; margin: 20px 0;">
-                               
-                                <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                                  <p style="margin: 5px 0;"><strong>Guest Name:</strong> ${result.guest_name}</p>
-                                  <p style="margin: 5px 0;"><strong>Room no.:</strong> ${result.room_number}</p>
-                                  <p style="margin: 5px 0;"><strong>Reference no.:</strong> ${result.reference_number}</p>
-                                </div>
-                              </div>
-                            `,
+                                              <div style="text-align: center; margin: 20px 0;">
+                                               
+                                                <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                                  <p style="margin: 5px 0;"><strong>Guest Name:</strong> ${result.guest_name}</p>
+                                                  <p style="margin: 5px 0;"><strong>Room no.:</strong> ${result.room_number}</p>
+                                                  <p style="margin: 5px 0;"><strong>Reference no.:</strong> ${result.reference_number}</p>
+                                                </div>
+                                              </div>
+                                            `,
         icon: 'success',
         confirmButtonText: 'View Details',
         confirmButtonColor: '#1a2d1a',

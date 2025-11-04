@@ -179,14 +179,6 @@
         <div class="checkin-btn-wrapper">
           <button class="checkin-book-btn">Check‑in Room</button>
         </div>
-
-        <div class="checkin-countdown">
-          <div class="checkin-countdown-text">
-            <div class="checkin-countdown-time">5:00</div>
-            <div>Time Remaining</div>
-          </div>
-          <img src="{% static 'images/clock-timer.png' %}" alt="Timer Icon" />
-        </div>
       </div>
     </div>
   </div>
@@ -245,10 +237,30 @@
   
     function applyPaymentVisibility() {
       const isCash = method && method.value === 'cash'
-      if (cardFields) cardFields.style.display = isCash ? 'none' : ''
+      if (cardFields) {
+        if (isCash) {
+          cardFields.style.display = 'none'
+        } else {
+          cardFields.style.display = 'block'
+          cardFields.style.height = ''
+          cardFields.style.opacity = ''
+          cardFields.style.padding = ''
+          cardFields.style.margin = ''
+          cardFields.classList.remove('hidden')
+        }
+      }
       if (billingField) {
-        billingField.closest('.checkin-field').style.display = isCash ? 'none' : ''
-        if (isCash) billingField.value = ''
+        const billingWrapper = billingField.closest('.checkin-field')
+        if (billingWrapper) {
+          if (isCash) {
+            billingWrapper.style.display = 'none'
+            billingField.value = ''
+          } else {
+            billingWrapper.style.display = 'flex'
+            billingWrapper.style.height = ''
+            billingWrapper.style.opacity = ''
+          }
+        }
       }
     }
   

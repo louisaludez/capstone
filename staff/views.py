@@ -20,7 +20,54 @@ from datetime import timedelta
 @decorator.role_required('staff', 'SUPER_ADMIN')
 def home(request):
     # Only guests with at least one Checked-in booking should appear for checkout selection
-    guest = Guest.objects.filter(booking__status='Checked-in').distinct()
+    raw_guests = Guest.objects.filter(booking__status='Checked-in').distinct()
+    guests = []
+
+    for guest_obj in raw_guests:
+        bookings_qs = guest_obj.booking_set.order_by('-booking_date')
+        primary_booking = bookings_qs.filter(status='Checked-in').first() or bookings_qs.first()
+
+        payment_record = None
+        if primary_booking:
+            try:
+                payment_record = primary_booking.payment
+            except Payment.DoesNotExist:
+                payment_record = None
+
+        # Map booking information
+        guest_obj.check_in_date = primary_booking.check_in_date if primary_booking else None
+        guest_obj.check_out_date = primary_booking.check_out_date if primary_booking else None
+        guest_obj.room_type = primary_booking.room if primary_booking else ''
+        guest_obj.total_guests = getattr(primary_booking, 'total_of_guests', '') if primary_booking else ''
+        guest_obj.no_of_adults = getattr(primary_booking, 'num_of_adults', '') if primary_booking else ''
+        guest_obj.no_of_children = getattr(primary_booking, 'num_of_children', '') if primary_booking else ''
+        guest_obj.children_below_7 = getattr(primary_booking, 'no_of_children_below_7', '') if primary_booking else ''
+
+        # Map guest billing aliases for template compatibility
+        guest_obj.room_service = getattr(guest_obj, 'room_service_billing', '') or ''
+        guest_obj.laundry = getattr(guest_obj, 'laundry_billing', '') or ''
+        guest_obj.cafe = getattr(guest_obj, 'cafe_billing', '') or ''
+        guest_obj.excess_pax = getattr(guest_obj, 'excess_pax_billing', '') or ''
+        guest_obj.additional_charges = getattr(guest_obj, 'additional_charge_billing', '') or ''
+
+        # Map payment information
+        if payment_record:
+            guest_obj.payment_method = payment_record.method or ''
+            guest_obj.billing_address = payment_record.billing_address or ''
+            guest_obj.card_number = payment_record.card_number or ''
+            guest_obj.card_exp = payment_record.exp_date or ''
+            guest_obj.card_cvc = payment_record.cvc_code or ''
+            guest_obj.total_balance = payment_record.total_balance or ''
+        else:
+            guest_obj.payment_method = ''
+            guest_obj.billing_address = ''
+            guest_obj.card_number = ''
+            guest_obj.card_exp = ''
+            guest_obj.card_cvc = ''
+            guest_obj.total_balance = ''
+
+        guests.append(guest_obj)
+
     booking = Booking.objects.all() 
     payment = Payment.objects.all()
     
@@ -58,7 +105,7 @@ def home(request):
     }
 
     return render(request, "staff/home.html", {
-        'guest': guest,
+        'guest': guests,
         'booking': booking,
         'payment': payment,
         'room_1': room_1,
@@ -298,7 +345,6 @@ def getGuest(request, guest_id):
         try:
             guest = Guest.objects.get(id=guest_id)
 
-            # Prepare guest base data
             guest_data = {
                 'id': guest.id,
                 'name': guest.name,
@@ -314,13 +360,13 @@ def getGuest(request, guest_id):
                 'additional_charge_billing': guest.additional_charge_billing,
                 'created_at': guest.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'bookings': [],
+                'payments': [],  # ← Add this to collect all payments
                 'check_in_date': None,
                 'check_out_date': None,
                 'room': None,
                 'booking_status': None
             }
 
-            # Order bookings with newest first so consumers can reliably pick index 0
             bookings = Booking.objects.filter(guest=guest).order_by('-booking_date')
 
             for index, booking in enumerate(bookings):
@@ -339,7 +385,7 @@ def getGuest(request, guest_id):
 
                 try:
                     payment = Payment.objects.get(booking=booking)
-                    booking_data['payment'] = {
+                    payment_data = {
                         'id': payment.id,
                         'method': payment.method,
                         'card_number': payment.card_number,
@@ -349,12 +395,16 @@ def getGuest(request, guest_id):
                         'total_balance': float(payment.total_balance),
                         'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                     }
+                    booking_data['payment'] = payment_data
+                    guest_data['payments'].append(payment_data)  # ← Collect payment info here
+                    print(f"Payment for booking {booking.id}: {payment_data}")  # ← Print it
+
                 except Payment.DoesNotExist:
+                    print(f"No payment found for booking {booking.id}")
                     booking_data['payment'] = None
 
                 guest_data['bookings'].append(booking_data)
 
-                # Flatten only the first booking into root-level fields
                 if index == 0:
                     guest_data['check_in_date'] = booking.check_in_date.strftime('%Y-%m-%d')
                     guest_data['check_out_date'] = booking.check_out_date.strftime('%Y-%m-%d')
@@ -363,7 +413,7 @@ def getGuest(request, guest_id):
                     guest_data['num_of_adults'] = booking.num_of_adults
                     guest_data['num_of_children'] = booking.num_of_children
                     guest_data['total_of_guests'] = booking.total_of_guests
-                    guest_data['no_of_children_below_7'] = booking.no_of_children_below_7 
+                    guest_data['no_of_children_below_7'] = booking.no_of_children_below_7
 
             print(f"Guest data: {guest_data}")
             return JsonResponse(guest_data, safe=False)

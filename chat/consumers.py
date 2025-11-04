@@ -26,7 +26,8 @@ def simplify_role(role):
         'staff_room_service': 'Room Service',
         'manager_room_service': 'Room Service',
         'supervisor_room_service': 'Room Service',
-        'admin': 'Admin'
+        'admin': 'Admin',
+        'SUPER_ADMIN': 'Admin'
     }
     return role_mapping.get(role, role)
 
@@ -37,7 +38,7 @@ def get_related_roles(role):
         'Laundry': ['staff_laundry', 'manager_laundry', 'supervisor_laundry', 'Laundry'],
         'Cafe': ['staff_cafe', 'manager_cafe', 'supervisor_cafe', 'Cafe'],
         'Room Service': ['staff_room_service', 'manager_room_service', 'supervisor_room_service', 'Room Service'],
-        'Admin': ['admin', 'Admin']
+        'Admin': ['admin', 'Admin', 'SUPER_ADMIN']
     }
     for general_role, specific_roles in role_mappings.items():
         if role in specific_roles:
@@ -53,7 +54,7 @@ def is_valid_role(role):
         'staff_cafe', 'manager_cafe',
         'staff_room_service', 'manager_room_service',
         'supervisor_personnel', 'supervisor_concierge', 'supervisor_laundry', 'supervisor_cafe', 'supervisor_room_service',
-        'admin','personnel','staff','manager'
+        'admin', 'Admin', 'SUPER_ADMIN', 'personnel', 'staff', 'manager'
     ]
     return role in valid_roles
 
@@ -126,12 +127,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             base_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
 
             # Prepare message data
+            # Use actual role for display, but simplified role for room matching
             message_data = {
                 'type': 'chat_message',
                 'message_id': str(message.id),
                 'body': body,
                 'sender_id': sender_id,
-                'sender_role': simplify_role(sender_role),
+                'sender_role': sender_role,  # Use actual role for display
                 'sender_username': sender_username,
                 'receiver_role': simplify_role(receiver_role),
                 'subject': subject,

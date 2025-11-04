@@ -110,13 +110,6 @@
         <div class="checkout-btn-wrapper">
           <button class="checkout-submit-btn">Check‑out</button>
         </div>
-        <div class="checkout-countdown">
-          <div class="checkout-countdown-text">
-            <div class="checkout-countdown-time">5:00</div>
-            <div>Time Remaining</div>
-          </div>
-          <img src="{% static 'images/clock-timer.png' %}" alt="" />
-        </div>
       </div>
     </div>
     <script>
@@ -129,8 +122,27 @@
       
         function applyPaymentVisibility() {
           const isCash = method && method.value === 'cash'
-          if (cardFields) cardFields.style.display = isCash ? 'none' : ''
-          if (billingWrapper) billingWrapper.style.display = isCash ? 'none' : ''
+          if (cardFields) {
+            if (isCash) {
+              cardFields.style.display = 'none'
+            } else {
+              cardFields.style.display = 'block'
+              cardFields.style.height = ''
+              cardFields.style.opacity = ''
+              cardFields.style.padding = ''
+              cardFields.style.margin = ''
+              cardFields.classList.remove('hidden')
+            }
+          }
+          if (billingWrapper) {
+            if (isCash) {
+              billingWrapper.style.display = 'none'
+            } else {
+              billingWrapper.style.display = 'block'
+              billingWrapper.style.height = ''
+              billingWrapper.style.opacity = ''
+            }
+          }
         }
       
         if (method) {
@@ -150,6 +162,8 @@
           if (!opt || !opt.dataset) return
           const ds = opt.dataset
       
+          console.log('[Checkout] Filling from selection, dataset:', ds)
+      
           // Guest and stay info
           setInputValue('.guest-address-checkout', ds.address || '')
           setInputValue('.guest-email-checkout', ds.email || '')
@@ -161,18 +175,45 @@
           setInputValue('.no-children-checkout', ds.noChildren || '')
           setInputValue('.no-below-7-checkout', ds.below7 || '')
       
-          // Payment info
-          if (ds.paymentMethod && method) {
-            method.value = ds.paymentMethod
-            applyPaymentVisibility()
-          }
-          const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
-          if (billingInput) billingInput.value = ds.billingAddress || ''
+          // Payment info - set method first, then fill fields based on method
+          const paymentMethod = (ds.paymentMethod || 'card').toLowerCase()
+          console.log('[Checkout] Payment method from dataset:', paymentMethod)
       
-          // Card fields
-          setInputValue('.checkout-card-number', ds.cardNumber || '')
-          setInputValue('.checkout-card-exp', ds.cardExp || '')
-          setInputValue('.checkout-card-cvc', ds.cardCvc || '')
+          if (method) {
+            method.value = paymentMethod
+            console.log('[Checkout] Set payment method dropdown to:', paymentMethod)
+            // Apply visibility immediately
+            applyPaymentVisibility()
+            // Use setTimeout to ensure DOM has updated before filling fields
+            setTimeout(() => {
+              // Only fill card and billing fields if payment method is 'card'
+              if (paymentMethod === 'card') {
+                console.log('[Checkout] Filling card fields for card payment')
+                const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+                if (billingInput) billingInput.value = ds.billingAddress || ''
+                setInputValue('.checkout-card-number', ds.cardNumber || '')
+                setInputValue('.checkout-card-exp', ds.cardExp || '')
+                setInputValue('.checkout-card-cvc', ds.cardCvc || '')
+              } else {
+                console.log('[Checkout] Clearing card fields for cash payment')
+                // Clear card and billing fields for cash payment
+                const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+                if (billingInput) billingInput.value = ''
+                setInputValue('.checkout-card-number', '')
+                setInputValue('.checkout-card-exp', '')
+                setInputValue('.checkout-card-cvc', '')
+              }
+            }, 0)
+          } else {
+            // If method dropdown doesn't exist, still try to fill fields
+            if (paymentMethod === 'card') {
+              const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+              if (billingInput) billingInput.value = ds.billingAddress || ''
+              setInputValue('.checkout-card-number', ds.cardNumber || '')
+              setInputValue('.checkout-card-exp', ds.cardExp || '')
+              setInputValue('.checkout-card-cvc', ds.cardCvc || '')
+            }
+          }
       
           // Billing summary
           setInputValue('.guest-billing-checkout', ds.roomCharges || '')
@@ -216,28 +257,46 @@
             console.log('[Checkout] Latest booking:', latest)
       
             if (payment) {
+              const paymentMethod = (payment.method || 'card').toLowerCase()
               const maskedCard = (payment.card_number || '').replace(/.(?=.{4})/g, '*')
-              console.log('[Checkout] Payment info:', {
-                method: payment.method,
+              console.log('[Checkout] Payment info from fetch:', {
+                method: paymentMethod,
                 card_number: maskedCard,
                 exp_date: payment.exp_date,
                 cvc_code: payment.cvc_code ? '***' : '',
                 billing_address: payment.billing_address,
                 total_balance: payment.total_balance
               })
-              // Map payment fields to inputs
-              if (method && payment.method) {
-                method.value = (payment.method || '').toLowerCase()
+      
+              // Set payment method first and apply visibility
+              if (method) {
+                method.value = paymentMethod
+                console.log('[Checkout] Updated payment method from fetch to:', paymentMethod)
                 applyPaymentVisibility()
               }
-              setInputValue('.checkout-card-number', payment.card_number || '')
-              setInputValue('.checkout-card-exp', payment.exp_date || '')
-              setInputValue('.checkout-card-cvc', payment.cvc_code || '')
-              const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
-              if (billingInput) billingInput.value = payment.billing_address || ''
+      
+              // Only fill card and billing fields if payment method is 'card'
+              if (paymentMethod === 'card') {
+                console.log('[Checkout] Filling card fields from fetched payment data')
+                setInputValue('.checkout-card-number', payment.card_number || '')
+                setInputValue('.checkout-card-exp', payment.exp_date || '')
+                setInputValue('.checkout-card-cvc', payment.cvc_code || '')
+                const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+                if (billingInput) billingInput.value = payment.billing_address || ''
+              } else {
+                console.log('[Checkout] Clearing card fields for cash payment from fetch')
+                // Clear card and billing fields for cash payment
+                setInputValue('.checkout-card-number', '')
+                setInputValue('.checkout-card-exp', '')
+                setInputValue('.checkout-card-cvc', '')
+                const billingInput = billingWrapper ? billingWrapper.querySelector('input') : null
+                if (billingInput) billingInput.value = ''
+              }
+      
+              // Always update total balance regardless of payment method
               setInputValue('.guest-total-balance-checkout', payment.total_balance != null ? payment.total_balance : '')
             } else {
-              console.warn('[Checkout] No payment found for latest booking.')
+              console.warn('[Checkout] No payment found for latest booking. Keeping values from selection.')
             }
           } catch (e) {
             console.error('Error fetching payment details:', e)
