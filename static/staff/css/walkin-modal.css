@@ -1,0 +1,231 @@
+.walkin-open-btn {
+    margin: 50px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.walkin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.walkin-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0px 20px 20px 20px;
+    border: 2px solid #0c4d00;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    font-size: 12px;
+}
+
+.walkin-modal input,
+.walkin-modal select {
+    background-color: #dddddd;
+}
+
+.walkin-modal-title {
+    text-align: center;
+    font-size: 25px;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.walkin-container {
+    display: flex;
+    gap: 20px;
+    padding: 0px 40px;
+}
+
+.walkin-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.walkin-section-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.walkin-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.walkin-field label {
+    width: 70px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.walkin-field input,
+.walkin-field select {
+    flex: 1;
+    padding: 3px 5px;
+    font-size: 11px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 0;
+}
+
+.flatpickr-input {
+    padding: 3px 5px !important;
+    font-size: 11px !important;
+}
+
+.walkin-inline-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.walkin-inline-row .walkin-field {
+    flex: 1 1 48%;
+    max-width: 48%;
+}
+
+.addons-popup {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.addons-popup.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.addons-popup::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.addons-popup::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ddd;
+}
+
+.walkin-addons button {
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #f5f5f5;
+    transition: all 0.2s ease;
+}
+
+.walkin-addons button:hover:not(:disabled) {
+    background: #e0e0e0;
+    border-color: #999;
+}
+
+.walkin-addons button:disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ddd;
+}
+
+.walkin-addons button.disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ddd;
+}
+
+#wi-addons-count {
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+    padding: 2px 4px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.walkin-book-btn {
+    background: #0c4d00;
+    color: #fff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    margin-top: 10px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+.walkin-countdown {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 40px;
+    gap: 0;
+    /* No gap */
+}
+
+.walkin-countdown-text {
+    font-size: 15px;
+    margin-right: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.walkin-countdown-time {
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.walkin-countdown img {
+    width: 30px;
+    height: 30px;
+    margin-left: 0;
+}
+
+.walkin-btn-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.walkin-card-fields {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.walkin-card-fields.hidden {
+    height: 0;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}

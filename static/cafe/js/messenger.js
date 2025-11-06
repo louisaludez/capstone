@@ -33,7 +33,7 @@
         if (isConnecting || (chatSocket && chatSocket.readyState === WebSocket.OPEN)) {
             return;
         }
-        
+
         // Close existing connection if any
         if (chatSocket) {
             try {
@@ -42,7 +42,7 @@
                 // Ignore errors
             }
         }
-        
+
         isConnecting = true;
         chatSocket = new WebSocket((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/chat/' + roomName + '/');
 
@@ -54,7 +54,7 @@
         chatSocket.onmessage = function (e) {
             try {
                 const data = JSON.parse(e.data);
-                
+
                 // Check for duplicate messages using message_id if available
                 const messageId = data.message_id || data.timestamp + '_' + data.sender_id + '_' + data.body;
                 if (seenMessageIds.has(messageId)) {
@@ -62,13 +62,13 @@
                     return;
                 }
                 seenMessageIds.add(messageId);
-                
+
                 // Keep only last 100 message IDs to prevent memory issues
                 if (seenMessageIds.size > 100) {
                     const firstId = seenMessageIds.values().next().value;
                     seenMessageIds.delete(firstId);
                 }
-                
+
                 const chatBody = document.getElementById('chat-body');
                 if (!chatBody) return;
 
@@ -152,7 +152,7 @@
     function sendMessage() {
         // Prevent duplicate sends
         if (isSending) return;
-        
+
         const input = document.getElementById('chat-input');
         if (!input) return;
         const message = input.value.trim();
@@ -194,7 +194,7 @@
                 }
             });
         }
-        
+
         listenersAttached = true;
     }
 

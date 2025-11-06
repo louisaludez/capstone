@@ -26,9 +26,10 @@ import calendar
 def admin_home(request):
     
     users = CustomUser.objects.all()
-    guest = Guest.objects.filter(
-        booking__status__in=['Checked-in', 'Checked-out']
-    ).distinct().count()
+    # Sum total_of_guests from all bookings with Checked-in or Checked-out status
+    total_guests = Booking.objects.filter(
+        status__in=['Checked-in', 'Checked-out']
+    ).aggregate(total=Sum('total_of_guests'))['total'] or 0
     
     # Calculate total revenue from all billing fields
     total_revenue = 0.0
@@ -104,7 +105,7 @@ def admin_home(request):
     # Defer forecast computation to an async JSON endpoint to speed up initial page load
     return render(request, "adminNew/home.html", {
         "users": users,
-        "total_guests": guest,
+        "total_guests": total_guests,
         "peak_month": peak_month,
         "total_revenue": f"{total_revenue:.2f}",
         "growth_percentage": f"{growth_percentage:.1f}",
@@ -138,12 +139,13 @@ def admin_home_monthly_data(request):
     except (ValueError, IndexError):
         return JsonResponse({'error': 'Invalid month format. Use YYYY-MM'}, status=400)
 
-    # Count guests for the selected month (based on their bookings with Checked-in or Checked-out status)
-    monthly_guests = Guest.objects.filter(
-        Q(booking__status__in=['Checked-in', 'Checked-out']),
-        Q(booking__check_in_date__gte=start_date, booking__check_in_date__lt=end_date) |
-        Q(booking__check_out_date__gte=start_date, booking__check_out_date__lt=end_date)
-    ).distinct().count()
+    # Sum total_of_guests from bookings that checked in during the selected month
+    # Count guests based on when they checked in, not when they checked out
+    monthly_guests = Booking.objects.filter(
+        status__in=['Checked-in', 'Checked-out'],
+        check_in_date__gte=start_date.date(),
+        check_in_date__lt=end_date.date()
+    ).aggregate(total=Sum('total_of_guests'))['total'] or 0
 
     # Include only guests with Checked-in or Checked-out bookings
     valid_guests = Guest.objects.filter(

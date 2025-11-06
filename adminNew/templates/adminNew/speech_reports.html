@@ -280,7 +280,8 @@
       if (searchInput) {
         searchInput.addEventListener('input', function () {
           const searchTerm = this.value.toLowerCase()
-          const rows = document.querySelectorAll('.table-row')
+          // Select rows with class 'row-border' which are the actual data rows
+          const rows = document.querySelectorAll('#orders-container .row-border')
     
           rows.forEach((row) => {
             const text = row.textContent.toLowerCase()

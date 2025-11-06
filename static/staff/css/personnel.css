@@ -1,0 +1,390 @@
+.row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+
+    gap: 8px;
+    padding: 40px;
+}
+
+.div3 {
+    grid-column: span 3 / span 3;
+    width: 97.6% !important;
+}
+
+.div6 {
+    grid-row-start: 2;
+}
+
+.div7 {
+    grid-row-start: 2;
+}
+
+.div8 {
+    grid-row-start: 2;
+}
+
+.div9 {
+    grid-row-start: 2;
+}
+
+.div10 {
+    grid-row-start: 2;
+}
+
+.div14 {
+    grid-row-start: 3;
+}
+
+.div15 {
+    grid-row-start: 3;
+}
+
+.row>div {
+    background-color: aqua;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 170px;
+    height: 70px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 30px;
+    color: #ffffff;
+}
+
+.vacant {
+    background-color: #216216 !important;
+}
+
+.occupied {
+    background-color: #ad0908 !important;
+}
+
+.maintinance {
+    background-color: #d4c21a !important;
+}
+
+.housekeeping {
+    background-color: #0f3f86 !important;
+}
+
+.reserved {
+    background-color: #d86500 !important;
+}
+
+/* New CSS rules for Room model status values */
+.available {
+    background-color: #216216 !important;
+    /* Same as vacant - green */
+}
+
+.maintenance {
+    background-color: #d4c21a !important;
+    /* Same as maintinance - yellow */
+}
+
+.cleaning {
+    background-color: #0f3f86 !important;
+    /* Same as housekeeping - blue */
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+}
+
+.row2 {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.row2>div {
+    cursor: pointer;
+    border: 2px solid black;
+    border-radius: 10px;
+    width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 13px;
+    height: 50px;
+}
+
+.room-info-label {
+    font-size: 18px;
+    font-weight: bold;
+    align-self: self-start;
+    margin-left: 20px;
+}
+
+.row2>div button {
+    text-decoration: none;
+    color: black;
+    width: 100%;
+    font-weight: bold;
+}
+
+@media (max-width: 1024px) {
+    .row {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 20px;
+    }
+
+    .div3 {
+        grid-column: span 3 / span 3;
+    }
+}
+
+@media (max-width: 768px) {
+    .row {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 10px;
+    }
+
+    .div3 {
+        grid-column: span 2 / span 2;
+    }
+}
+
+@media (max-width: 480px) {
+    .row {
+        grid-template-columns: 1fr;
+        padding: 5px;
+    }
+
+    .div3 {
+        grid-column: span 1 / span 1;
+    }
+
+    .row>div {
+        width: 100% !important;
+        font-size: 20px;
+    }
+
+    .row2 {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .row2>div {
+        width: 90%;
+        margin-bottom: 10px;
+    }
+}
+
+.div3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 20px;
+    background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
+}
+
+.div3>input {
+    width: 250px;
+}
+
+.flatpickr-calendar {
+    font-family: 'Arial', sans-serif;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.flatpickr-months {
+    background-color: black;
+    color: white;
+    padding: 10px 0;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.flatpickr-current-month {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: visible;
+}
+
+.flatpickr-current-month .cur-month,
+.flatpickr-current-month .cur-year {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    text-align: center;
+    overflow: visible;
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    font-size: 1rem;
+    color: white;
+}
+
+/* Force Flatpickr header month/year visibility and styling with high specificity */
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month .numInputWrapper {
+    font-size: 1.2rem !important;
+    line-height: 1.2 !important;
+    color: white !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.flatpickr-current-month .cur-month,
+.flatpickr-current-month .cur-year {
+    font-size: 1.2rem !important;
+    color: white !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    position: static !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper {
+    font-size: 1.2rem !important;
+}
+
+.flatpickr-weekdays {
+    background: white;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    font-weight: 500;
+}
+
+.flatpickr-days {
+    background: white;
+}
+
+.flatpickr-day {
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    transition: background 0.2s;
+}
+
+.flatpickr-day.today {
+    background-color: #e1ead6;
+    border-radius: 50%;
+    color: black;
+}
+
+.flatpickr-day.selected {
+    background-color: #004225;
+    color: white;
+    border-radius: 50%;
+}
+
+.row3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 30px;
+}
+
+.room-information {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding: 10px;
+}
+
+.cont {
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+    justify-content: space-between;
+}
+
+.RI-vacant,
+.RI-occupied,
+.RI-under_maintinance,
+.RI-housekeeping,
+.RI-reserved {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 170px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.vacant-box,
+.occupied-box,
+.under_maintinance-box,
+.housekeeping-box,
+.reserved-box {
+    background-color: #d4c21a;
+    min-width: 40px;
+    max-width: 40px;
+    align-self: self-start;
+    min-height: 40px;
+    max-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: white;
+}
+
+.ro-standard,
+.ro-family,
+.ro-deluxe {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 100px;
+
+    margin-bottom: 10px;
+}
+
+.row3 div span {
+    font-size: 15px;
+    text-decoration: underline;
+}
+
+.rooms-occupied {
+    font-weight: bold;
+}
+
+.total>span {
+    font-weight: bold;
+    font-size: 25px !important;
+    color: black;
+}
+
+.my-confirm-btn-booking,
+.my-deny-btn-booking,
+.my-confirm-btn-walkin,
+.my-confirm-btn-checkin,
+.my-deny-btn-checkin,
+.my-deny-btn-checkout,
+.my-confirm-btn-checkout {
+    background: linear-gradient(90deg, #1a2d1e, #0b440c) !important;
+
+}
+
+.my-title-booking,
+.my-text-booking {
+    color: #1a2d1e !important;
+}

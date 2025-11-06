@@ -52,7 +52,13 @@
                     
                     
                     
+                    
+                    
+                    
                     success
+
+
+
 
 
 
@@ -114,7 +120,13 @@
                     
                     
                     
+                    
+                    
+                    
                     danger
+
+
+
 
 
 
@@ -182,7 +194,7 @@
                     <small class="kpi-label-current">Current month</small>
                     <span class="kpi-value-big" id="monthlyGuestsValue">0</span>
                   </div>
-                  <div class="kpi-sep">|</div>
+                  <div class="kpi-sep" id="guestSep" style="display: none;">|</div>
                   <div class="d-flex flex-column align-items-end">
                     <small class="kpi-label-overall">Overall</small>
                     <span class="kpi-value-big">{{ total_guests }}</span>
@@ -316,6 +328,8 @@
         // Hide monthly data if no month selected
         document.getElementById('monthlyGuests').style.display = 'none'
         document.getElementById('monthlyRevenue').style.display = 'none'
+        const guestSep = document.getElementById('guestSep')
+        if (guestSep) guestSep.style.display = 'none'
         return
       }
     
@@ -327,9 +341,15 @@
             return
           }
     
-          // Update guest count
-          document.getElementById('monthlyGuestsValue').textContent = data.guests
+          // Update guest count based on total guests context
+          const totalGuests = parseInt('{{ total_guests }}') || 0
+          const monthlyGuestsValue = data.guests || 0
+          document.getElementById('monthlyGuestsValue').textContent = monthlyGuestsValue
           document.getElementById('monthlyGuests').style.display = 'block'
+    
+          // Show separator when monthly guests are displayed
+          const guestSep = document.getElementById('guestSep')
+          if (guestSep) guestSep.style.display = 'inline-block'
     
           // Update revenue
           document.getElementById('monthlyRevenueValue').textContent = `₱ ${data.revenue}`
@@ -504,12 +524,12 @@
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                                                                                                                        <small class="text-muted">
-                                                                                                                          <i class="bi bi-info-circle"></i> 
-                                                                                                                          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                                                                                                                          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                                                                                                                        </small>
-                                                                                                                      `
+                                                                                                                                    <small class="text-muted">
+                                                                                                                                      <i class="bi bi-info-circle"></i> 
+                                                                                                                                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                                                                                                                                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                                                                                                                                    </small>
+                                                                                                                                  `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })

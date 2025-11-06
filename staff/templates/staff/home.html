@@ -3,7 +3,7 @@
 {% endblock %} {% block extra_head %}
   <!-- CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-
+  <link rel="stylesheet" href="{% static 'staff/css/home.css'%}" />
   <style>
     /* Green-themed flatpickr to match provided design */
     .flatpickr-calendar {
@@ -115,10 +115,10 @@
       pointer-events: none;
     }
   </style>
-  <link rel="stylesheet" href="{% static 'walkin-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'checkin-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'checkout-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'personnel.css' %}" />
+  <link rel="stylesheet" href="{% static 'staff/css/walkin-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'staff/css/checkin-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'staff/css/checkout-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'staff/css/personnel.css' %}"/>
   <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
