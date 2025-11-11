@@ -495,7 +495,7 @@
         </div>
         <div class="row">
           <div class="input-container">
-            <span class="input-header">Item No. {{ item_number|default:1 }} Scenario:</span>
+            <span class="input-header">Scenario:</span>
             <input type="text" class="form-control" id="scenario" placeholder="Type scenario" />
             <input type="checkbox" class="corner-checkbox" />
           </div>
@@ -561,7 +561,6 @@
       </div>
     </div>
     <div class="row footer mt-4">
-      <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
       <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
   </div>
@@ -683,7 +682,7 @@
       })
     
       // Save functionality
-      function saveCurrentItem(action) {
+      function saveCurrentItem() {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
         var scenario = document.getElementById('scenario')?.value || ''
@@ -698,7 +697,6 @@
         formData.append('scenario', scenario)
         formData.append('reference_text', referenceText)
         formData.append('timer_seconds', timerSeconds)
-        formData.append('action', action)
     
         // Add files if selected
         if (audioFileInput.files[0]) {
@@ -715,9 +713,6 @@
           formData.append('id', activityId)
         }
     
-        var itemNumber = parseInt(urlParams.get('item') || '1')
-        formData.append('item_number', itemNumber)
-    
         fetch('{% url "add_activity_speech" %}', {
           method: 'POST',
           body: formData,
@@ -728,17 +723,18 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.ok) {
-              if (action === 'add_next' && data.redirect) {
-                window.location.href = '{% url "add_activity_speech" %}' + data.redirect
-              } else if (action === 'save' && data.redirect_to_view) {
+              if (data.redirect_to_view) {
                 Swal.fire({
                   icon: 'success',
                   title: 'Saved! Redirecting to view items...',
                   timer: 1500,
                   showConfirmButton: false
                 }).then(() => {
-                  window.location.href = data.redirect_to_view
+                  window.location.href = '{% url "add_activity_speech" %}'
                 })
+              } else if (data.redirect) {
+                // Fallback in case backend still returns a redirect URL
+                window.location.href = '{% url "add_activity_speech" %}' + data.redirect
               } else {
                 Swal.fire({
                   icon: 'success',
@@ -767,43 +763,12 @@
     
       // Event listeners
       var saveBtn = document.getElementById('saveActivityBtn')
-      var addNextBtn = document.getElementById('addNextItemBtn')
-      var prevBtn = document.getElementById('prevItemBtn')
     
       if (saveBtn) {
         saveBtn.addEventListener('click', function (e) {
           e.preventDefault()
-          saveCurrentItem('save')
+          saveCurrentItem()
         })
-      }
-    
-      if (addNextBtn) {
-        addNextBtn.addEventListener('click', function (e) {
-          e.preventDefault()
-          saveCurrentItem('add_next')
-        })
-      }
-    
-      if (prevBtn) {
-        prevBtn.addEventListener('click', function (e) {
-          e.preventDefault()
-          var urlParams = new URLSearchParams(window.location.search)
-          var currentItem = parseInt(urlParams.get('item') || '1')
-          if (currentItem > 1) {
-            var prevItem = currentItem - 1
-            var activityId = urlParams.get('id')
-            if (activityId) {
-              window.location.href = '{% url "add_activity_speech" %}?id=' + activityId + '&item=' + prevItem
-            }
-          }
-        })
-      }
-    
-      // Disable Previous button on first item
-      var urlParams = new URLSearchParams(window.location.search)
-      var currentItem = parseInt(urlParams.get('item') || '1')
-      if (currentItem <= 1) {
-        prevBtn.disabled = true
       }
     })
   </script>

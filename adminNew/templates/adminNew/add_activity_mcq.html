@@ -301,6 +301,7 @@
       </div>
     </div>
     <div class="row footer">
+      <button id="previousItemBtn" data-item-number="{{ item_number|default:1 }}"><i class="bi bi-skip-backward-fill"></i> Previous Item</button>
       <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
       <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
     </div>
@@ -415,6 +416,72 @@
         saveCurrentItem('save')
       })
     
+      // Previous Item button functionality
+      var previousBtn = document.getElementById('previousItemBtn')
+      if (previousBtn) {
+        // Get item number from data attribute (from Django template)
+        var currentItem = parseInt(previousBtn.getAttribute('data-item-number') || '1', 10)
+        var params = new URLSearchParams(window.location.search)
+        var activityId = params.get('id')
+    
+        // Disable button if we're on the first item (item_number <= 1)
+        if (currentItem <= 1) {
+          previousBtn.disabled = true
+        } else {
+          previousBtn.disabled = false
+        }
+    
+        previousBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+    
+          // Re-check item number from data attribute
+          var currentItemNum = parseInt(previousBtn.getAttribute('data-item-number') || '1', 10)
+    
+          if (currentItemNum <= 1) {
+            Swal.fire({
+              icon: 'info',
+              title: 'No Previous Item',
+              text: 'You are already on the first item.',
+              timer: 1500,
+              showConfirmButton: false
+            })
+            return
+          }
+    
+          var prevItem = currentItemNum - 1
+    
+          // Ask user if they want to save before navigating
+          Swal.fire({
+            title: 'Navigate to previous item?',
+            text: 'Do you want to save current changes before navigating?',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Save & Go',
+            denyButtonText: 'Go Without Saving',
+            cancelButtonText: 'Cancel'
+          }).then(function (result) {
+            if (result.isDismissed) {
+              return // User cancelled
+            }
+    
+            if (result.isConfirmed) {
+              // Save first, then navigate
+              saveCurrentItem('previous', prevItem)
+            } else if (result.isDenied) {
+              // Navigate directly without saving
+              var newUrl = window.location.pathname
+              if (activityId) {
+                newUrl += '?id=' + activityId + '&item=' + prevItem
+              } else {
+                newUrl += '?item=' + prevItem
+              }
+              window.location.href = newUrl
+            }
+          })
+        })
+      }
+    
       // Add Next Item button functionality
       var addNextBtn = document.getElementById('addNextItemBtn')
       if (addNextBtn) {
@@ -424,7 +491,7 @@
         })
       }
     
-      function saveCurrentItem(action) {
+      function saveCurrentItem(action, targetItem) {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
         var scenario = document.getElementById('scenario')?.value || ''
@@ -459,7 +526,8 @@
           choices: choices,
           timer_seconds: selectedSeconds,
           item_number: parseInt(item),
-          action: action
+          action: action,
+          target_item: targetItem || null
         }
     
         if (action === 'save') {
@@ -491,7 +559,18 @@
           })
           .then(function (data) {
             if (data && data.ok) {
-              if (data.redirect) {
+              // Handle previous item navigation
+              if (payload.action === 'previous' && payload.target_item) {
+                var newUrl = window.location.pathname
+                if (payload.id) {
+                  newUrl += '?id=' + payload.id + '&item=' + payload.target_item
+                } else {
+                  newUrl += '?item=' + payload.target_item
+                }
+                Swal.fire({ icon: 'success', title: 'Item saved! Moving to previous item...', timer: 1200, showConfirmButton: false }).then(function () {
+                  window.location.href = newUrl
+                })
+              } else if (data.redirect) {
                 Swal.fire({ icon: 'success', title: 'Item saved! Moving to next item...', timer: 1200, showConfirmButton: false }).then(function () {
                   window.location.href = window.location.pathname + data.redirect
                 })

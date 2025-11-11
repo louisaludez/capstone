@@ -276,7 +276,8 @@
       </div>
     </div>
     <div class="row footer">
-      <button id="backToEditBtn"><i class="bi bi-pencil-square"></i> Back to Edit</button>
+      <button id="addNewItemBtn"><i class="bi bi-plus-lg"></i> Add New Item</button>
+      <button id="Done"><i class="bi bi-pencil-square"></i>Done</button>
     </div>
   </div>
 {% endblock %}
@@ -350,6 +351,13 @@
           var activityId = urlParams.get('id')
           var nextItemNumber = 2 // Speech activities typically have one item, so next would be 2
           window.location.href = '{% url "add_activity_speech" %}?id=' + activityId + '&item=' + nextItemNumber
+        })
+      }
+      var doneBtn = document.getElementById('Done')
+      if (doneBtn) {
+        doneBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          window.location.href = '{% url "addmt_speech" %}'
         })
       }
     

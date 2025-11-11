@@ -290,7 +290,7 @@
 
         <div class="row footer">
           <button id="addNewItemBtn"><i class="bi bi-plus-lg"></i> Add New Item</button>
-          <button id="backToEditBtn"><i class="bi bi-pencil-square"></i> Back to Edit</button>
+          <button id="Done"><i class="bi bi-pencil-square"></i>Done</button>
         </div>
       </div>
     </div>
@@ -460,14 +460,12 @@
         })
       }
       
-      // Back to Edit button
-      var backToEditBtn = document.getElementById('backToEditBtn')
-      if (backToEditBtn) {
-        backToEditBtn.addEventListener('click', function (e) {
+      // Back to Edit button - redirects to addmt_mcq.html
+      var doneBtn = document.getElementById('Done')
+      if (doneBtn) {
+        doneBtn.addEventListener('click', function (e) {
           e.preventDefault()
-          var urlParams = new URLSearchParams(window.location.search)
-          var activityId = urlParams.get('id')
-          window.location.href = '{% url "add_activity_mcq" %}?id=' + activityId
+          window.location.href = '{% url "addmt_mcq" %}'
         })
       }
     })
