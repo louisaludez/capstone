@@ -5,6 +5,21 @@
 {% endblock %}
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}" />
+  <style>
+    .users-table {
+      font-size: 0.85rem;
+    }
+    .users-table th,
+    .users-table td {
+      padding: 0.35rem 0.5rem;
+    }
+    .users-table th {
+      background-color: #dddddd;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  </style>
 {% endblock %}
 {% block sidebar %}
   {% include './includes/sidebar.html' with active_page='home' %}
@@ -22,6 +37,9 @@
               <button class="btn btn-sm btn-outline-secondary" id="downloadReportBtn"><i class="bi bi-download"></i> Download Report</button>
               <div>
                 <span class="text-{% if growth_percentage|add:0 >= 0 %}
+                    
+                    
+                    
                     
                     
                     
@@ -89,6 +107,9 @@
 
 
 
+
+
+
                   {% else %}
                     
                     
@@ -123,7 +144,13 @@
                     
                     
                     
+                    
+                    
+                    
                     danger
+
+
+
 
 
 
@@ -236,43 +263,39 @@
     </div>
 
     <h3 class="mb-2" style="font-size: 1.2rem">Registered HMS Users</h3>
-    <div class="card shadow-sm">
-      <div class="card-body table-responsive p-2">
-        <table id="usersTable" class="table table-hover table-sm mb-0">
-          <thead class="table-light">
+    <div class="table-responsive">
+      <table id="usersTable" class="table table-bordered align-middle mt-2 users-table table-hover">
+        <thead class="table-light text-center">
+          <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Registration Date</th>
+            <th>Last Login</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+          {% for user in users %}
             <tr>
-              <th style="width: 30px; padding: 2px 8px">
-                <input type="checkbox" />
-              </th>
-              <th style="padding: 2px 8px">User ID</th>
-              <th style="padding: 2px 8px">Username</th>
-              <th style="padding: 2px 8px">Role</th>
-              <th style="padding: 2px 8px">Registration Date</th>
-
-              <th style="padding: 2px 8px">Last Login</th>
+              <td>{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.date_joined|date:'Y-m-d' }}</td>
+              <td>{{ user.last_login|date:'Y-m-d H:i'|default:'Never' }}</td>
             </tr>
-          </thead>
-          <tbody>
-            {% for user in users %}
-              <tr>
-                <td style="padding: 2px 8px">
-                  <input type="checkbox" />
-                </td>
-                <td style="padding: 2px 8px">{{ user.id }}</td>
-                <td style="padding: 2px 8px">{{ user.username }}</td>
-                <td style="padding: 2px 8px">{{ user.role }}</td>
-                <td style="padding: 2px 8px">{{ user.date_joined|date:'Y-m-d' }}</td>
-
-                <td style="padding: 2px 8px">{{ user.last_login|date:'Y-m-d H:i'|default:'Never' }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="7" class="text-center" style="padding: 2px 8px">No users found.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <div class="text-muted">
+                  <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                  <h6 class="text-secondary mb-2">No Users Found</h6>
+                  <p class="mb-3 text-muted">There are currently no registered users in the system.</p>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 {% endblock %}
@@ -524,12 +547,12 @@
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                                                                                                                                    <small class="text-muted">
-                                                                                                                                      <i class="bi bi-info-circle"></i> 
-                                                                                                                                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                                                                                                                                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                                                                                                                                    </small>
-                                                                                                                                  `
+                                                                                                                                                <small class="text-muted">
+                                                                                                                                                  <i class="bi bi-info-circle"></i> 
+                                                                                                                                                  Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                                                                                                                                                  ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                                                                                                                                                </small>
+                                                                                                                                              `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })

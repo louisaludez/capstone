@@ -179,7 +179,7 @@ def admin_home_monthly_data(request):
     laundry_revenue = LaundryTransaction.objects.filter(
         date_time__gte=start_date,
         date_time__lt=end_date
-    ).exclude(payment_method='room').aggregate(
+    ).exclude(payment_method='Charge to room').aggregate(
         total=Sum('total_amount')
     )['total'] or 0.0
 

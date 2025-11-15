@@ -18,7 +18,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 300px;
+      width: auto;
+      min-width: 120px;
+      padding: 0 15px;
       border-radius: 13px;
     }
     .activity-box {
@@ -462,12 +464,6 @@
       <div class="col-6 d-flex justify-content-end align-items-center">
         <div class="header-buttons">
           <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
-          <span>|</span>
-          <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
-          <span>|</span>
-          <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
-          <span>|</span>
-          <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
         </div>
       </div>
     </div>
@@ -483,21 +479,18 @@
           <div class="input-container">
             <span class="input-header">Activity Title:</span>
             <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
-            <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
           <div class="input-container">
             <span class="input-header">Description:</span>
             <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
-            <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
           <div class="input-container">
             <span class="input-header">Scenario:</span>
             <input type="text" class="form-control" id="scenario" placeholder="Type scenario" />
-            <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
@@ -511,7 +504,6 @@
               </label>
               <input type="file" id="scriptFile" name="script_file" accept=".txt,.doc,.docx" style="display: none;" />
             </div>
-            <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row">
@@ -546,7 +538,6 @@
                 <input type="file" id="audioFile" name="audio_file" accept="audio/*" style="display: none;" />
               </div>
             </div>
-            <input type="checkbox" class="corner-checkbox" />
           </div>
         </div>
         <div class="row timer" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
@@ -556,7 +547,6 @@
           <button class="col-2 timer-btn" data-seconds="600">10 mins</button>
           <button class="col-2 timer-btn" data-seconds="1200">20 mins</button>
           <button class="col-2 timer-btn timer-custom" data-seconds="0">Set Your time</button>
-          <input type="checkbox" class="corner-checkbox-timer" />
         </div>
       </div>
     </div>
@@ -570,66 +560,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var container = document.querySelector('.header-buttons')
-      if (!container) return
-    
-      var addBtn = container.querySelector('.btn.add')
-      var removeBtn = container.querySelector('.btn.remove')
-      var editBtn = container.querySelector('.btn.edit')
-    
-      var sepAfterAdd = addBtn ? addBtn.nextElementSibling : null
-      var sepBeforeEdit = removeBtn ? removeBtn.nextElementSibling : null
-    
-      function getControls() {
-        var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox, .timer .corner-checkbox-timer'))
-        return [addBtn, removeBtn, sepAfterAdd, sepBeforeEdit].concat(checkboxes).filter(Boolean)
-      }
-    
-      getControls().forEach(function (el) {
+      // Hide checkboxes by default since edit/add/remove buttons are removed
+      var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox, .timer .corner-checkbox-timer'))
+      checkboxes.forEach(function (el) {
         el.classList.add('hidden-control')
       })
-    
-      var shown = false
-    
-      function showControls() {
-        var controls = getControls()
-        controls.forEach(function (el) {
-          el.classList.remove('hidden-control')
-          el.classList.add('anim-enter')
-          requestAnimationFrame(function () {
-            el.classList.add('anim-enter-active')
-            el.classList.remove('anim-enter')
-          })
-          el.addEventListener(
-            'transitionend',
-            function handler() {
-              el.classList.remove('anim-enter-active')
-              el.removeEventListener('transitionend', handler)
-            },
-            { once: true }
-          )
-        })
-        shown = true
-      }
-    
-      function hideControls() {
-        var controls = getControls()
-        controls.forEach(function (el) {
-          el.classList.add('hidden-control')
-        })
-        shown = false
-      }
-    
-      if (editBtn) {
-        editBtn.addEventListener('click', function (e) {
-          e.preventDefault()
-          if (!shown) {
-            showControls()
-          } else {
-            hideControls()
-          }
-        })
-      }
     
       // Timer functionality
       var timerContainer = document.querySelector('.timer')

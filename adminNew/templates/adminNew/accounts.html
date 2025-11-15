@@ -22,6 +22,69 @@
     #customSearch {
       transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
+    
+    /* Table styling matching timeline */
+    .users-table {
+      font-size: 0.85rem;
+    }
+    .users-table th,
+    .users-table td {
+      padding: 0.35rem 0.5rem;
+    }
+    .users-table th {
+      background-color: #dddddd;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .action-buttons {
+      display: flex;
+      gap: 0.25rem;
+      justify-content: center;
+    }
+    .action-buttons .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    .action-buttons .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+    .pagination .page-link {
+      color: #495057;
+      border-color: #dee2e6;
+    }
+    .pagination .page-link:hover {
+      color: #0056b3;
+      background-color: #e9ecef;
+      border-color: #dee2e6;
+    }
+    .pagination .page-item.active .page-link {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: white;
+    }
+    .pagination .page-item.disabled .page-link {
+      color: #6c757d;
+      background-color: #fff;
+      border-color: #dee2e6;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+      margin-top: 1rem;
+    }
+    .dataTables_wrapper .dataTables_info {
+      padding-top: 0.75rem;
+    }
+    /* Make Add User button and search input same height */
+    .btn[data-bs-toggle='modal'][data-bs-target='#addUserModal'],
+    #customSearch {
+      height: 38px;
+      box-sizing: border-box;
+    }
+    #customSearch {
+      line-height: 1.5;
+    }
   </style>
 {% endblock %}
 {% block sidebar %}
@@ -31,55 +94,53 @@
   <div class="container-fluid p-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="mb-0">Registered HMS Users</h4>
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-plus-lg"></i> Add User</button>
-        <div class="input-group">
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-plus-lg"></i> Add User</button>
+        <div class="input-group" style="width: auto; min-width: 250px;">
           <input id="customSearch" type="text" class="form-control form-control-sm" placeholder="Search by username, role, or ID" />
         </div>
       </div>
     </div>
 
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table id="usersTable" class="table table-hover table-sm mb-0">
-            <thead class="table-light">
-              <tr>
-                <th width="30">
-                  <input type="checkbox" />
-                </th>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Registration Date</th>
-                <th width="100">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in users %}
-                <tr>
-                  <td>
-                    <input type="checkbox" />
-                  </td>
-                  <td>{{ user.id }}</td>
-                  <td>{{ user.username }}</td>
-                  <td>{{ user.role }}</td>
-                  <td class="date-joined" data-date="{{ user.date_joined|date:'c' }}">{{ user.date_joined|date:'F j, Y g:i A' }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="{{ user.id }}"><i class="bi bi-eye"></i></button>
-                    <button class="btn btn-sm btn-link p-0 me-2 edit-user" data-user-id="{{ user.id }}"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-link p-0 text-danger delete-user" data-user-id="{{ user.id }}"><i class="bi bi-trash"></i></button>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="6" class="text-center">No users found.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="table-responsive">
+      <table id="usersTable" class="table table-bordered align-middle mt-2 users-table table-hover">
+        <thead class="table-light text-center">
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Registration Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+          {% for user in users %}
+            <tr>
+              <td>{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.role }}</td>
+              <td class="date-joined" data-date="{{ user.date_joined|date:'c' }}">{{ user.date_joined|date:'F j, Y g:i A' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-outline-secondary view-user" data-user-id="{{ user.id }}" title="View User"><i class="bi bi-eye"></i></button>
+                  <button class="btn btn-sm btn-outline-primary edit-user" data-user-id="{{ user.id }}" title="Edit User"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-outline-danger delete-user" data-user-id="{{ user.id }}" title="Delete User"><i class="bi bi-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-5">
+                <div class="text-muted">
+                  <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                  <h6 class="text-secondary mb-2">No Users Found</h6>
+                  <p class="mb-3 text-muted">There are currently no registered users in the system.</p>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -132,9 +193,8 @@
                   <option value="">Select Role</option>
                   <option value="staff">Staff</option>
                   {% if request.user.role == 'SUPER_ADMIN' %}
-       <option value="admin">Admin</option>
-    {% endif %}
-                 
+                    <option value="admin">Admin</option>
+                  {% endif %}
                 </select>
               </div>
 

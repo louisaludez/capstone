@@ -5,12 +5,18 @@ $(function () {
   // Initialize DataTable without its built-in search box
   var table = $("#usersTable").DataTable({
     paging: true,
-    pageLength: 6,
-    lengthChange: false,
+    pageLength: 10,
+    lengthChange: true,
     info: true,
     searching: false, // disable default search
     order: [], // disable initial sort
-    columnDefs: [{ orderable: false, targets: [0, 5] }],
+    columnDefs: [{ orderable: false, targets: [4] }], // Actions column (now column 4, not 5)
+    language: {
+      paginate: {
+        previous: '&laquo;',
+        next: '&raquo;'
+      }
+    }
   });
 
   console.log("DataTable initialized:", table); // Debug log
@@ -136,20 +142,21 @@ $(function () {
       const formattedDate = dateJoined.toLocaleString("en-US", manilaOptions);
 
       const newData = [
-        `<input type="checkbox" />`,
         data.id,
         data.username,
         data.role,
         formattedDate,
-        `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
-            <i class="bi bi-eye"></i>
-          </button>
-          <button class="btn btn-sm btn-link p-0 me-2 edit-user" data-user-id="${data.id}">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-link p-0 text-danger delete-user" data-user-id="${data.id}">
-            <i class="bi bi-trash"></i>
-          </button>`,
+        `<div class="action-buttons">
+            <button class="btn btn-sm btn-outline-secondary view-user" data-user-id="${data.id}" title="View User">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-primary edit-user" data-user-id="${data.id}" title="Edit User">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger delete-user" data-user-id="${data.id}" title="Delete User">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>`,
       ];
       row.data(newData).draw(false);
     }
@@ -171,20 +178,21 @@ $(function () {
     const formattedDate = dateJoined.toLocaleString("en-US", manilaOptions);
 
     const newRow = [
-      `<input type="checkbox" />`,
       data.id,
       data.username,
       data.role,
       formattedDate,
-      `<button class="btn btn-sm btn-link p-0 me-2 view-user" data-user-id="${data.id}">
-          <i class="bi bi-eye"></i>
-        </button>
-        <button class="btn btn-sm btn-link p-0 me-2 edit-user" data-user-id="${data.id}">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="btn btn-sm btn-link p-0 text-danger delete-user" data-user-id="${data.id}">
-          <i class="bi bi-trash"></i>
-        </button>`,
+      `<div class="action-buttons">
+          <button class="btn btn-sm btn-outline-secondary view-user" data-user-id="${data.id}" title="View User">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-primary edit-user" data-user-id="${data.id}" title="Edit User">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger delete-user" data-user-id="${data.id}" title="Delete User">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>`,
     ];
     table.row.add(newRow).draw(false);
   }
@@ -298,14 +306,14 @@ $(function () {
   // Delete User - Using event delegation
   $(document).on("click", ".delete-user", function () {
     const userId = $(this).data("user-id");
-    const userRole = $(this).closest("tr").find("td:eq(3)").text(); // Get user role from table
+    const userRole = $(this).closest("tr").find("td:eq(2)").text(); // Get user role from table (now column 2, not 3)
 
     // Check if this is an admin user
     if (userRole === "admin") {
       // Count total admin users
       let adminCount = 0;
       table.rows().every(function () {
-        const role = this.data()[3]; // Role is in the 4th column
+        const role = this.data()[2]; // Role is now in the 3rd column (index 2)
         if (role === "admin") {
           adminCount++;
         }

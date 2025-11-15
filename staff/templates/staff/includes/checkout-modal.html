@@ -84,21 +84,11 @@
         <div class="checkout-field">
           <label>Room Charges</label><input type="text" class="guest-billing-checkout" />
         </div>
-        <div class="checkout-inline-row">
-          <div class="checkout-field">
-            <label>Room Service</label><input type="text" class="guest-rm-billing-checkout" />
-          </div>
-          <div class="checkout-field">
-            <label>Laundry</label><input type="text" class="guest-laundry-billing-checkout" />
-          </div>
+        <div class="checkout-field">
+          <label>Laundry</label><input type="text" class="guest-laundry-billing-checkout" />
         </div>
-        <div class="checkout-inline-row">
-          <div class="checkout-field">
-            <label>Cafe</label><input type="text" class="guest-cafe-billing-checkout" />
-          </div>
-          <div class="checkout-field">
-            <label>Excess Pax</label><input type="text" class="guest-ep-billing-checkout" />
-          </div>
+        <div class="checkout-field">
+          <label>Cafe</label><input type="text" class="guest-cafe-billing-checkout" />
         </div>
         <div class="checkout-field">
           <label>Additional Charges</label><input type="text" class="guest-additional-charge-checkout" />
@@ -217,10 +207,8 @@
       
           // Billing summary
           setInputValue('.guest-billing-checkout', ds.roomCharges || '')
-          setInputValue('.guest-rm-billing-checkout', ds.roomService || '')
           setInputValue('.guest-laundry-billing-checkout', ds.laundry || '')
           setInputValue('.guest-cafe-billing-checkout', ds.cafe || '')
-          setInputValue('.guest-ep-billing-checkout', ds.excessPax || '')
           setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
           setInputValue('.guest-total-balance-checkout', ds.totalBalance || '')
         }
