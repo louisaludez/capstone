@@ -7,6 +7,9 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import warnings
+import pickle
+import os
+from django.conf import settings
 warnings.filterwarnings('ignore')
 
 class ReservationForecaster:
@@ -275,10 +278,25 @@ class ReservationForecaster:
 def get_reservation_forecast():
     """
     Main function to get reservation forecast data
+    Tries to load from pickle file first for faster loading, otherwise generates new forecast
     """
     from staff.models import Booking
     from django.core.cache import cache
     
+    # First, try to load from pickle file
+    pickle_file = os.path.join(settings.BASE_DIR, 'sarima_forecast.pkl')
+    if os.path.exists(pickle_file):
+        try:
+            with open(pickle_file, 'rb') as f:
+                saved_data = pickle.load(f)
+                # Return the forecast data from pickle
+                if 'forecast_data' in saved_data:
+                    return saved_data['forecast_data']
+        except Exception as e:
+            # If pickle loading fails, continue to generate new data
+            print(f"Warning: Could not load pickle file: {e}")
+    
+    # If pickle doesn't exist or failed to load, generate new forecast
     # Get all bookings
     bookings = Booking.objects.all().only('booking_date', 'check_in_date', 'check_out_date', 'status', 'num_of_adults', 'num_of_children', 'total_of_guests').order_by('booking_date')
 
