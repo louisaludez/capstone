@@ -185,12 +185,13 @@
 </div>
 
 <script>
-  // Check-in Add-ons functionality
-  let checkinAddonsData = {
+  // Check-in Add-ons functionality (make globally accessible)
+  window.checkinAddonsData = window.checkinAddonsData || {
     bed: 0,
     pillow: 0,
     towel: 0
   }
+  let checkinAddonsData = window.checkinAddonsData
   
   function changeCheckinAddon(type, delta) {
     console.log('Changing check-in addon:', type, delta)

@@ -279,10 +279,11 @@
       const timeDiff = checkoutDate.getTime() - checkinDate.getTime()
       const nights = Math.ceil(timeDiff / (1000 * 3600 * 24))
   
-      // Calculate add-on costs
-      const bedCount = parseInt(document.getElementById('bed-count')?.textContent || '0')
-      const pillowCount = parseInt(document.getElementById('pillow-count')?.textContent || '0')
-      const towelCount = parseInt(document.getElementById('towel-count')?.textContent || '0')
+      // Calculate add-on costs - use addonsData from walkin.js if available, otherwise read from DOM
+      const addonsData = window.addonsData || { bed: 0, pillow: 0, towel: 0 }
+      const bedCount = addonsData.bed !== undefined ? parseInt(addonsData.bed, 10) : parseInt(document.getElementById('bed-count')?.textContent || '0', 10)
+      const pillowCount = addonsData.pillow !== undefined ? parseInt(addonsData.pillow, 10) : parseInt(document.getElementById('pillow-count')?.textContent || '0', 10)
+      const towelCount = addonsData.towel !== undefined ? parseInt(addonsData.towel, 10) : parseInt(document.getElementById('towel-count')?.textContent || '0', 10)
   
       const addonCost = bedCount * addonPrices.bed + pillowCount * addonPrices.pillow + towelCount * addonPrices.towel
   
@@ -292,6 +293,9 @@
   
       balanceField.value = `₱${totalBalance.toLocaleString()}`
     }
+  
+    // Make calculateBalance globally accessible
+    window.calculateBalance = calculateBalance
   
     function setupAddonListeners() {
       // Add event listeners for add-on buttons

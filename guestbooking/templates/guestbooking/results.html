@@ -118,18 +118,18 @@
     {% endif %}
     <div class="row mb-4">
       <div class="col-6">
-        <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+        <img src="{% static 'images/deluxe.jpg' %}" alt="" class="room-image" />
       </div>
       <div class="col-6">
         <div class="row g-1">
           <div class="col-6">
-            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+            <img src="{% static 'images/standard.jpg' %}" alt="" class="room-image" />
           </div>
           <div class="col-6">
-            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+            <img src="{% static 'images/family.jpg' %}" alt="" class="room-image" />
           </div>
           <div class="col-6">
-            <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
+            <img src="{% static 'images/deluxe.jpg' %}" alt="" class="room-image" />
           </div>
           <div class="col-6">
             <img src="{% static 'images/room.png' %}" alt="" class="room-image" />
@@ -166,7 +166,15 @@
       {% for room in rooms %}
         <div class="room-card">
           <div class="d-flex gap-3 align-items-center">
-            <img src="{% static 'images/room.png' %}" alt="{{ room.name }}" class="room-img" />
+            {% if room.room_type == 'family' %}
+              <img src="{% static 'images/family.jpg' %}" alt="{{ room.name }}" class="room-img" />
+            {% elif room.room_type == 'deluxe' %}
+              <img src="{% static 'images/deluxe.jpg' %}" alt="{{ room.name }}" class="room-img" />
+            {% elif room.room_type == 'standard' %}
+              <img src="{% static 'images/standard.jpg' %}" alt="{{ room.name }}" class="room-img" />
+            {% else %}
+              <img src="{% static 'images/room.png' %}" alt="{{ room.name }}" class="room-img" />
+            {% endif %}
             <div class="flex-grow-1">
               <div class="room-title">{{ room.name }}</div>
               <div class="room-meta">Good for {{ room.capacity }} persons</div>
