@@ -74,7 +74,7 @@ class Command(BaseCommand):
         
         # Calculate date range: from 2 years ago to 1 year ago (all past, at least 1 year old)
         today = timezone.now().date()
-        end_date = today - timedelta(days=365)  # 1 year ago
+        end_date = today - timedelta(days=1)  # 1 year ago
         start_date = end_date - timedelta(days=365)  # 2 years ago
         
         self.stdout.write(f'Creating {count} bookings from {start_date} to {end_date}...')
