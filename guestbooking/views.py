@@ -79,10 +79,31 @@ def guest_booking_results(request):
 
     print(f"[guest_booking_results] blocked room_numbers due to overlap: {sorted(blocked_numbers)}")
 
+    # Check for rooms in housekeeping or under maintenance
+    from housekeeping.models import Housekeeping
+    housekeeping_blocked = set()
+    
+    # Get all unique room numbers that have housekeeping records
+    room_numbers = Housekeeping.objects.values_list('room_number', flat=True).distinct()
+    
+    for room_num in room_numbers:
+        # Get the most recent status for this room
+        latest_hk = Housekeeping.objects.filter(room_number=room_num).order_by('-created_at').first()
+        if latest_hk and latest_hk.status:
+            status_lower = latest_hk.status.lower()
+            if 'maintenance' in status_lower or 'under maintenance' in status_lower:
+                housekeeping_blocked.add(room_num)
+            elif 'progress' in status_lower or 'in progress' in status_lower:
+                housekeeping_blocked.add(room_num)
+    
+    # Combine all blocked rooms
+    all_blocked = blocked_numbers | housekeeping_blocked
+    print(f"[guest_booking_results] blocked room_numbers (bookings + housekeeping): {sorted(all_blocked)}")
+
     # Start from all rooms that meet capacity, then exclude blocked
     candidate_rooms = Room.objects.filter(capacity__gte=(adults + children))
-    available_rooms = candidate_rooms.exclude(room_number__in=blocked_numbers).order_by('room_number')
-    blocked_among_candidates = candidate_rooms.filter(room_number__in=blocked_numbers).count()
+    available_rooms = candidate_rooms.exclude(room_number__in=all_blocked).order_by('room_number')
+    blocked_among_candidates = candidate_rooms.filter(room_number__in=all_blocked).count()
     candidate_count = candidate_rooms.count()
     available_count = available_rooms.count()
 
@@ -335,6 +356,27 @@ def checkin_reservation(request):
         # Room (keep reserved room if not provided)
         room_number = request.POST.get('room') or booking.room
         booking.room = room_number
+
+        # Check if room is in housekeeping or under maintenance
+        from housekeeping.models import Housekeeping
+        import re as _re
+        room_code_match = _re.search(r"\d+", str(room_number))
+        room_code = room_code_match.group(0) if room_code_match else str(room_number)
+        
+        # Get the most recent housekeeping record for this room
+        latest_hk = Housekeeping.objects.filter(room_number=room_code).order_by('-created_at').first()
+        if latest_hk and latest_hk.status:
+            status_lower = latest_hk.status.lower()
+            if 'maintenance' in status_lower or 'under maintenance' in status_lower:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Room {room_code} is currently under maintenance and cannot be checked in.'
+                }, status=400)
+            elif 'progress' in status_lower or 'in progress' in status_lower:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Room {room_code} is currently in housekeeping and cannot be checked in.'
+                }, status=400)
 
         # Guest counts
         if request.POST.get('total_guests') is not None:

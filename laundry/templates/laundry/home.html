@@ -7,78 +7,234 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="{% static 'laundry-pos.css' %}" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
-  <style></style>
+  <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 15px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .main-container {
+        width: 100% !important;
+        max-width: 100%;
+        margin-left: 0 !important;
+        margin-top: 50px;
+        height: auto !important;
+        min-height: 400px;
+        padding: 15px;
+      }
+    
+      .main-content {
+        flex-direction: column !important;
+        gap: 20px;
+      }
+    
+      .left-side,
+      .right-side {
+        width: 100%;
+        flex: 1;
+      }
+    
+      .guest-name-pos,
+      .room-number-pos,
+      .service-type-pos,
+      .date-time-pos {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+    
+      .guest-name-pos label,
+      .room-number-pos label,
+      .service-type-pos label,
+      .date-time-pos label {
+        width: 100%;
+      }
+    
+      .guest-name-pos select,
+      .room-number-pos input,
+      .service-type-pos select,
+      .date-time-pos input {
+        width: 100%;
+      }
+    
+      .footer-bottons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+      }
+    
+      .footer-bottons button {
+        width: 100%;
+      }
+    }
+    
+    /* Fix button width for wide screens */
+    @media (min-width: 993px) {
+      .footer-bottons button {
+        min-width: 180px;
+        width: auto;
+        padding: 8px 20px;
+        white-space: nowrap;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .main-container {
+        margin-top: 30px;
+        padding: 12px;
+        border-radius: 8px;
+      }
+    
+      .header h1 {
+        font-size: 1.5rem;
+      }
+    
+      .left-side input {
+        height: 35px;
+      }
+    
+      .form-check {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+    
+      .specifications-pos {
+        margin-left: 0;
+        margin-bottom: 10px;
+      }
+    
+      #noBags,
+      #roomNO {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .main-container {
+        margin-top: 20px;
+        padding: 10px;
+        border-width: 1px;
+      }
+    
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    
+      .header h1 {
+        font-size: 1.25rem;
+        margin-bottom: 0;
+      }
+    
+      .main-content {
+        gap: 15px;
+      }
+    
+      .guest-name-pos,
+      .room-number-pos,
+      .service-type-pos,
+      .date-time-pos {
+        margin-bottom: 15px;
+      }
+    
+      .footer-bottons {
+        margin-top: 15px;
+      }
+    
+      .footer-bottons button {
+        height: 45px;
+        font-size: 14px;
+      }
+    }
+    
+    @media (min-width: 993px) {
+      .main-container {
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+  </style>
 {% endblock %}
 {% block sidebar %}
   {% include '../includes/sidebar.html' with active_page='pos' %}
 {% endblock %}
 {% block content %}
-  <div class="main-container">
-    <div class="header">
-      <h1>Laundry Pos</h1>
-      <i class="fa fa-arrow-right" aria-hidden="true"></i>
-    </div>
-    <div class="main-content">
-      <div class="left-side">
-        <div class="guest-name-pos">
-          <label for="guest-name" class="form-label">Guest</label>
-          <select name="guest-name" id="guestName" class="form-select guest-name-laundry">
-            <option value="" disabled selected>Select Guest</option>
-            {% for guest in guests %}
-              <option value="{{ guest.id }}">{{ guest.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="room-number-pos">
-          <label for="room-number" class="form-label">Room No.</label>
-          <input type="text" name="room-number" id="roomNO" class="form-control room-number-laundry" />
-          <label for="bags">No. of Laundry bags</label>
-          <input type="number" name="bags" id="noBags" class="form-control" />
-        </div>
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+  <div class="content-wrapper">
+    <div class="main-container">
+      <div class="header">
+        <h1>Laundry Pos</h1>
+        <i class="fa fa-arrow-right" aria-hidden="true"></i>
+      </div>
+      <div class="main-content">
+        <div class="left-side">
+          <div class="guest-name-pos">
+            <label for="guest-name" class="form-label">Guest</label>
+            <select name="guest-name" id="guestName" class="form-select guest-name-laundry">
+              <option value="" disabled selected>Select Guest</option>
+              {% for guest in guests %}
+                <option value="{{ guest.id }}">{{ guest.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="room-number-pos">
+            <label for="room-number" class="form-label">Room No.</label>
+            <input type="text" name="room-number" id="roomNO" class="form-control room-number-laundry" />
+            <label for="bags">No. of Laundry bags</label>
+            <input type="number" name="bags" id="noBags" class="form-control" />
+          </div>
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
 
-        <div class="service-type-pos">
-          <label for="service-type">Service Type</label>
-          <select name="service-type" id="" class="form-select service-type-laundry">
-            <option value="" disabled selected>Select Service Type</option>
-            <option value="wash">Wash</option>
-            <option value="wash-and-dry">Wash and Dry</option>
-            <option value="wash-dry-fold">Wash, Dry, and Fold</option>
-            <option value="iron">Iron</option>
-            <option value="wash-dry-fold-iron">Wash, Dry, Fold, and Iron</option>
-            <option value="dry">Dry Cleaning</option>
-          </select>
+          <div class="service-type-pos">
+            <label for="service-type">Service Type</label>
+            <select name="service-type" id="" class="form-select service-type-laundry">
+              <option value="" disabled selected>Select Service Type</option>
+              <option value="wash">Wash</option>
+              <option value="wash-and-dry">Wash and Dry</option>
+              <option value="wash-dry-fold">Wash, Dry, and Fold</option>
+              <option value="iron">Iron</option>
+              <option value="wash-dry-fold-iron">Wash, Dry, Fold, and Iron</option>
+              <option value="dry">Dry Cleaning</option>
+            </select>
+          </div>
+          <div class="date-time-pos">
+            <label for="date-time">Date and Time</label>
+            <input type="date" name="date-time" id="" class="form-control date-time-laundry" />
+          </div>
         </div>
-        <div class="date-time-pos">
-          <label for="date-time">Date and Time</label>
-          <input type="date" name="date-time" id="" class="form-control date-time-laundry" />
+        <div class="right-side">
+          <div class="specifications-pos">
+            <span><i>Specifications (Select Multiple)</i></span>
+          </div>
+          <div class="laundry-pos form-check">
+            <label for="laundry" class="form-check-label">Laundry Detergent</label>
+            <input type="checkbox" name="laundry" id="laundry" class="form-check-input" />
+          </div>
+          <div class="hypo-pos form-check">
+            <label for="hypo" class="form-check-label">Hypoallergenic Detergent</label>
+            <input type="checkbox" name="hypo" id="hypo" class="form-check-input" />
+          </div>
+          <div class="bleach-pos form-check">
+            <label for="bleach" class="form-check-label">Bleach</label>
+            <input type="checkbox" name="bleach" id="bleach" class="form-check-input" />
+          </div>
+          <div class="fabric-pos form-check">
+            <label for="fabric" class="form-check-label">Fabric Conditioner</label>
+            <input type="checkbox" name="fabric" id="fabric" class="form-check-input" />
+          </div>
         </div>
       </div>
-      <div class="right-side">
-        <div class="specifications-pos">
-          <span><i>Specifications (Select Multiple)</i></span>
-        </div>
-        <div class="laundry-pos form-check">
-          <label for="laundry" class="form-check-label">Laundry Detergent</label>
-          <input type="checkbox" name="laundry" id="laundry" class="form-check-input" />
-        </div>
-        <div class="hypo-pos form-check">
-          <label for="hypo" class="form-check-label">Hypoallergenic Detergent</label>
-          <input type="checkbox" name="hypo" id="hypo" class="form-check-input" />
-        </div>
-        <div class="bleach-pos form-check">
-          <label for="bleach" class="form-check-label">Bleach</label>
-          <input type="checkbox" name="bleach" id="bleach" class="form-check-input" />
-        </div>
-        <div class="fabric-pos form-check">
-          <label for="fabric" class="form-check-label">Fabric Conditioner</label>
-          <input type="checkbox" name="fabric" id="fabric" class="form-check-input" />
-        </div>
+      <div class="footer-bottons">
+        <button class="btn btn-success" id="payCash">Pay Cash</button>
+        <button class="btn btn-success" id="charge">Charge to room</button>
       </div>
-    </div>
-    <div class="footer-bottons">
-      <button class="btn btn-success" id="payCash">Pay Cash</button>
-      <button class="btn btn-success" id="charge">Charge to room</button>
     </div>
   </div>
 {% endblock %}
@@ -163,12 +319,12 @@
                 Swal.fire({
                   title: '<bold>Transaction <br>Successful!</bold>',
                   html: `
-                                                                          <p style="color: #1a2d1e !important">
-                                                                            Transaction recorded to Guest <strong>${guestName}</strong>.<br>
-                                                                            Room no. <strong>${roomNo}</strong><br>
-                                                                            Reference no. <strong>${referenceNo}</strong>
-                                                                          </p>
-                                                                        `,
+                                                                                      <p style="color: #1a2d1e !important">
+                                                                                        Transaction recorded to Guest <strong>${guestName}</strong>.<br>
+                                                                                        Room no. <strong>${roomNo}</strong><br>
+                                                                                        Reference no. <strong>${referenceNo}</strong>
+                                                                                      </p>
+                                                                                    `,
                   icon: 'success',
                   showConfirmButton: false,
                   customClass: {
@@ -193,29 +349,29 @@
         Swal.fire({
           title: '<strong>Cash Payment</strong>',
           html: `
-                                                                  <div style="text-align: left;" class="cash-payment-modal">
-                                                                    <div style="margin-bottom: 10px;">
-                                                                      <label style="display: block; text-align: left;">Cash Tendered</label>
-                                                                      <div style="display: flex; justify-content: center;">
-                                                                        <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
-                                                                      </div>
-                                                                    </div>
-                                                        
-                                                                    <div style="margin-bottom: 10px;">
-                                                                      <label style="display: block; text-align: left;">Total</label>
-                                                                      <div style="display: flex; justify-content: center;">
-                                                                        <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                                                      </div>
-                                                                    </div>
-                                                        
-                                                                    <div>
-                                                                      <label style="display: block; text-align: left;">Change</label>
-                                                                      <div style="display: flex; justify-content: center;">
-                                                                        <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                                                      </div>
-                                                                    </div>
-                                                                  </div>
-                                                                `,
+                                                                              <div style="text-align: left;" class="cash-payment-modal">
+                                                                                <div style="margin-bottom: 10px;">
+                                                                                  <label style="display: block; text-align: left;">Cash Tendered</label>
+                                                                                  <div style="display: flex; justify-content: center;">
+                                                                                    <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
+                                                                                  </div>
+                                                                                </div>
+                                                                    
+                                                                                <div style="margin-bottom: 10px;">
+                                                                                  <label style="display: block; text-align: left;">Total</label>
+                                                                                  <div style="display: flex; justify-content: center;">
+                                                                                    <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                                                  </div>
+                                                                                </div>
+                                                                    
+                                                                                <div>
+                                                                                  <label style="display: block; text-align: left;">Change</label>
+                                                                                  <div style="display: flex; justify-content: center;">
+                                                                                    <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                                                  </div>
+                                                                                </div>
+                                                                              </div>
+                                                                            `,
           showCancelButton: true,
           confirmButtonText: 'Cancel',
           cancelButtonText: 'Next',
@@ -284,39 +440,39 @@
                     title: '',
                     showCloseButton: true,
                     html: `
-                                                                            <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
-                                                                              <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
-                                                                              <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
-                                                                              <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
-                                                                              <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
-                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                              <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
-                                                                              <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
-                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                              <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
-                                                                                <tr>
-                                                                                  <th style="text-align: left;">Service Type</th>
-                                                                                  <th>Qty</th>
-                                                                                  <th style="text-align: right;">Price</th>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                  <td>${serviceType}</td>
-                                                                                  <td>${noBags} bags</td>
-                                                                                  <td style="text-align: right;">${totalAmount}</td>
-                                                                                </tr>
-                                                                                <tr><td style="text-align: left;">Specifications</td></tr>
-                                                                                <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
-                                                                              </table>
-                                                                              <table style="width: 100%; font-size: 13px; font-weight: bold;">
-                                                                                <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
-                                                                                <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
-                                                                                <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
-                                                                              </table>
-                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                              <p style="margin-top: 10px;">Thank you!</p>
-                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                            </div>
-                                                                          `,
+                                                                                        <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
+                                                                                          <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
+                                                                                          <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
+                                                                                          <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
+                                                                                          <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
+                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                          <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
+                                                                                          <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
+                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                          <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
+                                                                                            <tr>
+                                                                                              <th style="text-align: left;">Service Type</th>
+                                                                                              <th>Qty</th>
+                                                                                              <th style="text-align: right;">Price</th>
+                                                                                            </tr>
+                                                                                            <tr>
+                                                                                              <td>${serviceType}</td>
+                                                                                              <td>${noBags} bags</td>
+                                                                                              <td style="text-align: right;">${totalAmount}</td>
+                                                                                            </tr>
+                                                                                            <tr><td style="text-align: left;">Specifications</td></tr>
+                                                                                            <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
+                                                                                          </table>
+                                                                                          <table style="width: 100%; font-size: 13px; font-weight: bold;">
+                                                                                            <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
+                                                                                            <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
+                                                                                            <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
+                                                                                          </table>
+                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                          <p style="margin-top: 10px;">Thank you!</p>
+                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                        </div>
+                                                                                      `,
                     showConfirmButton: true,
                     confirmButtonText: 'Print Receipt',
                     confirmButtonColor: '#1a2d1e',

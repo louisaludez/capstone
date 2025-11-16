@@ -1,36 +1,43 @@
 {% for order in orders %}
-  <div class="row row-border text-center align-items-center" data-order-id="{{ order.id }}">
-    <div class="col-1">
+  <tr data-order-id="{{ order.id }}">
+    <td>
       <input type="checkbox" class="order-checkbox" value="{{ order.id }}" />
-    </div>
-    <div class="col-2">{{ order.id|stringformat:'06d' }}</div>
-    <div class="col-2">{{ order.guest.name }}</div>
-    <div class="col-2">{{ order.service_type }}</div>
-    <div class="col-2">{{ order.created_at|date:'H:i d/m/Y' }}</div>
-    <div class="col-2">
+    </td>
+    <td>{{ order.id|stringformat:'06d' }}</td>
+    <td>{{ order.guest.name }}</td>
+    <td>{{ order.service_type }}</td>
+    <td>
+      {{ order.created_at|date:'H:i' }}<br />{{ order.created_at|date:'d/m/Y' }}
+    </td>
+    <td>
       {% if order.status == 'pending' %}
-        <span class="status-pending">Pending</span>
+        <span class="badge bg-warning text-dark status-badge">Pending</span>
       {% elif order.status == 'in_progress' %}
-        <span class="status-in-progress">In Progress</span>
+        <span class="badge bg-info text-dark status-badge">In Progress</span>
       {% elif order.status == 'completed' %}
-        <span class="status-completed">Completed</span>
+        <span class="badge bg-success status-badge">Completed</span>
       {% elif order.status == 'cancelled' %}
-        <span class="status-cancelled">Cancelled</span>
+        <span class="badge bg-danger status-badge">Cancelled</span>
       {% else %}
-        <span class="status-pending">Pending</span>
+        <span class="badge bg-warning text-dark status-badge">Pending</span>
       {% endif %}
-    </div>
-    <div class="col-1 actions d-flex justify-content-center gap-1">
-      <button class="btn btn-sm view-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-eye"></i></button>
-      <button class="btn btn-sm edit-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-pencil-square"></i></button>
-      <button class="btn btn-sm delete-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-trash text-danger"></i></button>
-    </div>
-  </div>
+    </td>
+    <td>
+      <div class="d-flex justify-content-center gap-1">
+        <button class="btn btn-sm btn-outline-primary view-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-sm btn-outline-secondary edit-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-pencil-square"></i></button>
+        <button class="btn btn-sm btn-outline-danger delete-order-btn" data-order-id="{{ order.id }}"><i class="bi bi-trash"></i></button>
+      </div>
+    </td>
+  </tr>
 {% empty %}
-  <div class="text-center py-4">
-    <div class="empty-state">
-      <i class="bi bi-inbox fs-1 text-muted"></i>
-      <p class="mt-3 text-muted">No laundry orders found.</p>
-    </div>
-  </div>
+  <tr>
+    <td colspan="7" class="text-center py-5">
+      <div class="text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+        <h6 class="text-secondary mb-2">No Laundry Orders Found</h6>
+        <p class="mb-3 text-muted">There are currently no laundry orders in the system.</p>
+      </div>
+    </td>
+  </tr>
 {% endfor %}

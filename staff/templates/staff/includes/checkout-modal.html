@@ -11,7 +11,55 @@
           <select name="" id="" class="guests-name-checkout">
             <option value="" disabled selected>Select guest</option>
             {% for guests in guest %}
-              <option value="{{ guests.id }}" data-address="{{ guests.address|default_if_none:''|escape }}" data-email="{{ guests.email|default_if_none:''|escape }}" data-checkin="{{ guests.check_in_date|default_if_none:''|date:'Y-m-d' }}" data-checkout="{{ guests.check_out_date|default_if_none:''|date:'Y-m-d' }}" data-room-type="{{ guests.room_type|default_if_none:''|escape }}" data-total-guests="{{ guests.total_guests|default_if_none:'' }}" data-no-adults="{{ guests.no_of_adults|default_if_none:'' }}" data-no-children="{{ guests.no_of_children|default_if_none:'' }}" data-below-7="{{ guests.children_below_7|default_if_none:'' }}" data-payment-method="{{ guests.payment_method|default_if_none:''|lower }}" data-billing-address="{{ guests.billing_address|default_if_none:''|escape }}" data-card-number="{{ guests.card_number|default_if_none:''|escape }}" data-card-exp="{{ guests.card_exp|default_if_none:''|escape }}" data-card-cvc="{{ guests.card_cvc|default_if_none:''|escape }}" data-room-charges="{{ guests.billing|default_if_none:'' }}" data-room-service="{{ guests.room_service|default_if_none:'' }}" data-laundry="{{ guests.laundry|default_if_none:'' }}" data-cafe="{{ guests.cafe|default_if_none:'' }}" data-excess-pax="{{ guests.excess_pax|default_if_none:'' }}" data-additional-charges="{{ guests.additional_charges|default_if_none:'' }}" data-total-balance="{{ guests.total_balance|default_if_none:'' }}" data-guest-url="{% url 'get_guest' guests.id %}">{{ guests.name }}</option>
+              <option value="{{ guests.id }}"
+                data-booking-source="{{ guests.booking_source|default:'' }}"
+                data-is-walkin="{% if guests.booking_source == 'walkin' %}
+                  
+                  
+                  
+                  
+                  
+                  true
+
+
+
+
+
+                {% else %}
+                  
+                  
+                  
+                  
+                  
+                  false
+
+
+
+
+
+                {% endif %}"
+                data-address="{{ guests.address|default_if_none:''|escape }}"
+                data-email="{{ guests.email|default_if_none:''|escape }}"
+                data-checkin="{{ guests.check_in_date|default_if_none:''|date:'Y-m-d' }}"
+                data-checkout="{{ guests.check_out_date|default_if_none:''|date:'Y-m-d' }}"
+                data-room-type="{{ guests.room_type|default_if_none:''|escape }}"
+                data-total-guests="{{ guests.total_guests|default_if_none:'' }}"
+                data-no-adults="{{ guests.no_of_adults|default_if_none:'' }}"
+                data-no-children="{{ guests.no_of_children|default_if_none:'' }}"
+                data-below-7="{{ guests.children_below_7|default_if_none:'' }}"
+                data-payment-method="{{ guests.payment_method|default_if_none:''|lower }}"
+                data-billing-address="{{ guests.billing_address|default_if_none:''|escape }}"
+                data-card-number="{{ guests.card_number|default_if_none:''|escape }}"
+                data-card-exp="{{ guests.card_exp|default_if_none:''|escape }}"
+                data-card-cvc="{{ guests.card_cvc|default_if_none:''|escape }}"
+                data-room-charges="{{ guests.billing|default_if_none:'' }}"
+                data-room-service="{{ guests.room_service|default_if_none:'' }}"
+                data-laundry="{{ guests.laundry|default_if_none:'' }}"
+                data-cafe="{{ guests.cafe|default_if_none:'' }}"
+                data-excess-pax="{{ guests.excess_pax|default_if_none:'' }}"
+                data-additional-charges="{{ guests.additional_charges|default_if_none:'' }}"
+                data-total-balance="{{ guests.total_balance|default_if_none:'' }}"
+                data-guest-url="{% url 'get_guest' guests.id %}">{{ guests.name }}</option>
             {% endfor %}
           </select>
         </div>
@@ -81,7 +129,7 @@
       <!-- RIGHT COLUMN -->
       <div class="checkout-section">
         <div class="checkout-section-title">Billing Summary</div>
-        <div class="checkout-field">
+        <div class="checkout-field checkout-room-charges-wrapper">
           <label>Room Charges</label><input type="text" class="guest-billing-checkout" />
         </div>
         <div class="checkout-field">
@@ -90,7 +138,7 @@
         <div class="checkout-field">
           <label>Cafe</label><input type="text" class="guest-cafe-billing-checkout" />
         </div>
-        <div class="checkout-field">
+        <div class="checkout-field checkout-additional-charges-wrapper">
           <label>Additional Charges</label><input type="text" class="guest-additional-charge-checkout" />
         </div>
         <div class="checkout-field">
@@ -108,6 +156,8 @@
         const method = document.querySelector('.checkout-payment-method')
         const cardFields = document.querySelector('.checkout-card-fields')
         const billingWrapper = document.querySelector('.checkout-billing-wrapper')
+        const roomChargesWrapper = document.querySelector('.checkout-room-charges-wrapper')
+        const additionalChargesWrapper = document.querySelector('.checkout-additional-charges-wrapper')
         const guestSelect = document.querySelector('.guests-name-checkout')
       
         function applyPaymentVisibility() {
@@ -146,6 +196,61 @@
           el.value = value != null ? value : ''
         }
       
+        function toggleRoomChargesVisibility(isWalkin, bookingSource) {
+          if (!roomChargesWrapper) {
+            console.warn('[Checkout] roomChargesWrapper not found')
+            return
+          }
+      
+          console.log('[Checkout] toggleRoomChargesVisibility called with isWalkin:', isWalkin, 'bookingSource:', bookingSource)
+      
+          // Check if it's a walk-in
+          // Source can be 'walkin', 'reservation', or 'checkin'
+          // 'checkin' means it was a reservation that was checked in, so it should show room charges
+          // 'reservation' means it's a pending reservation, so it should show room charges
+          // 'walkin' means it was a walk-in booking, so it should NOT show room charges
+          const isWalkinGuest = bookingSource === 'walkin'
+          console.log('[Checkout] bookingSource:', bookingSource, 'isWalkinGuest:', isWalkinGuest)
+      
+          if (isWalkinGuest) {
+            // Hide Room Charges for walk-in guests
+            roomChargesWrapper.style.display = 'none'
+            roomChargesWrapper.style.visibility = 'hidden'
+            roomChargesWrapper.style.height = '0'
+            roomChargesWrapper.style.margin = '0'
+            roomChargesWrapper.style.padding = '0'
+            console.log('[Checkout] ✓ Hiding Room Charges - guest is walk-in')
+      
+            // Also hide Additional Charges for walk-in guests
+            if (additionalChargesWrapper) {
+              additionalChargesWrapper.style.display = 'none'
+              additionalChargesWrapper.style.visibility = 'hidden'
+              additionalChargesWrapper.style.height = '0'
+              additionalChargesWrapper.style.margin = '0'
+              additionalChargesWrapper.style.padding = '0'
+              console.log('[Checkout] ✓ Hiding Additional Charges - guest is walk-in')
+            }
+          } else {
+            // Show Room Charges for reservations
+            roomChargesWrapper.style.display = 'flex'
+            roomChargesWrapper.style.visibility = 'visible'
+            roomChargesWrapper.style.height = ''
+            roomChargesWrapper.style.margin = ''
+            roomChargesWrapper.style.padding = ''
+            console.log('[Checkout] ✓ Showing Room Charges - guest is from reservation')
+      
+            // Also show Additional Charges for reservations
+            if (additionalChargesWrapper) {
+              additionalChargesWrapper.style.display = 'flex'
+              additionalChargesWrapper.style.visibility = 'visible'
+              additionalChargesWrapper.style.height = ''
+              additionalChargesWrapper.style.margin = ''
+              additionalChargesWrapper.style.padding = ''
+              console.log('[Checkout] ✓ Showing Additional Charges - guest is from reservation')
+            }
+          }
+        }
+      
         function fillCheckoutFromSelection() {
           if (!guestSelect) return
           const opt = guestSelect.options[guestSelect.selectedIndex]
@@ -153,6 +258,16 @@
           const ds = opt.dataset
       
           console.log('[Checkout] Filling from selection, dataset:', ds)
+          console.log('[Checkout] All dataset keys:', Object.keys(ds))
+      
+          // Toggle Room Charges visibility based on walk-in status
+          // Get booking source directly from data attribute
+          const bookingSource = opt.getAttribute('data-booking-source') || ds.bookingSource || ''
+          const isWalkin = ds.isWalkin || ds.iswalkin || opt.getAttribute('data-is-walkin')
+          console.log('[Checkout] Guest selected, bookingSource:', bookingSource, 'isWalkin:', isWalkin)
+      
+          // Immediately toggle visibility using booking source
+          toggleRoomChargesVisibility(isWalkin, bookingSource)
       
           // Guest and stay info
           setInputValue('.guest-address-checkout', ds.address || '')
@@ -206,10 +321,16 @@
           }
       
           // Billing summary
-          setInputValue('.guest-billing-checkout', ds.roomCharges || '')
+          // Only set room charges and additional charges if not walk-in (should be empty/hidden for walk-in)
+          if (isWalkin !== 'true' && isWalkin !== true && bookingSource !== 'walkin') {
+            setInputValue('.guest-billing-checkout', ds.roomCharges || '')
+            setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
+          } else {
+            setInputValue('.guest-billing-checkout', '')
+            setInputValue('.guest-additional-charge-checkout', '')
+          }
           setInputValue('.guest-laundry-billing-checkout', ds.laundry || '')
           setInputValue('.guest-cafe-billing-checkout', ds.cafe || '')
-          setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
           setInputValue('.guest-total-balance-checkout', ds.totalBalance || '')
         }
       
@@ -217,6 +338,12 @@
           if (!guestSelect) return
           const opt = guestSelect.options[guestSelect.selectedIndex]
           if (!opt) return
+      
+          // Check if guest is walk-in and toggle room charges visibility
+          const bookingSource = opt.getAttribute('data-booking-source') || ''
+          const isWalkin = opt.dataset && opt.dataset.isWalkin
+          toggleRoomChargesVisibility(isWalkin, bookingSource)
+      
           const url = opt.getAttribute('data-guest-url')
           if (!url) return
           try {
@@ -292,10 +419,74 @@
         }
       
         if (guestSelect) {
+          // Use a more reliable event listener that runs after other handlers
+          guestSelect.addEventListener(
+            'change',
+            function () {
+              console.log('[Checkout] Guest selection changed')
+              // Use setTimeout to ensure this runs after checkout.js handlers
+              setTimeout(function () {
+                const opt = guestSelect.options[guestSelect.selectedIndex]
+                if (opt) {
+                  const bookingSource = opt.getAttribute('data-booking-source') || ''
+                  const isWalkin = opt.getAttribute('data-is-walkin')
+                  console.log('[Checkout] Change event - bookingSource:', bookingSource, 'isWalkin:', isWalkin)
+                  toggleRoomChargesVisibility(isWalkin, bookingSource)
+                }
+              }, 10)
+            },
+            true
+          ) // Use capture phase to run before other handlers
+      
+          // Also add a direct handler
           guestSelect.addEventListener('change', function () {
             fillCheckoutFromSelection()
             fetchAndFillPayment()
           })
+        }
+      
+        // Initialize room charges visibility on page load and when modal opens
+        function initializeRoomChargesVisibility() {
+          if (guestSelect && guestSelect.selectedIndex > 0) {
+            const opt = guestSelect.options[guestSelect.selectedIndex]
+            if (opt && opt.dataset) {
+              const bookingSource = opt.getAttribute('data-booking-source') || ''
+              const isWalkin = opt.dataset.isWalkin
+              console.log('[Checkout] Initializing room charges visibility, bookingSource:', bookingSource, 'isWalkin:', isWalkin)
+              toggleRoomChargesVisibility(isWalkin, bookingSource)
+            }
+          } else {
+            // Hide by default if no guest selected
+            if (roomChargesWrapper) {
+              roomChargesWrapper.style.display = 'none'
+              console.log('[Checkout] No guest selected, hiding Room Charges')
+            }
+            if (additionalChargesWrapper) {
+              additionalChargesWrapper.style.display = 'none'
+              console.log('[Checkout] No guest selected, hiding Additional Charges')
+            }
+          }
+        }
+      
+        // Call on page load
+        initializeRoomChargesVisibility()
+      
+        // Also call when checkout modal overlay becomes visible
+        const checkoutOverlay = document.querySelector('.checkout-overlay')
+        if (checkoutOverlay) {
+          // Use MutationObserver to detect when modal becomes visible
+          const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+              if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const display = checkoutOverlay.style.display
+                if (display === 'flex' || display === 'block') {
+                  console.log('[Checkout] Modal opened, re-checking room charges visibility')
+                  setTimeout(initializeRoomChargesVisibility, 50)
+                }
+              }
+            })
+          })
+          observer.observe(checkoutOverlay, { attributes: true, attributeFilter: ['style'] })
         }
       })
     </script>

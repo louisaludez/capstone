@@ -2,8 +2,28 @@ flatpickr("#ci-dob", { dateFormat: "Y-m-d", allowInput: true });
 flatpickr("#ci-checkin", { dateFormat: "Y-m-d", allowInput: true });
 flatpickr("#ci-checkout", { dateFormat: "Y-m-d", allowInput: true });
 flatpickr("#ci-guest-birth", { dateFormat: "Y-m-d", allowInput: true });
-flatpickr("#ci-checkin-date", { dateFormat: "Y-m-d", allowInput: true });
-flatpickr("#ci-checkout-date", { dateFormat: "Y-m-d", allowInput: true });
+var ciCheckinPicker = flatpickr("#ci-checkin-date", {
+  dateFormat: "Y-m-d",
+  allowInput: true,
+  onChange: function (selectedDates, dateStr, instance) {
+    if (typeof window.calculateCheckinBalance === 'function') {
+      setTimeout(function () {
+        window.calculateCheckinBalance();
+      }, 100);
+    }
+  }
+});
+var ciCheckoutPicker = flatpickr("#ci-checkout-date", {
+  dateFormat: "Y-m-d",
+  allowInput: true,
+  onChange: function (selectedDates, dateStr, instance) {
+    if (typeof window.calculateCheckinBalance === 'function') {
+      setTimeout(function () {
+        window.calculateCheckinBalance();
+      }, 100);
+    }
+  }
+});
 flatpickr("#ci-exp-date", { dateFormat: "Y-m-d", allowInput: true });
 const ciPaymentMethod = document.querySelector(".checkin-payment-method");
 const ciCardFields = document.querySelector(".checkin-card-fields");
@@ -156,8 +176,58 @@ document
     // Ensure addons popup is hidden initially
     try { $("#checkin-addons-popup").hide(); } catch (e) { }
 
+    // Update room dropdown to disable rooms under maintenance or in housekeeping
+    updateRoomDropdownAvailability();
 
   });
+
+// Function to update room dropdown based on current room statuses
+function updateRoomDropdownAvailability() {
+  const roomSelect = document.getElementById('ci-room-type');
+  if (!roomSelect) return;
+
+  console.log('[checkin] Updating room dropdown availability');
+
+  // Get current date for room status check
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Fetch current room statuses
+  $.getJSON('/staff/api/room-status/', { date: today })
+    .done(function (data) {
+      console.log('[checkin] Room status data received:', data);
+
+      // Disable rooms that are under maintenance or in housekeeping
+      Array.from(roomSelect.options).forEach(function (option) {
+        if (option.value === '' || option.value === null) return; // Skip placeholder
+
+        const roomCode = option.value;
+        const hkStatus = data.housekeeping_status && data.housekeeping_status[roomCode];
+
+        if (hkStatus === 'under_maintenance' || hkStatus === 'in_progress') {
+          option.disabled = true;
+          option.style.color = '#999';
+          option.style.backgroundColor = '#f0f0f0';
+          // Add indicator to option text
+          if (hkStatus === 'under_maintenance') {
+            option.textContent = option.textContent.replace(/\s*\(.*\)$/, '') + ' (Under Maintenance)';
+          } else if (hkStatus === 'in_progress') {
+            option.textContent = option.textContent.replace(/\s*\(.*\)$/, '') + ' (In Housekeeping)';
+          }
+          console.log(`[checkin] Disabled room ${roomCode}: ${hkStatus}`);
+        } else {
+          option.disabled = false;
+          option.style.color = '';
+          option.style.backgroundColor = '';
+          // Remove any status indicators
+          option.textContent = option.textContent.replace(/\s*\(Under Maintenance\)$/, '')
+            .replace(/\s*\(In Housekeeping\)$/, '');
+        }
+      });
+    })
+    .fail(function (error) {
+      console.error('[checkin] Failed to fetch room status:', error);
+    });
+}
 // When a name is chosen, map it to the reservation and prefill details
 $(document).on("change", "#ci-guest-name", function () {
   var $opt = $("#ci-guest-name option:selected");
@@ -196,7 +266,16 @@ $(document).on("change", "#ci-guest-name", function () {
   if (room) $("#ci-room-type").val(room);
   if (payMethod) $("#ci-payment-method").val(payMethod).trigger("change");
   if (billingAddr) $("#ci-billing-address").val(billingAddr);
-  if (typeof balance !== "undefined") $("#ci-current-balance").val(balance);
+  // Calculate balance based on room, dates, and add-ons instead of using pre-filled balance
+  // This ensures balance includes add-ons
+  if (typeof window.calculateCheckinBalance === 'function') {
+    setTimeout(function () {
+      window.calculateCheckinBalance();
+    }, 100);
+  } else if (typeof balance !== "undefined") {
+    // Fallback to pre-filled balance if calculation function not available
+    $("#ci-current-balance").val(balance);
+  }
   if ((payMethod || "").toLowerCase() === "card") {
     $("#ci-card-number").val(cardNumber || "");
     $("#ci-exp-date").val(cardExp || "");
@@ -266,15 +345,15 @@ function printCheckinReceipt(data, receiptNumber) {
   
   // Room type to price mapping
   const roomPrices = {
-    'Standard': 1500,
-    'Family': 2500,
-    'Deluxe': 4500
+    'Standard': 3500,
+    'Family': 4700,
+    'Deluxe': 8900
   };
   
   // Extract room type from room selection
   const roomSelect = document.getElementById('ci-room-type');
   let roomType = 'Deluxe';
-  let roomPrice = 4500;
+  let roomPrice = 8900;
   
   if (roomSelect && roomSelect.options[roomSelect.selectedIndex]) {
     const roomText = roomSelect.options[roomSelect.selectedIndex].text;
@@ -466,11 +545,11 @@ function printCheckinReceipt(data, receiptNumber) {
   printWindow.document.close();
   
   // Function to handle printing and return focus to main window
-  const triggerPrint = function() {
+  const triggerPrint = function () {
     try {
       printWindow.print();
       // Return focus to main window after a short delay
-      setTimeout(function() {
+      setTimeout(function () {
         window.focus();
       }, 100);
     } catch (e) {
@@ -481,12 +560,12 @@ function printCheckinReceipt(data, receiptNumber) {
 
   // Wait for content to load, then print
   // Use both onload and a timeout as fallback
-  printWindow.onload = function() {
+  printWindow.onload = function () {
     setTimeout(triggerPrint, 250);
   };
   
   // Fallback: if onload doesn't fire, try printing after a delay
-  setTimeout(function() {
+  setTimeout(function () {
     if (printWindow.document.readyState === 'complete' || printWindow.document.readyState === 'interactive') {
       if (!printWindow.document.body || printWindow.document.body.innerHTML === '') {
         return; // Content not ready yet
@@ -497,7 +576,7 @@ function printCheckinReceipt(data, receiptNumber) {
   
   // Ensure main window regains focus even if print dialog is cancelled
   // Listen for when print window closes or loses focus
-  const checkPrintWindow = setInterval(function() {
+  const checkPrintWindow = setInterval(function () {
     if (printWindow.closed) {
       clearInterval(checkPrintWindow);
       window.focus();
@@ -505,7 +584,7 @@ function printCheckinReceipt(data, receiptNumber) {
   }, 500);
   
   // Clean up interval after 10 seconds
-  setTimeout(function() {
+  setTimeout(function () {
     clearInterval(checkPrintWindow);
     window.focus();
   }, 10000);
@@ -522,6 +601,98 @@ $(".checkin-book-btn").on("click", function (event) {
       confirmButtonColor: "#1a2d1e",
     });
     return;
+  }
+
+  // Check if selected room is under maintenance or in housekeeping
+  const selectedRoom = $("#ci-room-type").val();
+  if (selectedRoom) {
+    // Get the room element from the front office grid
+    const roomElement = document.querySelector(`[data-room="${selectedRoom}"]`);
+    if (roomElement) {
+      const hasMaintenance = roomElement.classList.contains('maintinance') ||
+        roomElement.classList.contains('maintenance') ||
+        roomElement.getAttribute('data-housekeeping') === 'under_maintenance';
+      const hasHousekeeping = roomElement.classList.contains('housekeeping') ||
+        roomElement.getAttribute('data-housekeeping') === 'in_progress';
+
+      console.log('[checkin] Room check:', {
+        room: selectedRoom,
+        hasMaintenance: hasMaintenance,
+        hasHousekeeping: hasHousekeeping,
+        classes: roomElement.className,
+        dataHousekeeping: roomElement.getAttribute('data-housekeeping')
+      });
+
+      if (hasMaintenance) {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Room Under Maintenance",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🔧</div>
+              <h3 style="color: #d4c21a; font-weight: bold; margin-bottom: 15px;">Room ${selectedRoom} is Under Maintenance</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                This room is currently unavailable for check-in due to maintenance work.
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room to proceed with check-in.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#d4c21a",
+          confirmButtonClass: "swal2-confirm",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+          customClass: {
+            popup: 'maintenance-error-modal',
+            title: 'maintenance-error-title',
+            htmlContainer: 'maintenance-error-content'
+          }
+        });
+        return;
+      }
+
+      if (hasHousekeeping) {
+        Swal.fire({
+          icon: "info",
+          title: "🧹 Room In Housekeeping",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
+              <h3 style="color: #0f3f86; font-weight: bold; margin-bottom: 15px;">Room ${selectedRoom} is Currently Being Cleaned</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                This room is currently in housekeeping and cannot be checked in at this time.
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room or wait until housekeeping is complete.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#0f3f86",
+          confirmButtonClass: "swal2-confirm",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+          customClass: {
+            popup: 'housekeeping-error-modal',
+            title: 'housekeeping-error-title',
+            htmlContainer: 'housekeeping-error-content'
+          }
+        });
+        return;
+      }
+    } else {
+      // If room element not found, check via API
+      console.log('[checkin] Room element not found, checking via API for room:', selectedRoom);
+      // We'll let the backend handle this validation
+    }
   }
 
   checkinModal.style.display = "none";
@@ -693,7 +864,7 @@ $(".checkin-book-btn").on("click", function (event) {
               // Close SweetAlert first to prevent blocking
               Swal.close();
               // Small delay to ensure SweetAlert is fully closed before printing
-              setTimeout(function() {
+              setTimeout(function () {
                 // Get receipt number from response or use default
                 const receiptNumber = response.receipt_number || response.reference_number || "00001";
                 printCheckinReceipt(data, receiptNumber);
@@ -703,8 +874,85 @@ $(".checkin-book-btn").on("click", function (event) {
         }
       });
     },
-    error: function (error) {
-      console.log("Check-in error:", error);
+    error: function (xhr, status, error) {
+      console.log("Check-in error:", xhr, status, error);
+      let errorMessage = "Failed to check in. Please try again.";
+
+      if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+        errorMessage = xhr.responseJSON.message;
+      } else if (xhr && xhr.responseText) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          if (response.message) {
+            errorMessage = response.message;
+          } else if (response.error) {
+            errorMessage = response.error;
+          }
+        } catch (e) {
+          // If not JSON, use default message
+        }
+      }
+
+      // Check for specific error messages about maintenance or housekeeping
+      if (errorMessage.toLowerCase().includes('maintenance')) {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Room Under Maintenance",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🔧</div>
+              <h3 style="color: #d4c21a; font-weight: bold; margin-bottom: 15px;">Room Unavailable</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                ${errorMessage}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room to proceed with check-in.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#d4c21a",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+        });
+      } else if (errorMessage.toLowerCase().includes('housekeeping')) {
+        Swal.fire({
+          icon: "info",
+          title: "🧹 Room In Housekeeping",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
+              <h3 style="color: #0f3f86; font-weight: bold; margin-bottom: 15px;">Room Unavailable</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                ${errorMessage}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room or wait until housekeeping is complete.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#0f3f86",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Check-in Failed",
+          text: errorMessage,
+          confirmButtonColor: "#1a2d1e",
+        });
+      }
+
+      // Re-show the modal if it was hidden
+      checkinModal.style.display = "block";
     },
   });
 });
@@ -738,7 +986,10 @@ $(document).on('click', '#checkin-bed-minus, #checkin-bed-plus, #checkin-pillow-
   const type = this.id.replace('checkin-', '').replace('-plus', '').replace('-minus', '');
   const delta = isPlus ? 1 : -1;
   console.log('[checkin] addons adjust', { type, delta });
-  if (typeof changeCheckinAddon === 'function') {
+  // Use window.changeCheckinAddon if available (from check-in-modal.html), otherwise use local function
+  if (typeof window.changeCheckinAddon === 'function') {
+    window.changeCheckinAddon(type, delta);
+  } else if (typeof changeCheckinAddon === 'function') {
     changeCheckinAddon(type, delta);
   }
 });

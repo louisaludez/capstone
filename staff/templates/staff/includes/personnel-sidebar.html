@@ -1,9 +1,13 @@
 {% load static %}
-<div class="sidebar bg-gradient text-white" style="min-width: 17.63%; max-width: 17.63%;">
-  <div class="text-center p-3">
-    <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" />
+<!-- Mobile Hamburger Button -->
+<button class="btn btn-light d-md-none position-fixed top-0 start-0 m-2 z-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" style="z-index: 1050;"><i class="bi bi-list"></i></button>
+
+<!-- Desktop Sidebar (visible on md and up) -->
+<div class="sidebar bg-gradient text-white d-none d-md-flex flex-column">
+  <div class="text-center p-3 d-flex flex-column align-items-center">
+    <img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" style="max-width: 80%; height: auto; object-fit: contain;" />
   </div>
-  <div class="sidebar-menu mt-4 mb-5">
+  <div class="sidebar-menu mt-2 d-flex flex-column align-items-center">
     <a href="{% url 'HomeStaff' %}" class="{% if active_page == 'dashboard' %}active{% endif %}">Front Office</a>
     <a href="{% url 'MessageStaff' %}" class="{% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
     <a href="{% url 'activity_home' %}" class="{% if active_page == 'activities' %}active{% endif %}">Activities</a>
@@ -11,11 +15,183 @@
       <a href="{% url 'admin_home' %}">Admin</a>
     {% endif %}
   </div>
-  <div class="mt-auto p-3 d-flex flex-column align-items-center">
+  <div class="p-3 d-flex flex-column align-items-center mt-auto">
     <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold;">
-      <em>You are logged in as <span style="text-decoration: underline;">{{ user.username }}</span></em>
+      <em>You are logged in as <span style="text-decoration: underline; color:white">{{ user.username }}</span></em>
     </p>
 
     <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill"><em>Sign out</em></a>
   </div>
 </div>
+
+<!-- Mobile Offcanvas Sidebar -->
+<div class="offcanvas offcanvas-start bg-gradient text-white" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel" style="width: 280px;">
+  <div class="offcanvas-header d-flex flex-column align-items-center">
+    <h5 class="offcanvas-title text-white text-center w-100 mb-0" id="sidebarOffcanvasLabel"><img src="{% static 'images/new HMS.png' %}" alt="ACES Logo" class="logo mb-2" style="max-width: 60%; height: auto; object-fit: contain;" /></h5>
+    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body d-flex flex-column p-0">
+    <div class="sidebar-menu mt-2 flex-grow-1 d-flex flex-column align-items-center px-3">
+      <a href="{% url 'HomeStaff' %}" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">Front Office</a>
+      <a href="{% url 'MessageStaff' %}" class="sidebar-link {% if active_page == 'messenger' %}active{% endif %}">Messenger</a>
+      <a href="{% url 'activity_home' %}" class="sidebar-link {% if active_page == 'activities' %}active{% endif %}">Activities</a>
+      {% if request.user.role == 'SUPER_ADMIN' %}
+        <a href="{% url 'admin_home' %}" class="sidebar-link">Admin</a>
+      {% endif %}
+    </div>
+    <div class="p-3 d-flex flex-column align-items-center mt-auto">
+      <p class="small text-center mb-2" style="font-size: 0.8rem; font-weight: bold;">
+        <em>You are logged in as <span style="text-decoration: underline; color:white">{{ user.username }}</span></em>
+      </p>
+
+      <a href="{% url 'logout' %}" class="btn btn-light btn-sm px-4 rounded-pill"><em>Sign out</em></a>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Responsive sidebar styles */
+  @media (max-width: 767.98px) {
+    .sidebar {
+      display: none !important;
+    }
+  }
+  
+  @media (min-width: 768px) and (max-width: 991.98px) {
+    .sidebar {
+      min-width: 200px !important;
+      max-width: 200px !important;
+    }
+  }
+  
+  @media (min-width: 992px) and (max-width: 1199.98px) {
+    .sidebar {
+      min-width: 250px !important;
+      max-width: 250px !important;
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .sidebar {
+      min-width: 280px !important;
+      max-width: 280px !important;
+    }
+  }
+  
+  /* Desktop sidebar menu - centered and fixed width */
+  .sidebar .sidebar-menu {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+  
+  .sidebar .sidebar-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    text-decoration: none;
+    background-color: white;
+    transition: background-color 0.3s;
+    width: 80%;
+    max-width: 200px;
+    margin-bottom: 10px;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 10px;
+    height: 45px;
+    font-size: 0.9rem;
+  }
+  
+  .sidebar .sidebar-menu a:hover,
+  .sidebar .sidebar-menu a.active {
+    background-color: #7eb455;
+  }
+  
+  /* Mobile offcanvas sidebar menu styling */
+  .offcanvas .sidebar-menu {
+    width: 100%;
+  }
+  
+  .offcanvas .sidebar-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black !important;
+    text-decoration: none;
+    background-color: white;
+    transition: background-color 0.3s;
+    width: 80%;
+    max-width: 220px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    height: 45px;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+  
+  .offcanvas .sidebar-link:hover,
+  .offcanvas .sidebar-link.active {
+    background-color: #7eb455;
+    color: black !important;
+  }
+  
+  /* Hamburger button styling */
+  .btn[data-bs-toggle='offcanvas'] {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn[data-bs-toggle='offcanvas']:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Ensure offcanvas body is clickable */
+  .offcanvas-body {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+
+<script>
+  // Close offcanvas when menu link is clicked
+  document.addEventListener('DOMContentLoaded', function () {
+    const offcanvasLinks = document.querySelectorAll('.offcanvas .sidebar-link')
+    const offcanvasElement = document.getElementById('sidebarOffcanvas')
+  
+    if (!offcanvasElement || !offcanvasLinks.length) return
+  
+    offcanvasLinks.forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        // Close the offcanvas after a short delay to allow navigation
+        setTimeout(function () {
+          try {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
+              const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement)
+              if (offcanvas) {
+                offcanvas.hide()
+              } else {
+                // If no instance exists, create one and hide it
+                const bsOffcanvas = new bootstrap.Offcanvas(offcanvasElement)
+                bsOffcanvas.hide()
+              }
+            }
+          } catch (error) {
+            console.error('Error closing offcanvas:', error)
+            // Fallback: manually hide the offcanvas
+            offcanvasElement.classList.remove('show')
+            document.body.classList.remove('offcanvas-backdrop')
+            const backdrop = document.querySelector('.offcanvas-backdrop')
+            if (backdrop) backdrop.remove()
+          }
+        }, 100)
+      })
+    })
+  })
+</script>

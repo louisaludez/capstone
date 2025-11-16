@@ -42,6 +42,14 @@ def home(request):
         guest_obj.no_of_adults = getattr(primary_booking, 'num_of_adults', '') if primary_booking else ''
         guest_obj.no_of_children = getattr(primary_booking, 'num_of_children', '') if primary_booking else ''
         guest_obj.children_below_7 = getattr(primary_booking, 'no_of_children_below_7', '') if primary_booking else ''
+        # Add booking source to identify walk-in vs reservation
+        # Source can be 'walkin', 'reservation', or 'checkin'
+        # 'checkin' means it was a reservation that was checked in
+        # 'walkin' means it was a walk-in booking
+        # 'reservation' means it's still a pending reservation
+        booking_source = getattr(primary_booking, 'source', '') if primary_booking else ''
+        guest_obj.booking_source = booking_source
+        print(f"[home view] Guest {guest_obj.name}: booking_source = '{booking_source}'")
 
         # Map guest billing aliases for template compatibility
         guest_obj.room_service = getattr(guest_obj, 'room_service_billing', '') or ''
@@ -233,6 +241,29 @@ def book_room(request):
             check_in_date = datetime.strptime(check_in_date, '%Y-%m-%d').date()
             check_out_date = datetime.strptime(check_out_date, '%Y-%m-%d').date()
             print(f"[DEBUG] Parsed dates - Check-in: {check_in_date}, Check-out: {check_out_date}")
+
+            # Check if room is in housekeeping or under maintenance
+            from housekeeping.models import Housekeeping
+            import re as _re
+            room_code_match = _re.search(r"\d+", str(room_number))
+            room_code = room_code_match.group(0) if room_code_match else str(room_number)
+            
+            # Get the most recent housekeeping record for this room
+            latest_hk = Housekeeping.objects.filter(room_number=room_code).order_by('-created_at').first()
+            if latest_hk and latest_hk.status:
+                status_lower = latest_hk.status.lower()
+                if 'maintenance' in status_lower or 'under maintenance' in status_lower:
+                    print(f"[DEBUG] Room {room_code} is under maintenance, cannot check in")
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Room {room_code} is currently under maintenance and cannot be checked in.'
+                    }, status=400)
+                elif 'progress' in status_lower or 'in progress' in status_lower:
+                    print(f"[DEBUG] Room {room_code} is in housekeeping, cannot check in")
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Room {room_code} is currently in housekeeping and cannot be checked in.'
+                    }, status=400)
 
             # Create booking
             print("[DEBUG] Creating booking")
@@ -626,11 +657,46 @@ def room_status(request):
     except Exception:
         pass
 
+    # Get housekeeping status for all rooms
+    from housekeeping.models import Housekeeping
+    housekeeping_status = {}
+    
+    # Get all unique room numbers that have housekeeping records
+    room_numbers = Housekeeping.objects.values_list('room_number', flat=True).distinct()
+    print(f"[room_status] Checking housekeeping for {len(room_numbers)} rooms")
+    
+    for room_num in room_numbers:
+        room_code = normalize_room_code(room_num)
+        if room_code:
+            # Get the most recent status for this room
+            latest_hk = Housekeeping.objects.filter(
+                room_number=room_num
+            ).order_by('-created_at').first()
+            if latest_hk and latest_hk.status:
+                status_lower = latest_hk.status.lower()
+                print(f"[room_status] Room {room_code}: status='{latest_hk.status}', lowercase='{status_lower}'")
+                
+                # Check maintenance FIRST (it should take priority)
+                if 'maintenance' in status_lower or 'under maintenance' in status_lower:
+                    housekeeping_status[room_code] = 'under_maintenance'
+                    print(f"  -> Set to 'under_maintenance'")
+                elif 'progress' in status_lower or 'in progress' in status_lower:
+                    housekeeping_status[room_code] = 'in_progress'
+                    print(f"  -> Set to 'in_progress'")
+                elif 'pending' in status_lower:
+                    housekeeping_status[room_code] = 'pending'
+                    print(f"  -> Set to 'pending'")
+                else:
+                    print(f"  -> No match, skipping")
+    
+    print(f"[room_status] Final housekeeping_status: {housekeeping_status}")
+
     return JsonResponse({
         "occupied": list(occupied_set),
         "reserved": list(reserved_set),
         "occupied_details": occupied_details,
         "reserved_details": reserved_details,
+        "housekeeping_status": housekeeping_status,  # Add housekeeping status
         "room_info": {
             "total": total_rooms,
             "vacant": room_status_counts['available'],

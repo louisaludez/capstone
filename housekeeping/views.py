@@ -12,13 +12,27 @@ from chat.models import Message
 from users.models import CustomUser
 from django.utils import timezone
 def housekeeping_home(request):
-    hk = Housekeeping.objects.all()[:3]
+    hk_list = Housekeeping.objects.all().order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(hk_list, 5)  # Show 5 requests per page
+    page = request.GET.get('page')
+    
+    try:
+        housekeeping = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        housekeeping = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results
+        housekeeping = paginator.page(paginator.num_pages)
+    
     rooms = []
     today = timezone.localdate()
     for i in range(1, 13):  # Rooms 1–12
         room_number = str(i)
 
-        # Only show non-vacant colors if there is an active booking today
+        # Check for active booking today
         has_booking_today = Booking.objects.filter(
             room=room_number,
             status='Checked-in',
@@ -26,17 +40,38 @@ def housekeeping_home(request):
             check_out_date__gte=today,
         ).exists()
 
+        # Get the most recent housekeeping record for this room
+        record = Housekeeping.objects.filter(room_number=room_number).order_by('-created_at').first()
+
         status_class = 'vacant'
-        if has_booking_today:
-            record = Housekeeping.objects.filter(room_number=room_number).order_by('-created_at').first()
-            if record and record.status:
-                s = record.status.strip().lower()
-                if 'pending' in s:
+        if record and record.status:
+            s = record.status.strip().lower()
+            print(f"Room {room_number}: record status='{record.status}', lowercase='{s}', has_booking={has_booking_today}")
+            # Check for maintenance status first (applies regardless of booking)
+            if 'maintenance' in s or 'under maintenance' in s:
+                status_class = 'maintenance'
+                print(f"  -> Setting status_class to 'maintenance'")
+            elif 'pending' in s:
+                # Only show pending if there's a booking
+                if has_booking_today:
                     status_class = 'pending'
-                elif 'progress' in s:
-                    status_class = 'progress'
+                    print(f"  -> Setting status_class to 'pending' (has booking)")
                 else:
                     status_class = 'vacant'
+                    print(f"  -> Setting status_class to 'vacant' (no booking)")
+            elif 'progress' in s or 'in progress' in s:
+                # Only show progress if there's a booking
+                if has_booking_today:
+                    status_class = 'progress'
+                    print(f"  -> Setting status_class to 'progress' (has booking)")
+                else:
+                    status_class = 'vacant'
+                    print(f"  -> Setting status_class to 'vacant' (no booking)")
+            else:
+                status_class = 'vacant'
+                print(f"  -> Setting status_class to 'vacant' (default)")
+        else:
+            print(f"Room {room_number}: No record or no status -> 'vacant'")
 
         rooms.append({
             "number": room_number,
@@ -44,61 +79,118 @@ def housekeeping_home(request):
             "has_booking_today": has_booking_today,
         })
 
-    return render(request, 'housekeeping/housekeeping_home.html', {'housekeeping': hk, 'rooms': rooms})
+    return render(request, 'housekeeping/housekeeping_home.html', {
+        'housekeeping': housekeeping,
+        'paginator': paginator,
+        'rooms': rooms
+    })
 @csrf_exempt
 def update_status(request):
-    print("update_status view called")  # Debug
-    print(f"Request method: {request.method}")  # Debug
+    print("=" * 50)
+    print("=== UPDATE_STATUS VIEW CALLED ===")
+    print(f"Request method: {request.method}")
+    print("=" * 50)
 
     if request.method == 'POST':
         room_number = request.POST.get('room_no')
         status = request.POST.get('status')
         request_type = request.POST.get('request_type')
 
-        print(f"POST data received - Room Number: {room_number}, Status: {status}, Request Type: {request_type}")  # Debug
+        print(f"POST data received:")
+        print(f"  - Room Number: {room_number}")
+        print(f"  - Status: {status}")
+        print(f"  - Request Type: {request_type}")
+        print(f"  - All POST data: {dict(request.POST)}")
+
+        # Check if status is "Under Maintenance" (case-insensitive)
+        status_lower = status.lower() if status else ''
+        is_under_maintenance = 'maintenance' in status_lower or 'under maintenance' in status_lower
+        print(f"Status check:")
+        print(f"  - Status (lowercase): '{status_lower}'")
+        print(f"  - Is Under Maintenance: {is_under_maintenance}")
+
+        # Check if there's a checked-in guest for this room today
+        today = timezone.localdate()
+        print(f"  - Today's date: {today}")
+        
+        booking = Booking.objects.filter(
+            room=room_number,
+            status='Checked-in',
+            check_in_date__lte=today,
+            check_out_date__gte=today,
+        ).order_by('-booking_date').first()
+
+        has_checked_in_guest = booking is not None
+        print(f"Booking check:")
+        print(f"  - Booking found: {booking}")
+        print(f"  - Has checked-in guest: {has_checked_in_guest}")
+
+        # If trying to set under-maintenance and there's a checked-in guest, prevent it
+        if is_under_maintenance and has_checked_in_guest:
+            print("❌ BLOCKED: Cannot set under-maintenance when guest is checked in")
+            return JsonResponse({
+                'error': 'Cannot set room to Under Maintenance when there is a checked-in guest.',
+                'has_guest': True
+            }, status=400)
+        
+        if is_under_maintenance and not has_checked_in_guest:
+            print("✓ ALLOWED: Setting under-maintenance (no guest checked in)")
+
+        # Get guest name if booking exists, otherwise use None
+        # Allow status updates even when there's no guest (for under-maintenance and other statuses)
+        guest_name = booking.guest.name if booking else None
+        print(f"Guest name: {guest_name}")
 
         try:
-            # Get the most recent active booking for this room for today's date
-            today = timezone.localdate()
-            booking = Booking.objects.filter(
-                room=room_number,
-                status='Checked-in',
-                check_in_date__lte=today,
-                check_out_date__gte=today,
-            ).order_by('-booking_date').first()
-            if not booking:
-                print("No active booking today for that room number.")  # Debug
-                return JsonResponse({'error': 'No active booking today for this room'}, status=404)
-            print(f"Booking found: {booking}")  # Debug
-            guest = booking.guest.name
-            print(f"Guest name: {guest}")  # Debug
-        except Exception as e:
-            print(f"Error finding booking: {e}")  # Debug
-            return JsonResponse({'error': 'Error finding booking for this room'}, status=500)
-
-        try:
-            hk, created = Housekeeping.objects.update_or_create(
-                room_number=room_number,
-                guest_name=guest,
-                request_type=request_type,   # key field for uniqueness
-                defaults={
-                    'status': status
-                }
-            )
+            print("Attempting to update/create housekeeping record...")
+            # For "Under Maintenance" and "No requests", use room_number and status as unique key
+            # For other statuses, use room_number and request_type as unique key
+            if is_under_maintenance or (status and 'no requests' in status.lower()):
+                # Use room_number only as the key for maintenance/no requests status
+                # This allows one maintenance record per room regardless of request type
+                hk, created = Housekeeping.objects.update_or_create(
+                    room_number=room_number,
+                    status=status,
+                    defaults={
+                        'request_type': request_type or 'Room Status Update',
+                        'guest_name': guest_name
+                    }
+                )
+            else:
+                # For other statuses, use room_number and request_type as unique keys
+                hk, created = Housekeeping.objects.update_or_create(
+                    room_number=room_number,
+                    request_type=request_type,
+                    defaults={
+                        'status': status,
+                        'guest_name': guest_name
+                    }
+                )
             if created:
-                print(f"New Housekeeping record created: {hk}")  # Debug
+                print(f"✓ New Housekeeping record created: {hk}")
                 message = f'New housekeeping record created for room {room_number}, service {request_type}, status {status}'
             else:
-                print(f"Housekeeping record updated: {hk}")  # Debug
+                print(f"✓ Housekeeping record updated: {hk}")
                 message = f'Housekeeping record for room {room_number}, service {request_type} updated to {status}'
 
-            return JsonResponse({'message': message}, status=200)
+            response_data = {
+                'message': message,
+                'has_guest': has_checked_in_guest,
+                'status': status
+            }
+            print(f"Response data: {response_data}")
+            print("=" * 50)
+            return JsonResponse(response_data, status=200)
 
         except Exception as e:
-            print(f"Error with update_or_create: {e}")  # Debug
+            print(f"❌ ERROR with update_or_create: {e}")
+            import traceback
+            print(traceback.format_exc())
+            print("=" * 50)
             return JsonResponse({'error': str(e)}, status=500)
 
-    print("Request method was not POST.")  # Debug
+    print("❌ Request method was not POST.")
+    print("=" * 50)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @login_required

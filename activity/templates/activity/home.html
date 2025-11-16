@@ -4,17 +4,31 @@
   <link rel="stylesheet" href="{% static 'main.css' %}" />
 {% endblock %} {% block extra_head %}
   <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    @media (min-width: 992px) {
+      .content-wrapper {
+        max-width: 1020px;
+        margin: 0 auto;
+      }
+    }
+    
     .parent {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-template-rows: repeat(5, 1fr);
       gap: 14px;
+      padding: 20px;
+      justify-items: center;
     }
     
     .parent > div {
       background: #ffffff;
       border-radius: 6px;
-    
       text-align: center;
       font-weight: bold;
       min-width: 0;
@@ -34,28 +48,35 @@
       margin-bottom: 20px;
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
+    
     .parent > div:hover {
       transform: translateY(-4px);
       box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
       border-color: #1b7a1b;
     }
+    
     .parent > div img {
-      max-width: 150px; /* cap width */
-      max-height: 100px; /* cap height */
-      width: auto; /* keep aspect ratio */
-      height: auto; /* keep aspect ratio */
-      margin: 0 auto 10px; /* center */
-      object-fit: contain; /* avoid stretching */
+      max-width: 150px;
+      max-height: 100px;
+      width: auto;
+      height: auto;
+      margin: 0 auto 10px;
+      object-fit: contain;
       display: block;
       transition: transform 0.2s ease;
     }
+    
     .parent > div:hover img {
       transform: scale(1.03);
     }
-    span {
+    
+    .parent > div span {
       color: #216216;
       margin-top: 10px;
+      font-size: 14px;
+      padding: 0 5px;
     }
+    
     #select_activity {
       margin-bottom: 35px;
       margin-top: 60px;
@@ -63,9 +84,11 @@
       font-weight: bold;
       font-size: 40px;
     }
+    
     .row {
       margin-left: 15px;
     }
+    
     .div6 {
       grid-column-start: 1;
       grid-row-start: 2;
@@ -76,15 +99,70 @@
       grid-row-start: 2;
     }
     
+    /* Responsive breakpoints */
+    @media (max-width: 1200px) {
+      .parent {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding: 15px;
+      }
+    }
+    
     @media (max-width: 900px) {
       .parent {
         grid-template-columns: repeat(3, 1fr);
         grid-template-rows: repeat(3, 1fr);
+        gap: 12px;
+        padding: 15px;
       }
+    
       .div6,
       .div7 {
         grid-column-start: auto;
         grid-row-start: auto;
+      }
+    
+      .parent > div {
+        width: 100%;
+        max-width: 200px;
+      }
+    
+      #select_activity {
+        font-size: 32px;
+        margin-left: 15px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .parent {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 12px;
+      }
+    
+      .parent > div {
+        height: 160px;
+        max-width: 100%;
+      }
+    
+      .parent > div img {
+        max-width: 120px;
+        max-height: 80px;
+      }
+    
+      .parent > div span {
+        font-size: 13px;
+      }
+    
+      #select_activity {
+        font-size: 28px;
+        margin-left: 12px;
+        margin-top: 40px;
+        margin-bottom: 25px;
+      }
+    
+      .row {
+        margin-left: 10px;
       }
     }
     
@@ -92,60 +170,119 @@
       .parent {
         grid-template-columns: 1fr;
         grid-template-rows: none;
-      }
-      .parent > div {
-        min-height: 40px;
+        gap: 12px;
         padding: 10px;
+      }
+    
+      .parent > div {
+        width: 100%;
+        max-width: 100%;
+        height: 150px;
+        min-height: 150px;
+        padding: 10px;
+        margin-bottom: 0;
+      }
+    
+      .parent > div img {
+        max-width: 100px;
+        max-height: 70px;
+      }
+    
+      .parent > div span {
+        font-size: 12px;
+      }
+    
+      #select_activity {
+        font-size: 24px;
+        margin-left: 10px;
+        margin-top: 30px;
+        margin-bottom: 20px;
+      }
+    
+      .row {
+        margin-left: 5px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .parent {
+        padding: 8px;
+        gap: 10px;
+      }
+    
+      .parent > div {
+        height: 140px;
+        min-height: 140px;
+        padding: 8px;
+      }
+    
+      .parent > div img {
+        max-width: 90px;
+        max-height: 60px;
+      }
+    
+      .parent > div span {
+        font-size: 11px;
+        margin-top: 8px;
+      }
+    
+      #select_activity {
+        font-size: 20px;
+        margin-left: 8px;
+        margin-top: 20px;
+        margin-bottom: 15px;
       }
     }
   </style>
 {% endblock %} {% block sidebar %}
   {% include 'activity/sidebar.html' with active_page='home' %}
 {% endblock %} {% block content %}
-  <h2 id="select_activity">Select Activity</h2>
-  <div class="row">
-    <div class="parent">
-      <div class="div1">
-        <a href="{% url 'HomeStaff' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/frontoffice.png' %}" alt="front office logo" />
-          <span>Front Office</span>
-        </a>
-      </div>
-      <div class="div2">
-        <a href="{% url 'guest_booking_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/guestbooking.png' %}" alt="guest booking logo" />
-          <span>Guest Booking</span>
-        </a>
-      </div>
-      <div class="div3">
-        <a href="{% url 'staff_cafe_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/cafe.png' %}" alt="cafe logo" />
-          <span>Cafe</span>
-        </a>
-      </div>
-      <div class="div4">
-        <a href="{% url 'housekeeping_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/housekeeping.png' %}" alt="housekeeping logo" />
-          <span>Housekeeping</span>
-        </a>
-      </div>
-      <div class="div5">
-        <a href="{% url 'staff_laundry_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/laundry.png' %}" alt="laundry logo" />
-          <span>Laundry</span>
-        </a>
-      </div>
-      <div class="div6">
-        <a href="{% url 'speech_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/voice.png' %}" alt="ef" />
-          <span>Speech-to-text Speed and Accuracy Test</span>
-        </a>
-      </div>
-      <div class="div7">
-        <a href="{% url 'mcq_home' %}" style="text-decoration: none; color: inherit">
-          <img src="{% static 'images/abc.png' %}" alt="ef" />
-          <span>Multiple Choise Scenario Based Test</span>
-        </a>
+  <div class="content-wrapper">
+    <h2 id="select_activity">Select Activity</h2>
+    <div class="row">
+      <div class="parent">
+        <div class="div1">
+          <a href="{% url 'HomeStaff' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/frontoffice.png' %}" alt="front office logo" />
+            <span>Front Office</span>
+          </a>
+        </div>
+        <div class="div2">
+          <a href="{% url 'guest_booking_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/guestbooking.png' %}" alt="guest booking logo" />
+            <span>Guest Booking</span>
+          </a>
+        </div>
+        <div class="div3">
+          <a href="{% url 'staff_cafe_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/cafe.png' %}" alt="cafe logo" />
+            <span>Cafe</span>
+          </a>
+        </div>
+        <div class="div4">
+          <a href="{% url 'housekeeping_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/housekeeping.png' %}" alt="housekeeping logo" />
+            <span>Housekeeping</span>
+          </a>
+        </div>
+        <div class="div5">
+          <a href="{% url 'staff_laundry_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/laundry.png' %}" alt="laundry logo" />
+            <span>Laundry</span>
+          </a>
+        </div>
+        <div class="div6">
+          <a href="{% url 'speech_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/voice.png' %}" alt="ef" />
+            <span>Speech-to-text Speed and Accuracy Test</span>
+          </a>
+        </div>
+        <div class="div7">
+          <a href="{% url 'mcq_home' %}" style="text-decoration: none; color: inherit">
+            <img src="{% static 'images/abc.png' %}" alt="ef" />
+            <span>Multiple Choise Scenario Based Test</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>

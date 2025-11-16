@@ -381,18 +381,36 @@ def admin_front_office_reports(request):
     from django.db.models import Q
     from staff.models import Room
 
-    # Revenue from all guest billings
-    guests = Guest.objects.all()
-    total_revenue = 0
-    for g in guests:
-        total_revenue += (
-            float(g.billing or 0) +
-            float(g.room_service_billing or 0) +
-            float(g.laundry_billing or 0) +
-            float(g.cafe_billing or 0) +
-            float(g.excess_pax_billing or 0) +
-            float(g.additional_charge_billing or 0)
+    # Calculate total revenue - match admin_home calculation
+    # Only include guests with Checked-in or Checked-out bookings
+    total_revenue = 0.0
+    valid_guests = Guest.objects.filter(
+        booking__status__in=['Checked-in', 'Checked-out']
+    ).distinct()
+
+    for guest_obj in valid_guests:
+        try:
+         total_revenue += (
+                float(guest_obj.billing or 0) +
+                float(guest_obj.room_service_billing or 0) +
+                float(guest_obj.laundry_billing or 0) +
+                float(guest_obj.cafe_billing or 0) +
+                float(guest_obj.excess_pax_billing or 0) +
+                float(guest_obj.additional_charge_billing or 0)
         )
+        except (ValueError, TypeError):
+            continue
+    
+    # Add cafe and laundry revenue (excluding room charges) - match admin_home
+    total_cafe = CafeOrder.objects.exclude(payment_method='room').aggregate(
+        total_sum=Sum('total')
+    )['total_sum'] or 0
+    total_laundry = LaundryTransaction.objects.exclude(payment_method='Charge to room').aggregate(
+        total_sum=Sum('total_amount')
+    )['total_sum'] or 0
+    
+    total_revenue += float(total_cafe)
+    total_revenue += float(total_laundry)
 
     # FO metrics
     total_reservations = Booking.objects.filter(status='Pending').count()
@@ -454,7 +472,7 @@ def admin_front_office_reports(request):
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'total_revenue': total_revenue,
+        'total_revenue': f"{total_revenue:.2f}",
         'total_walkins': walkins,
         'total_reservations': total_reservations,
         'total_checkins': total_checkins,
@@ -863,7 +881,8 @@ def admin_laundry_reports(request):
     from django.db.models import Q
 
     qs = LaundryTransaction.objects.all()
-    completed_count = qs.filter(status='completed').count()
+    # Count completed transactions (case-insensitive to handle any variations)
+    completed_count = qs.filter(status__iexact='completed').count()
     room_charges = qs.filter(payment_method='room').aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
     cash_payments = qs.filter(payment_method='cash').aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
     total_revenue = qs.aggregate(s=Sum('total_amount'))['s'] or Decimal('0')
@@ -1335,9 +1354,13 @@ def add_activity_mcq(request):
             
             print(f"[add_activity][POST] target_activity_id={activity.id}, item_number={item_number}")
             
-            # Update activity basic info
+            # Update activity basic info (including timer - applies to all items)
             activity.title = data.get("title", activity.title)
             activity.description = data.get("description", activity.description)
+            # Timer is set once for the entire activity, applies to all items
+            # Always save timer_seconds (even if 0) so it can be updated/cleared
+            timer_seconds = int(data.get("timer_seconds", activity.timer_seconds if activity.timer_seconds else 0))
+            activity.timer_seconds = timer_seconds
             activity.save()
             
             # Handle current item
@@ -1359,19 +1382,17 @@ def add_activity_mcq(request):
                         "redirect_to_view": f"/adminNew/activity-materials/view-mcq-activity/?id={activity.id}"
                     })
                 
-                # Get or create activity item
+                # Get or create activity item (timer is not stored per item anymore)
                 activity_item, created = ActivityItem.objects.get_or_create(
                     activity=activity,
                     item_number=item_number,
                     defaults={
-                        'scenario': scenario,
-                        'timer_seconds': int(data.get("timer_seconds", 0))
+                        'scenario': scenario
                     }
                 )
                 
                 if not created:
                     activity_item.scenario = scenario
-                    activity_item.timer_seconds = int(data.get("timer_seconds", activity_item.timer_seconds))
                     activity_item.save()
                 
                 # Update choices for this item

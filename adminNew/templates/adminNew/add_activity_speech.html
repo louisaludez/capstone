@@ -13,6 +13,12 @@
     * {
       border-radius: 13px;
     }
+    /* Content wrapper for max-width on large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
     .header-buttons {
       border: 1px solid gray;
       display: flex;
@@ -31,7 +37,8 @@
       border: 1px solid black;
       border-radius: 13px;
       height: 100%;
-      width: 310px !important;
+      width: 100%;
+      max-width: 310px;
     }
     .activity-box img {
       width: 150px;
@@ -76,29 +83,125 @@
       margin-left: 10px;
       margin-bottom: 0 !important;
     }
-    .timer {
+    .timer-container {
+      border: 1px solid black;
+      border-radius: 13px;
+      padding: 15px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      background-color: #f8f9fa;
+    }
+    .timer-content {
       display: flex;
       align-items: center;
-      justify-content: center;
-      border: 1px solid black;
-      padding: 10px;
-      position: relative;
+      gap: 15px;
+      flex-wrap: wrap;
     }
-    .timer button {
-      margin-right: 10px;
-      width: 100px;
-      height: 35px;
-      border: 1px solid gray;
-      border-radius: 4px;
-      font-size: 12px;
-      background-color: transparent;
+    .timer-label {
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
     }
-    .timer button.selected {
+    .timer-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .timer-btn {
+      padding: 10px 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      background-color: #ffffff;
+      color: #495057;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 90px;
+      text-align: center;
+    }
+    .timer-btn:hover {
+      background-color: #e9ecef;
+      border-color: #adb5bd;
+      transform: translateY(-1px);
+    }
+    .timer-btn.selected {
       border-color: #0d6efd;
-      background-color: #e6f0ff;
+      background-color: #0d6efd;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    }
+    .timer-btn.selected:hover {
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+    .timer-custom {
+      background-color: #f8f9fa;
+      border-color: #6c757d;
+    }
+    .timer-custom:hover {
+      background-color: #e9ecef;
+    }
+    .timer-custom.selected {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      color: #ffffff;
+    }
+    
+    /* Custom Timer Modal Styles */
+    .custom-timer-inputs {
+      display: flex;
+      gap: 15px;
+      justify-content: space-around;
+      align-items: flex-end;
+    }
+    .timer-input-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      max-width: 120px;
+    }
+    .timer-input-group label {
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 5px;
+      color: #495057;
+    }
+    .timer-input-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .timer-input-group input:focus {
+      border-color: #0d6efd;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .custom-timer-display {
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .custom-timer-display span {
+      font-weight: 600;
       color: #0d6efd;
-      font-weight: 700;
-      box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
+    
+    @media (max-width: 576px) {
+      .custom-timer-inputs {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .timer-input-group {
+        max-width: 100%;
+      }
     }
     
     .group-input {
@@ -448,6 +551,141 @@
       right: 10px;
       transform: translateY(-50%);
     }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .header-buttons {
+        min-width: 100%;
+        width: 100%;
+        justify-content: center;
+      }
+      .activity-box {
+        height: auto;
+        min-height: 300px;
+        padding: 20px;
+        margin: 0 auto;
+      }
+      .activity-box img {
+        width: 120px;
+        height: 120px;
+      }
+      .activity-box span {
+        font-size: 18px;
+      }
+      .input-container {
+        padding-right: 100px;
+      }
+      .div {
+        right: 5px;
+        top: 5px;
+      }
+      .div span {
+        font-size: 10px;
+      }
+      .div a,
+      .upload-btn {
+        font-size: 12px;
+      }
+      .upload-btn i {
+        font-size: 12px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .timer-container {
+        padding: 12px;
+      }
+      .timer-content {
+        gap: 10px;
+      }
+      .timer-label {
+        font-size: 13px;
+      }
+      .timer-buttons {
+        gap: 8px;
+      }
+      .timer-btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+      .audio-waveform {
+        max-width: 100%;
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .header-buttons .btn {
+        font-size: 11px;
+        padding: 5px 8px;
+      }
+      .header-buttons .btn i {
+        font-size: 12px;
+      }
+      .activity-box {
+        min-height: 250px;
+        padding: 15px;
+      }
+      .activity-box img {
+        width: 100px;
+        height: 100px;
+      }
+      .activity-box span {
+        font-size: 16px;
+      }
+      .input-container {
+        padding-right: 90px;
+        height: auto;
+        min-height: 60px;
+      }
+      .input-header {
+        font-size: 11px;
+      }
+      .input-container input {
+        font-size: 11px !important;
+      }
+      .timer-container {
+        padding: 10px;
+      }
+      .timer-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .timer-label {
+        font-size: 12px;
+      }
+      .timer-buttons {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .timer-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 12px;
+      }
+      .audio-waveform {
+        max-width: 100%;
+      }
+      .audio-placeholder .div {
+        position: relative;
+        top: auto;
+        right: auto;
+        transform: none;
+        margin-top: 10px;
+        justify-content: center;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .footer button {
+        width: 100%;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -456,102 +694,193 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container-fluid p-5">
-    <div class="row header mt-3 mb-2">
-      <div class="col-6">
-        <h1>Activity Materials</h1>
-      </div>
-      <div class="col-6 d-flex justify-content-end align-items-center">
-        <div class="header-buttons">
-          <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
+  <div class="container-fluid p-3 p-md-5">
+    <div class="content-wrapper">
+      <div class="row header mt-3 mb-2">
+        <div class="col-12 col-md-6 mb-3 mb-md-0">
+          <h1>Activity Materials</h1>
         </div>
-      </div>
-    </div>
-    <div class="row body">
-      <div class="col-4">
-        <div class="activity-box">
-          <img src="{% static 'images/SPTT2.png' %}" alt="" />
-          <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
-        </div>
-      </div>
-      <div class="col-8">
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Activity Title:</span>
-            <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
+        <div class="col-12 col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">
+          <div class="header-buttons">
+            <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
           </div>
         </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Description:</span>
-            <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
+      </div>
+      <div class="row body">
+        <div class="col-12 col-md-4 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+          <div class="activity-box">
+            <img src="{% static 'images/SPTT2.png' %}" alt="" />
+            <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
           </div>
         </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Scenario:</span>
-            <input type="text" class="form-control" id="scenario" placeholder="Type scenario" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Reference Text (for scoring):</span>
-            <input type="text" class="form-control" id="referenceText" placeholder="Type the reference text that students should transcribe, or upload a script file below..." />
-            <div class="div">
-              <label for="scriptFile" class="upload-btn">
-                <i class="bi bi-upload"></i>
-                <span>UploadScript</span>
-              </label>
-              <input type="file" id="scriptFile" name="script_file" accept=".txt,.doc,.docx" style="display: none;" />
+        <div class="col-12 col-md-8">
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Activity Title:</span>
+              <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Audio:</span>
-            <div class="audio-placeholder">
-              <div class="audio-waveform">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-
-                <div class="wave-bar"></div>
-              </div>
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Description:</span>
+              <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Scenario:</span>
+              <input type="text" class="form-control" id="scenario" placeholder="Type scenario" maxlength="80" />
+              <small class="text-muted" id="scenarioCharCount" style="font-size: 10px; margin-left: 10px; display: none;">0/80</small>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Reference Text (for scoring):</span>
+              <input type="text" class="form-control" id="referenceText" placeholder="Type the reference text that students should transcribe, or upload a script file below..." maxlength="80" />
+              <small class="text-muted" id="referenceTextCharCount" style="font-size: 10px; margin-left: 10px; display: none;">0/80</small>
               <div class="div">
-                <label for="audioFile" class="upload-btn">
+                <label for="scriptFile" class="upload-btn">
                   <i class="bi bi-upload"></i>
-                  <span>UploadAudioFile</span>
+                  <span>UploadScript</span>
                 </label>
-                <input type="file" id="audioFile" name="audio_file" accept="audio/*" style="display: none;" />
+                <input type="file" id="scriptFile" name="script_file" accept=".txt,.doc,.docx" style="display: none;" />
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Audio:</span>
+              <div class="audio-placeholder">
+                <div class="audio-waveform">
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+
+                  <div class="wave-bar"></div>
+                </div>
+                <div class="div">
+                  <label for="audioFile" class="upload-btn">
+                    <i class="bi bi-upload"></i>
+                    <span>UploadAudioFile</span>
+                  </label>
+                  <input type="file" id="audioFile" name="audio_file" accept="audio/*" style="display: none;" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="timer-container" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
+            <div class="timer-content">
+              <span class="timer-label">Set Timer:</span>
+              <div class="timer-buttons">
+                <button class="timer-btn" data-seconds="180">3 mins</button>
+                <button class="timer-btn" data-seconds="300">5 mins</button>
+                <button class="timer-btn" data-seconds="600">10 mins</button>
+                <button class="timer-btn" data-seconds="1200">20 mins</button>
+                <button class="timer-btn timer-custom" data-seconds="0">Custom</button>
               </div>
             </div>
           </div>
         </div>
-        <div class="row timer" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
-          <span class="col-2">Set Timer:</span>
-          <button class="col-2 timer-btn" data-seconds="180">3 mins</button>
-          <button class="col-2 timer-btn" data-seconds="300">5 mins</button>
-          <button class="col-2 timer-btn" data-seconds="600">10 mins</button>
-          <button class="col-2 timer-btn" data-seconds="1200">20 mins</button>
-          <button class="col-2 timer-btn timer-custom" data-seconds="0">Set Your time</button>
+      </div>
+      <div class="row footer mt-4">
+        <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Modal for Long Text -->
+  <div class="modal fade" id="scenarioModal" tabindex="-1" aria-labelledby="scenarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="scenarioModalLabel">Edit Scenario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="scenarioTextarea" class="form-label">Scenario Text</label>
+            <textarea class="form-control" id="scenarioTextarea" rows="8" placeholder="Type your scenario here..."></textarea>
+            <small class="text-muted" id="scenarioModalCharCount">0 characters</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveScenarioBtn">Save Scenario</button>
         </div>
       </div>
     </div>
-    <div class="row footer mt-4">
-      <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+  </div>
+
+  <!-- Reference Text Modal for Long Text -->
+  <div class="modal fade" id="referenceTextModal" tabindex="-1" aria-labelledby="referenceTextModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="referenceTextModalLabel">Edit Reference Text</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="referenceTextTextarea" class="form-label">Reference Text</label>
+            <textarea class="form-control" id="referenceTextTextarea" rows="8" placeholder="Type your reference text here..."></textarea>
+            <small class="text-muted" id="referenceTextModalCharCount">0 characters</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveReferenceTextBtn">Save Reference Text</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Timer Modal -->
+  <div class="modal fade" id="customTimerModal" tabindex="-1" aria-labelledby="customTimerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="customTimerModalLabel">Set Custom Timer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="custom-timer-inputs">
+            <div class="timer-input-group">
+              <label for="customHours">Hours:</label>
+              <input type="number" id="customHours" class="form-control" min="0" max="23" value="0" />
+            </div>
+            <div class="timer-input-group">
+              <label for="customMinutes">Minutes:</label>
+              <input type="number" id="customMinutes" class="form-control" min="0" max="59" value="0" />
+            </div>
+            <div class="timer-input-group">
+              <label for="customSeconds">Seconds:</label>
+              <input type="number" id="customSeconds" class="form-control" min="0" max="59" value="0" />
+            </div>
+          </div>
+          <div class="custom-timer-display mt-3">
+            <p class="text-muted mb-0">
+              Total: <span id="customTimerTotal">0 seconds</span>
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveCustomTimer">Set Timer</button>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -561,31 +890,433 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       // Hide checkboxes by default since edit/add/remove buttons are removed
-      var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox, .timer .corner-checkbox-timer'))
+      var checkboxes = Array.from(document.querySelectorAll('.input-container .corner-checkbox, .timer-container .corner-checkbox-timer'))
       checkboxes.forEach(function (el) {
         el.classList.add('hidden-control')
       })
     
+      // Scenario input with modal for long text
+      var scenarioInput = document.getElementById('scenario')
+      var scenarioCharCount = document.getElementById('scenarioCharCount')
+      var scenarioModal = new bootstrap.Modal(document.getElementById('scenarioModal'))
+      var scenarioTextarea = document.getElementById('scenarioTextarea')
+      var scenarioModalCharCount = document.getElementById('scenarioModalCharCount')
+      var saveScenarioBtn = document.getElementById('saveScenarioBtn')
+      var fullScenarioText = scenarioInput ? scenarioInput.value : ''
+    
+      // Store full text separately (not limited by maxlength)
+      if (scenarioInput && scenarioInput.value.length > 80) {
+        fullScenarioText = scenarioInput.value
+        scenarioInput.value = scenarioInput.value.substring(0, 80)
+        scenarioInput.style.color = '#6c757d'
+        scenarioInput.style.fontStyle = 'italic'
+        if (scenarioCharCount) {
+          scenarioCharCount.style.display = 'inline'
+          scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+          scenarioCharCount.style.color = '#0d6efd'
+          scenarioCharCount.style.cursor = 'pointer'
+        }
+      }
+    
+      // Update character count for scenario input field
+      function updateScenarioCharCount() {
+        if (!scenarioInput || !scenarioCharCount) return
+        var len = scenarioInput.value.length
+        if (len >= 70) {
+          scenarioCharCount.style.display = 'inline'
+          scenarioCharCount.textContent = len + '/80'
+          if (len >= 80) {
+            scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+            scenarioCharCount.style.color = '#0d6efd'
+            scenarioCharCount.style.cursor = 'pointer'
+            scenarioInput.style.color = '#6c757d'
+            scenarioInput.style.fontStyle = 'italic'
+          } else {
+            scenarioCharCount.style.color = '#6c757d'
+            scenarioInput.style.color = ''
+            scenarioInput.style.fontStyle = ''
+          }
+        } else {
+          scenarioCharCount.style.display = 'none'
+          scenarioInput.style.color = ''
+          scenarioInput.style.fontStyle = ''
+        }
+      }
+    
+      // Update character count for scenario modal textarea
+      function updateScenarioModalCharCount() {
+        if (!scenarioModalCharCount || !scenarioTextarea) return
+        var len = scenarioTextarea.value.length
+        scenarioModalCharCount.textContent = len + ' characters'
+        if (len > 1000) {
+          scenarioModalCharCount.style.color = '#dc3545'
+        } else if (len > 500) {
+          scenarioModalCharCount.style.color = '#ffc107'
+        } else {
+          scenarioModalCharCount.style.color = '#6c757d'
+        }
+      }
+    
+      if (scenarioInput) {
+        // Initialize character count
+        updateScenarioCharCount()
+    
+        // Monitor input changes
+        scenarioInput.addEventListener('input', function () {
+          var currentValue = scenarioInput.value
+          // If user is typing and reaches limit, open modal
+          if (currentValue.length >= 80 && fullScenarioText.length <= currentValue.length) {
+            // User typed exactly 80 characters, open modal
+            fullScenarioText = currentValue
+            openScenarioModal()
+          } else if (currentValue.length < 80) {
+            fullScenarioText = currentValue
+          }
+          updateScenarioCharCount()
+        })
+    
+        // Open modal when clicking on the input if text is truncated
+        scenarioInput.addEventListener('click', function () {
+          if (fullScenarioText.length > 80 || scenarioInput.value.length >= 80) {
+            openScenarioModal()
+          }
+        })
+    
+        // Open modal when clicking on character count indicator
+        if (scenarioCharCount) {
+          scenarioCharCount.addEventListener('click', function () {
+            openScenarioModal()
+          })
+        }
+      }
+    
+      // Open scenario modal
+      function openScenarioModal() {
+        if (!scenarioTextarea) return
+        // Load full text into textarea
+        scenarioTextarea.value = fullScenarioText
+        updateScenarioModalCharCount()
+        scenarioModal.show()
+      }
+    
+      // Update modal character count as user types
+      if (scenarioTextarea) {
+        scenarioTextarea.addEventListener('input', updateScenarioModalCharCount)
+      }
+    
+      // Save scenario from modal
+      if (saveScenarioBtn) {
+        saveScenarioBtn.addEventListener('click', function () {
+          if (!scenarioTextarea || !scenarioInput) return
+          var newText = scenarioTextarea.value
+          fullScenarioText = newText
+    
+          // Update input field (truncate to 80 for display)
+          if (newText.length > 80) {
+            scenarioInput.value = newText.substring(0, 80)
+            scenarioInput.style.color = '#6c757d'
+            scenarioInput.style.fontStyle = 'italic'
+            if (scenarioCharCount) {
+              scenarioCharCount.style.display = 'inline'
+              scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+              scenarioCharCount.style.color = '#0d6efd'
+              scenarioCharCount.style.cursor = 'pointer'
+            }
+          } else {
+            scenarioInput.value = newText
+            scenarioInput.style.color = ''
+            scenarioInput.style.fontStyle = ''
+            if (scenarioCharCount) {
+              scenarioCharCount.style.display = 'none'
+            }
+          }
+    
+          updateScenarioCharCount()
+          scenarioModal.hide()
+        })
+      }
+    
+      // Reference Text input with modal for long text
+      var referenceTextInput = document.getElementById('referenceText')
+      var referenceTextCharCount = document.getElementById('referenceTextCharCount')
+      var referenceTextModal = new bootstrap.Modal(document.getElementById('referenceTextModal'))
+      var referenceTextTextarea = document.getElementById('referenceTextTextarea')
+      var referenceTextModalCharCount = document.getElementById('referenceTextModalCharCount')
+      var saveReferenceTextBtn = document.getElementById('saveReferenceTextBtn')
+      var fullReferenceText = referenceTextInput ? referenceTextInput.value : ''
+    
+      // Store full text separately (not limited by maxlength)
+      if (referenceTextInput && referenceTextInput.value.length > 80) {
+        fullReferenceText = referenceTextInput.value
+        referenceTextInput.value = referenceTextInput.value.substring(0, 80)
+        referenceTextInput.style.color = '#6c757d'
+        referenceTextInput.style.fontStyle = 'italic'
+        if (referenceTextCharCount) {
+          referenceTextCharCount.style.display = 'inline'
+          referenceTextCharCount.textContent = '80/80+ (click to edit full text)'
+          referenceTextCharCount.style.color = '#0d6efd'
+          referenceTextCharCount.style.cursor = 'pointer'
+        }
+      }
+    
+      // Update character count for input field
+      function updateReferenceTextCharCount() {
+        if (!referenceTextInput || !referenceTextCharCount) return
+        var len = referenceTextInput.value.length
+        if (len >= 70) {
+          referenceTextCharCount.style.display = 'inline'
+          referenceTextCharCount.textContent = len + '/80'
+          if (len >= 80) {
+            referenceTextCharCount.textContent = '80/80+ (click to edit full text)'
+            referenceTextCharCount.style.color = '#0d6efd'
+            referenceTextCharCount.style.cursor = 'pointer'
+            referenceTextInput.style.color = '#6c757d'
+            referenceTextInput.style.fontStyle = 'italic'
+          } else {
+            referenceTextCharCount.style.color = '#6c757d'
+            referenceTextInput.style.color = ''
+            referenceTextInput.style.fontStyle = ''
+          }
+        } else {
+          referenceTextCharCount.style.display = 'none'
+          referenceTextInput.style.color = ''
+          referenceTextInput.style.fontStyle = ''
+        }
+      }
+    
+      // Update character count for modal textarea
+      function updateReferenceTextModalCharCount() {
+        if (!referenceTextModalCharCount || !referenceTextTextarea) return
+        var len = referenceTextTextarea.value.length
+        referenceTextModalCharCount.textContent = len + ' characters'
+        if (len > 1000) {
+          referenceTextModalCharCount.style.color = '#dc3545'
+        } else if (len > 500) {
+          referenceTextModalCharCount.style.color = '#ffc107'
+        } else {
+          referenceTextModalCharCount.style.color = '#6c757d'
+        }
+      }
+    
+      if (referenceTextInput) {
+        // Initialize character count
+        updateReferenceTextCharCount()
+    
+        // Monitor input changes
+        referenceTextInput.addEventListener('input', function () {
+          var currentValue = referenceTextInput.value
+          // If user is typing and reaches limit, open modal
+          if (currentValue.length >= 80 && fullReferenceText.length <= currentValue.length) {
+            // User typed exactly 80 characters, open modal
+            fullReferenceText = currentValue
+            openReferenceTextModal()
+          } else if (currentValue.length < 80) {
+            fullReferenceText = currentValue
+          }
+          updateReferenceTextCharCount()
+        })
+    
+        // Open modal when clicking on the input if text is truncated
+        referenceTextInput.addEventListener('click', function () {
+          if (fullReferenceText.length > 80 || referenceTextInput.value.length >= 80) {
+            openReferenceTextModal()
+          }
+        })
+    
+        // Open modal when clicking on character count indicator
+        if (referenceTextCharCount) {
+          referenceTextCharCount.addEventListener('click', function () {
+            openReferenceTextModal()
+          })
+        }
+      }
+    
+      // Open reference text modal
+      function openReferenceTextModal() {
+        if (!referenceTextTextarea) return
+        // Load full text into textarea
+        referenceTextTextarea.value = fullReferenceText
+        updateReferenceTextModalCharCount()
+        referenceTextModal.show()
+      }
+    
+      // Update modal character count as user types
+      if (referenceTextTextarea) {
+        referenceTextTextarea.addEventListener('input', updateReferenceTextModalCharCount)
+      }
+    
+      // Save reference text from modal
+      if (saveReferenceTextBtn) {
+        saveReferenceTextBtn.addEventListener('click', function () {
+          if (!referenceTextTextarea || !referenceTextInput) return
+          var newText = referenceTextTextarea.value
+          fullReferenceText = newText
+    
+          // Update input field (truncate to 80 for display)
+          if (newText.length > 80) {
+            referenceTextInput.value = newText.substring(0, 80)
+            referenceTextInput.style.color = '#6c757d'
+            referenceTextInput.style.fontStyle = 'italic'
+            if (referenceTextCharCount) {
+              referenceTextCharCount.style.display = 'inline'
+              referenceTextCharCount.textContent = '80/80+ (click to edit full text)'
+              referenceTextCharCount.style.color = '#0d6efd'
+              referenceTextCharCount.style.cursor = 'pointer'
+            }
+          } else {
+            referenceTextInput.value = newText
+            referenceTextInput.style.color = ''
+            referenceTextInput.style.fontStyle = ''
+            if (referenceTextCharCount) {
+              referenceTextCharCount.style.display = 'none'
+            }
+          }
+    
+          updateReferenceTextCharCount()
+          referenceTextModal.hide()
+        })
+      }
+    
       // Timer functionality
-      var timerContainer = document.querySelector('.timer')
+      var timerContainer = document.querySelector('.timer-container')
       var timerButtons = timerContainer.querySelectorAll('.timer-btn')
       var initialSeconds = parseInt(timerContainer.getAttribute('data-initial-seconds') || '0')
     
       // Set initial timer selection
+      var timerMatched = false
       timerButtons.forEach(function (btn) {
         var seconds = parseInt(btn.getAttribute('data-seconds'))
-        if (seconds === initialSeconds) {
+        if (seconds === initialSeconds && initialSeconds > 0) {
           btn.classList.add('selected')
+          timerMatched = true
+          // If it's a custom timer, update the button text
+          if (btn.classList.contains('timer-custom') && initialSeconds > 0) {
+            var hours = Math.floor(initialSeconds / 3600)
+            var minutes = Math.floor((initialSeconds % 3600) / 60)
+            var secs = initialSeconds % 60
+            var displayText = ''
+            if (hours > 0) displayText += hours + 'h '
+            if (minutes > 0) displayText += minutes + 'm '
+            if (secs > 0) displayText += secs + 's'
+            btn.textContent = displayText.trim() || 'Custom'
+          }
         }
       })
+      // If no match found and initialSeconds > 0, it's a custom timer
+      if (!timerMatched && initialSeconds > 0) {
+        var customBtn = timerContainer.querySelector('.timer-custom')
+        if (customBtn) {
+          customBtn.setAttribute('data-seconds', initialSeconds)
+          var hours = Math.floor(initialSeconds / 3600)
+          var minutes = Math.floor((initialSeconds % 3600) / 60)
+          var secs = initialSeconds % 60
+          var displayText = ''
+          if (hours > 0) displayText += hours + 'h '
+          if (minutes > 0) displayText += minutes + 'm '
+          if (secs > 0) displayText += secs + 's'
+          customBtn.textContent = displayText.trim() || 'Custom'
+          customBtn.classList.add('selected')
+        }
+      }
     
-      timerButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          timerButtons.forEach(function (b) {
-            b.classList.remove('selected')
-          })
-          btn.classList.add('selected')
+      // Custom timer modal
+      var customTimerModal = new bootstrap.Modal(document.getElementById('customTimerModal'))
+      var customTimerBtn = timerContainer.querySelector('.timer-custom')
+      var customHoursInput = document.getElementById('customHours')
+      var customMinutesInput = document.getElementById('customMinutes')
+      var customSecondsInput = document.getElementById('customSeconds')
+      var customTimerTotal = document.getElementById('customTimerTotal')
+      var saveCustomTimerBtn = document.getElementById('saveCustomTimer')
+    
+      // Function to update custom timer display
+      function updateCustomTimerDisplay() {
+        var hours = parseInt(customHoursInput.value) || 0
+        var minutes = parseInt(customMinutesInput.value) || 0
+        var seconds = parseInt(customSecondsInput.value) || 0
+        var totalSeconds = hours * 3600 + minutes * 60 + seconds
+    
+        var displayText = ''
+        if (hours > 0) displayText += hours + ' hour' + (hours !== 1 ? 's' : '') + ' '
+        if (minutes > 0) displayText += minutes + ' minute' + (minutes !== 1 ? 's' : '') + ' '
+        if (seconds > 0 || totalSeconds === 0) displayText += seconds + ' second' + (seconds !== 1 ? 's' : '')
+        if (totalSeconds === 0) displayText = '0 seconds'
+    
+        customTimerTotal.textContent = displayText.trim() || '0 seconds'
+      }
+    
+      // Update display when inputs change
+      customHoursInput.addEventListener('input', updateCustomTimerDisplay)
+      customMinutesInput.addEventListener('input', updateCustomTimerDisplay)
+      customSecondsInput.addEventListener('input', updateCustomTimerDisplay)
+    
+      // Handle custom timer button click
+      if (customTimerBtn) {
+        customTimerBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          // If custom timer was previously set, load those values
+          var currentCustomSeconds = parseInt(customTimerBtn.getAttribute('data-seconds')) || 0
+          if (currentCustomSeconds > 0) {
+            var hours = Math.floor(currentCustomSeconds / 3600)
+            var minutes = Math.floor((currentCustomSeconds % 3600) / 60)
+            var seconds = currentCustomSeconds % 60
+            customHoursInput.value = hours
+            customMinutesInput.value = minutes
+            customSecondsInput.value = seconds
+          } else {
+            customHoursInput.value = 0
+            customMinutesInput.value = 0
+            customSecondsInput.value = 0
+          }
+          updateCustomTimerDisplay()
+          customTimerModal.show()
         })
+      }
+    
+      // Save custom timer
+      saveCustomTimerBtn.addEventListener('click', function () {
+        var hours = parseInt(customHoursInput.value) || 0
+        var minutes = parseInt(customMinutesInput.value) || 0
+        var seconds = parseInt(customSecondsInput.value) || 0
+        var totalSeconds = hours * 3600 + minutes * 60 + seconds
+    
+        if (totalSeconds <= 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Time',
+            text: 'Please enter a time greater than 0 seconds.'
+          })
+          return
+        }
+    
+        // Update custom button with new time
+        customTimerBtn.setAttribute('data-seconds', totalSeconds)
+    
+        // Update button text to show the custom time
+        var displayText = ''
+        if (hours > 0) displayText += hours + 'h '
+        if (minutes > 0) displayText += minutes + 'm '
+        if (seconds > 0) displayText += seconds + 's'
+        customTimerBtn.textContent = displayText.trim() || 'Custom'
+    
+        // Select the custom button
+        timerButtons.forEach(function (b) {
+          b.classList.remove('selected')
+        })
+        customTimerBtn.classList.add('selected')
+    
+        customTimerModal.hide()
+      })
+    
+      // Handle regular timer button clicks
+      timerButtons.forEach(function (btn) {
+        if (!btn.classList.contains('timer-custom')) {
+          btn.addEventListener('click', function () {
+            timerButtons.forEach(function (b) {
+              b.classList.remove('selected')
+            })
+            btn.classList.add('selected')
+          })
+        }
       })
     
       // File upload functionality
@@ -606,10 +1337,32 @@
             var content = e.target.result
             // For .txt files, use content directly
             if (file.name.toLowerCase().endsWith('.txt')) {
-              document.getElementById('referenceText').value = content
+              fullReferenceText = content
+              if (content.length > 80) {
+                referenceTextInput.value = content.substring(0, 80)
+                referenceTextInput.style.color = '#6c757d'
+                referenceTextInput.style.fontStyle = 'italic'
+                if (referenceTextCharCount) {
+                  referenceTextCharCount.style.display = 'inline'
+                  referenceTextCharCount.textContent = '80/80+ (click to edit full text)'
+                  referenceTextCharCount.style.color = '#0d6efd'
+                  referenceTextCharCount.style.cursor = 'pointer'
+                }
+              } else {
+                referenceTextInput.value = content
+                referenceTextInput.style.color = ''
+                referenceTextInput.style.fontStyle = ''
+                if (referenceTextCharCount) {
+                  referenceTextCharCount.style.display = 'none'
+                }
+              }
+              updateReferenceTextCharCount()
             } else {
               // For .doc/.docx files, show a message (we'll handle this on the backend)
-              document.getElementById('referenceText').value = '[File uploaded: ' + file.name + ' - Content will be extracted on save]'
+              var message = '[File uploaded: ' + file.name + ' - Content will be extracted on save]'
+              fullReferenceText = message
+              referenceTextInput.value = message.length > 80 ? message.substring(0, 80) : message
+              updateReferenceTextCharCount()
             }
           }
           reader.readAsText(file)
@@ -620,8 +1373,10 @@
       function saveCurrentItem() {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
-        var scenario = document.getElementById('scenario')?.value || ''
-        var referenceText = document.getElementById('referenceText')?.value || ''
+        // Always use fullScenarioText if it exists (contains complete text), otherwise use input value
+        var scenario = fullScenarioText && fullScenarioText.length > 0 ? fullScenarioText : document.getElementById('scenario')?.value || ''
+        // Always use fullReferenceText if it exists (contains complete text), otherwise use input value
+        var referenceText = fullReferenceText && fullReferenceText.length > 0 ? fullReferenceText : document.getElementById('referenceText')?.value || ''
     
         var selectedTimer = timerContainer.querySelector('.timer-btn.selected')
         var timerSeconds = selectedTimer ? parseInt(selectedTimer.getAttribute('data-seconds')) : 0

@@ -29,6 +29,19 @@
       display: flex !important;
       align-items: center !important;
     }
+    /* Table font size - specific to Speech reports */
+    .table-header {
+      font-size: 0.85rem !important;
+    }
+    .table-header .col {
+      font-size: 0.85rem !important;
+    }
+    .row-border {
+      font-size: 0.8rem !important;
+    }
+    .row-border .col {
+      font-size: 0.8rem !important;
+    }
   </style>
 {% endblock %}
 {% block sidebar %}
@@ -37,13 +50,13 @@
 {% block content %}
   <div class="container px-4 px-md-5 py-4 py-md-5">
     <!-- Filters -->
-    <div class="d-flex justify-content-between align-items-center mb-3 reports-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 reports-header gap-3">
       <h2 class="mb-0">Speech to Text Reports</h2>
-      <div class="d-flex">
-        <a id="download-report" class="btn btn-outline-secondary btn-lg text-black me-2" href="#" role="button" style="width: 200px !important; min-width: 100px; height: 50px !important; font-size: 10px !important;">
+      <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-end">
+        <a id="download-report" class="btn btn-outline-secondary btn-lg text-black" href="#" role="button" style="width: 200px !important; min-width: 100px; height: 50px !important; font-size: 10px !important;">
           <i class="bi bi-download text-black"></i> Download Report
         </a>
-        <div class="dropdown me-2">
+        <div class="dropdown">
           <button class="btn btn-outline-secondary dropdown-toggle text-black" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-filter text-black"></i>Filter
           </button>
@@ -75,7 +88,7 @@
             </li>
           </ul>
         </div>
-        <div class="dropdown me-2">
+        <div class="dropdown">
           <button class="btn btn-outline-secondary dropdown-toggle text-black" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-sort-down text-black"></i>Sort
           </button>
@@ -138,13 +151,12 @@
     </div>
     <!-- Table Header -->
     <div class="row table-header py-2 text-center mx-2">
-      <div class="col-1">
-        <input type="checkbox" />
-      </div>
+      
       <div class="col-1">Test no.</div>
       <div class="col-2">Name</div>
+      <div class="col-2">Activity Title</div>
       <div class="col-1">Test Type</div>
-      <div class="col-2">Date and Time</div>
+      <div class="col-1">Date and Time</div>
       <div class="col-1">No. of Items</div>
       <div class="col-1">No. of Corrects</div>
       <div class="col-1">No. of Mistakes</div>
@@ -156,13 +168,12 @@
     <div id="orders-container">
       {% for attempt in attempts %}
         <div class="row row-border text-center align-items-center mx-2">
-          <div class="col-1">
-            <input type="checkbox" />
-          </div>
+          
           <div class="col-1">#{{ attempt.id }}</div>
           <div class="col-2">{{ attempt.participant_info|truncatechars:20 }}</div>
+          <div class="col-2">{{ attempt.activity.title|truncatechars:30 }}</div>
           <div class="col-1">Speech</div>
-          <div class="col-2">{{ attempt.started_at|date:'M d, Y H:i' }}</div>
+          <div class="col-1">{{ attempt.started_at|date:'M d, Y H:i' }}</div>
           <div class="col-1">1</div>
           <div class="col-1">{{ attempt.correct_count }}</div>
           <div class="col-1">{{ attempt.incorrect_count }}</div>

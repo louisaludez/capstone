@@ -173,7 +173,7 @@
         </div>
         <div class="checkin-field">
           <label>Balance</label>
-          <input id="ci-current-balance" type="text" />
+          <input id="ci-current-balance" type="text" readonly />
         </div>
 
         <div class="checkin-btn-wrapper">
@@ -209,7 +209,13 @@
   
     // Update summary
     updateCheckinAddonsSummary()
+  
+    // Recalculate balance when add-ons change
+    calculateCheckinBalance()
   }
+  
+  // Make function globally accessible for checkin.js
+  window.changeCheckinAddon = changeCheckinAddon
   
   function updateCheckinAddonsSummary() {
     const totalAddons = checkinAddonsData.bed + checkinAddonsData.pillow + checkinAddonsData.towel
@@ -227,6 +233,106 @@
       document.getElementById('checkin-addons-details').textContent = `${totalAddons} add-on${totalAddons > 1 ? 's' : ''} selected`
     }
   }
+  
+  // Calculate balance based on room, dates, and add-ons
+  function calculateCheckinBalance() {
+    const balanceField = document.getElementById('ci-current-balance')
+    if (!balanceField) return
+  
+    // Get room selection
+    const roomSelect = document.getElementById('ci-room-type')
+    if (!roomSelect || !roomSelect.value) {
+      balanceField.value = ''
+      return
+    }
+  
+    // Get room type from selected option
+    const selectedOption = roomSelect.options[roomSelect.selectedIndex]
+    const roomText = selectedOption ? selectedOption.text : ''
+  
+    // Room type to price mapping
+    const roomPrices = {
+      Standard: 3500,
+      Family: 4700,
+      Deluxe: 8900
+    }
+  
+    let roomType = null
+    let roomPrice = 0
+  
+    if (roomText.includes('Standard')) {
+      roomType = 'Standard'
+      roomPrice = roomPrices.Standard
+    } else if (roomText.includes('Family')) {
+      roomType = 'Family'
+      roomPrice = roomPrices.Family
+    } else if (roomText.includes('Deluxe')) {
+      roomType = 'Deluxe'
+      roomPrice = roomPrices.Deluxe
+    }
+  
+    if (!roomType || !roomPrice) {
+      balanceField.value = ''
+      return
+    }
+  
+    // Get check-in and check-out dates
+    const checkinDateStr = document.getElementById('ci-checkin-date').value
+    const checkoutDateStr = document.getElementById('ci-checkout-date').value
+  
+    if (!checkinDateStr || !checkoutDateStr) {
+      balanceField.value = ''
+      return
+    }
+  
+    // Calculate number of nights
+    const checkinDate = new Date(checkinDateStr)
+    const checkoutDate = new Date(checkoutDateStr)
+  
+    if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate <= checkinDate) {
+      balanceField.value = ''
+      return
+    }
+  
+    const timeDiff = checkoutDate.getTime() - checkinDate.getTime()
+    const nights = Math.ceil(timeDiff / (1000 * 3600 * 24))
+  
+    // Calculate add-on costs
+    const addonPrices = {
+      bed: 200,
+      pillow: 50,
+      towel: 30
+    }
+  
+    const bedCount = parseInt(checkinAddonsData.bed || 0, 10)
+    const pillowCount = parseInt(checkinAddonsData.pillow || 0, 10)
+    const towelCount = parseInt(checkinAddonsData.towel || 0, 10)
+  
+    const bedTotal = bedCount * addonPrices.bed
+    const pillowTotal = pillowCount * addonPrices.pillow
+    const towelTotal = towelCount * addonPrices.towel
+    const addonTotal = bedTotal + pillowTotal + towelTotal
+  
+    // Calculate total balance
+    const roomCost = roomPrice * nights
+    const totalBalance = roomCost + addonTotal
+  
+    // Update balance field with formatted value
+    balanceField.value = `₱${totalBalance.toLocaleString()}`
+  
+    console.log('[checkin] Balance calculated:', {
+      roomType: roomType,
+      roomPrice: roomPrice,
+      nights: nights,
+      roomCost: roomCost,
+      addons: { bed: bedCount, pillow: pillowCount, towel: towelCount },
+      addonTotal: addonTotal,
+      totalBalance: totalBalance
+    })
+  }
+  
+  // Make function globally accessible
+  window.calculateCheckinBalance = calculateCheckinBalance
   
   // Payment method -> toggle billing address and card fields
   document.addEventListener('DOMContentLoaded', function () {
@@ -279,7 +385,14 @@
   
     if (addonsPopup) {
       // Open/close when clicking the dropdown container or any child
+      // Note: Add-on button clicks are handled by checkin.js, so we skip them here
       document.addEventListener('click', function (e) {
+        // Skip add-on button clicks - they're handled by checkin.js
+        if (e.target && (e.target.id === 'checkin-bed-plus' || e.target.id === 'checkin-bed-minus' || e.target.id === 'checkin-pillow-plus' || e.target.id === 'checkin-pillow-minus' || e.target.id === 'checkin-towel-plus' || e.target.id === 'checkin-towel-minus')) {
+          // Let checkin.js handle these clicks
+          return
+        }
+  
         const trigger = e.target.closest('.checkin-addons-dropdown')
         const insidePopup = e.target.closest('#checkin-addons-popup')
         if (trigger) {
@@ -292,11 +405,48 @@
           toggleAddonsPopup(false)
         }
       })
-      // Note: allow clicks inside popup to bubble so delegated handlers (for +/-) fire
       // Close with Escape
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') toggleAddonsPopup(false)
       })
+    }
+  
+    // Add event listeners for balance calculation
+    const roomSelect = document.getElementById('ci-room-type')
+    const checkinDateField = document.getElementById('ci-checkin-date')
+    const checkoutDateField = document.getElementById('ci-checkout-date')
+  
+    if (roomSelect) {
+      roomSelect.addEventListener('change', calculateCheckinBalance)
+    }
+  
+    if (checkinDateField) {
+      checkinDateField.addEventListener('change', calculateCheckinBalance)
+      checkinDateField.addEventListener('blur', calculateCheckinBalance)
+    }
+  
+    if (checkoutDateField) {
+      checkoutDateField.addEventListener('change', calculateCheckinBalance)
+      checkoutDateField.addEventListener('blur', calculateCheckinBalance)
+    }
+  
+    // Also listen for flatpickr date changes
+    if (window.flatpickr) {
+      // Wait a bit for flatpickr to initialize
+      setTimeout(function () {
+        const checkinPicker = flatpickr('#ci-checkin-date')
+        const checkoutPicker = flatpickr('#ci-checkout-date')
+        if (checkinPicker) {
+          checkinPicker.config.onChange.push(function (selectedDates, dateStr, instance) {
+            calculateCheckinBalance()
+          })
+        }
+        if (checkoutPicker) {
+          checkoutPicker.config.onChange.push(function (selectedDates, dateStr, instance) {
+            calculateCheckinBalance()
+          })
+        }
+      }, 500)
     }
   })
 </script>

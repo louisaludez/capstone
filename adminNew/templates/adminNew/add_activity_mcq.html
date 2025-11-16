@@ -13,6 +13,12 @@
     * {
       border-radius: 13px;
     }
+    /* Content wrapper for max-width on large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
     .header-buttons {
       border: 1px solid gray;
       display: flex;
@@ -31,7 +37,8 @@
       border: 1px solid black;
       border-radius: 13px;
       height: 100%;
-      width: 310px !important;
+      width: 100%;
+      max-width: 310px;
     }
     .activity-box img {
       width: 150px;
@@ -76,29 +83,72 @@
       margin-left: 10px;
       margin-bottom: 0 !important;
     }
-    .timer {
+    .timer-container {
+      border: 1px solid black;
+      border-radius: 13px;
+      padding: 15px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      background-color: #f8f9fa;
+    }
+    .timer-content {
       display: flex;
       align-items: center;
-      justify-content: center;
-      border: 1px solid black;
-      padding: 10px;
-      position: relative;
+      gap: 15px;
+      flex-wrap: wrap;
     }
-    .timer button {
-      margin-right: 10px;
-      width: 100px;
-      height: 35px;
-      border: 1px solid gray;
-      border-radius: 4px;
-      font-size: 12px;
-      background-color: transparent;
+    .timer-label {
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
     }
-    .timer button.selected {
+    .timer-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .timer-btn {
+      padding: 10px 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      background-color: #ffffff;
+      color: #495057;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 90px;
+      text-align: center;
+    }
+    .timer-btn:hover {
+      background-color: #e9ecef;
+      border-color: #adb5bd;
+      transform: translateY(-1px);
+    }
+    .timer-btn.selected {
       border-color: #0d6efd;
-      background-color: #e6f0ff;
-      color: #0d6efd;
-      font-weight: 700;
-      box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.15);
+      background-color: #0d6efd;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    }
+    .timer-btn.selected:hover {
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+    .timer-custom {
+      background-color: #f8f9fa;
+      border-color: #6c757d;
+    }
+    .timer-custom:hover {
+      background-color: #e9ecef;
+    }
+    .timer-custom.selected {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      color: #ffffff;
     }
     
     .group-input {
@@ -125,10 +175,30 @@
       white-space: nowrap;
     }
     .group-input input {
-      height: 90px;
+      height: 50px;
       margin-right: 10px;
-      width: 120px;
+      width: 100px;
       border: 1px solid black;
+      font-size: 11px;
+      padding: 5px;
+    }
+    .choice-input {
+      height: 50px;
+      width: 100px;
+      border: 1px solid black;
+      font-size: 11px;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .choice-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .choice-char-count {
+      text-align: center;
+      cursor: pointer;
     }
     
     .groups {
@@ -214,6 +284,139 @@
       transform: translateY(0) scale(1);
       transition: opacity 200ms ease, transform 200ms ease;
     }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .header-buttons {
+        min-width: 100%;
+        width: 100%;
+        justify-content: center;
+      }
+      .activity-box {
+        height: auto;
+        min-height: 300px;
+        padding: 20px;
+        margin: 0 auto;
+      }
+      .activity-box img {
+        width: 120px;
+        height: 120px;
+      }
+      .activity-box span {
+        font-size: 18px;
+      }
+      .input-container {
+        padding-right: 100px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .timer-container {
+        padding: 12px;
+      }
+      .timer-content {
+        gap: 10px;
+      }
+      .timer-label {
+        font-size: 13px;
+      }
+      .timer-buttons {
+        gap: 8px;
+      }
+      .timer-btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+      .group-input {
+        padding: 8px;
+      }
+      .groups {
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .header-buttons .btn {
+        font-size: 11px;
+        padding: 5px 8px;
+      }
+      .header-buttons .btn i {
+        font-size: 12px;
+      }
+      .activity-box {
+        min-height: 250px;
+        padding: 15px;
+      }
+      .activity-box img {
+        width: 100px;
+        height: 100px;
+      }
+      .activity-box span {
+        font-size: 16px;
+      }
+      .input-container {
+        padding-right: 90px;
+        height: auto;
+        min-height: 60px;
+      }
+      .input-header {
+        font-size: 11px;
+      }
+      .input-container input {
+        font-size: 11px !important;
+      }
+      .timer-container {
+        padding: 10px;
+      }
+      .timer-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .timer-label {
+        font-size: 12px;
+      }
+      .timer-buttons {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .timer-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 12px;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .footer button {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .group-input .row {
+        flex-direction: column;
+      }
+      .group-input .col-2,
+      .group-input .col-8 {
+        width: 100%;
+        max-width: 100%;
+      }
+      .groups {
+        flex-direction: column;
+        width: 100%;
+      }
+      .choice-input {
+        width: 100% !important;
+        margin-bottom: 8px;
+      }
+      .note {
+        margin-left: 0;
+        text-align: center;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -222,84 +425,147 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container-fluid p-5">
-    <div class="row header mt-3 mb-2">
-      <div class="col-6">
-        <h1>Activity Materials</h1>
-      </div>
-
-      <div class="col-6 d-flex justify-content-end align-items-center">
-        <div class="header-buttons">
-          <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
+  <div class="container-fluid p-3 p-md-5">
+    <div class="content-wrapper">
+      <div class="row header mt-3 mb-2">
+        <div class="col-12 col-md-6 mb-3 mb-md-0">
+          <h1>Activity Materials</h1>
         </div>
-      </div>
-    </div>
-    <div class="row body">
-      <div class="col-4">
-        <div class="activity-box">
-          <img src="{% static 'images/type.png' %}" alt="" />
-          <span class="text">Multiple Choice <br /> Scenario Based <br /> Test</span>
-        </div>
-      </div>
-      <div class="col-8">
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Activity Title:</span>
-            <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
-            
+        <div class="col-12 col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">
+          <div class="header-buttons">
+            <button type="button" class="btn" onclick="window.history.back();" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Back</button>
           </div>
         </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Description:</span>
-            <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
-            
+      </div>
+      <div class="row body">
+        <div class="col-12 col-md-4 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+          <div class="activity-box">
+            <img src="{% static 'images/type.png' %}" alt="" />
+            <span class="text">Multiple Choice <br /> Scenario Based <br /> Test</span>
           </div>
         </div>
-        <div class="row">
-          <div class="input-container">
-            <span class="input-header">Item {{ item_number }} - Scenario</span>
-            <input type="text" class="form-control" id="scenario" placeholder="{{ current_item.scenario|default:'Type scenario' }}" value="{{ current_item.scenario|default:'' }}" />
-            
+        <div class="col-12 col-md-8">
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Activity Title:</span>
+              <input type="text" class="form-control" id="activityTitle" placeholder="{{ activity.title|default:'Enter activity title' }}" value="{{ activity.title|default:'' }}" />
+            </div>
           </div>
-        </div>
-        <div class="row timer" data-initial-seconds="{{ current_item.timer_seconds|default:0 }}">
-          <span class="col-2">Set Timer:</span>
-          <button class="col-2 timer-btn" data-seconds="180">3 mins</button>
-          <button class="col-2 timer-btn" data-seconds="300">5 mins</button>
-          <button class="col-2 timer-btn" data-seconds="600">10 mins</button>
-          <button class="col-2 timer-btn" data-seconds="1200">20 mins</button>
-          <button class="col-2 timer-btn timer-custom" data-seconds="0">Set Your time</button>
-          
-        </div>
-        <div class="row">
-          <div class="group-input">
-            <div class="row">
-              <div class="col-2">
-                <span class="group-header">Input Choices:</span>
-              </div>
-              <div class="col-8 groups">
-                {% if choices %}
-                  {% for c in choices %}
-                    <input type="text" class="choice-input" placeholder="{{ c }}" value="{{ c }}" />
-                  {% endfor %}
-                {% else %}
-                  <input type="text" class="choice-input" placeholder="Type text here (Correct Answer)" />
-                  <input type="text" class="choice-input" placeholder="Type text here" />
-                  <input type="text" class="choice-input" placeholder="Type text here" />
-                  <input type="text" class="choice-input" placeholder="Type text here" />
-                {% endif %}
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Description:</span>
+              <input type="text" class="form-control" id="activityDescription" placeholder="{{ activity.description|default:'Enter activity description' }}" value="{{ activity.description|default:'' }}" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-container">
+              <span class="input-header">Item {{ item_number }} - Scenario</span>
+              <input type="text" class="form-control" id="scenario" placeholder="{{ current_item.scenario|default:'Type scenario' }}" value="{{ current_item.scenario|default:'' }}" maxlength="80" />
+              <small class="text-muted" id="scenarioCharCount" style="font-size: 10px; margin-left: 10px; display: none;">0/80</small>
+            </div>
+          </div>
+          <div class="timer-container" data-initial-seconds="{{ activity.timer_seconds|default:0 }}">
+            <div class="timer-content">
+              <span class="timer-label">Set Timer (applies to all items):</span>
+              <div class="timer-buttons">
+                <button class="timer-btn" data-seconds="180">3 mins</button>
+                <button class="timer-btn" data-seconds="300">5 mins</button>
+                <button class="timer-btn" data-seconds="600">10 mins</button>
+                <button class="timer-btn" data-seconds="1200">20 mins</button>
+                <button class="timer-btn timer-custom" data-seconds="0">Custom</button>
               </div>
             </div>
-            <span class="note">All Choices are limited to 4 only. The first choice is automatically marked as the correct answer.</span>
+          </div>
+          <div class="row">
+            <div class="group-input">
+              <div class="row">
+                <div class="col-2">
+                  <span class="group-header">Input Choices:</span>
+                </div>
+                <div class="col-8 groups">
+                  {% if choices %}
+                    {% for c in choices %}
+                      <div class="choice-wrapper">
+                        <input type="text" class="choice-input" placeholder="{{ c }}" value="{{ c }}" maxlength="11" data-choice-index="{{ forloop.counter0 }}" />
+                        <small class="text-muted choice-char-count" data-choice-index="{{ forloop.counter0 }}" style="font-size: 9px; display: none;">0/11</small>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="choice-wrapper">
+                      <input type="text" class="choice-input" placeholder="Type text here (Correct Answer)" maxlength="11" data-choice-index="0" />
+                      <small class="text-muted choice-char-count" data-choice-index="0" style="font-size: 9px; display: none;">0/11</small>
+                    </div>
+                    <div class="choice-wrapper">
+                      <input type="text" class="choice-input" placeholder="Type text here" maxlength="11" data-choice-index="1" />
+                      <small class="text-muted choice-char-count" data-choice-index="1" style="font-size: 9px; display: none;">0/11</small>
+                    </div>
+                    <div class="choice-wrapper">
+                      <input type="text" class="choice-input" placeholder="Type text here" maxlength="11" data-choice-index="2" />
+                      <small class="text-muted choice-char-count" data-choice-index="2" style="font-size: 9px; display: none;">0/11</small>
+                    </div>
+                    <div class="choice-wrapper">
+                      <input type="text" class="choice-input" placeholder="Type text here" maxlength="11" data-choice-index="3" />
+                      <small class="text-muted choice-char-count" data-choice-index="3" style="font-size: 9px; display: none;">0/11</small>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              <span class="note">All Choices are limited to 4 only. The first choice is automatically marked as the correct answer.</span>
+            </div>
           </div>
         </div>
       </div>
+      <div class="row footer mt-4">
+        <button id="previousItemBtn" data-item-number="{{ item_number|default:1 }}"><i class="bi bi-skip-backward-fill"></i> Previous Item</button>
+        <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
+        <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+      </div>
     </div>
-    <div class="row footer">
-      <button id="previousItemBtn" data-item-number="{{ item_number|default:1 }}"><i class="bi bi-skip-backward-fill"></i> Previous Item</button>
-      <button id="addNextItemBtn">Add Next Item <i class="bi bi-play-fill"></i></button>
-      <button id="saveActivityBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+  </div>
+
+  <!-- Choice Text Modal for Long Text -->
+  <div class="modal fade" id="choiceModal" tabindex="-1" aria-labelledby="choiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="choiceModalLabel">Edit Choice Text</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="choiceTextarea" class="form-label">Choice Text</label>
+            <textarea class="form-control" id="choiceTextarea" rows="4" placeholder="Type your choice text here..."></textarea>
+            <small class="text-muted" id="choiceModalCharCount">0 characters</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveChoiceBtn">Save Choice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Modal for Long Text -->
+  <div class="modal fade" id="scenarioModal" tabindex="-1" aria-labelledby="scenarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="scenarioModalLabel">Edit Scenario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="scenarioTextarea" class="form-label">Scenario Text</label>
+            <textarea class="form-control" id="scenarioTextarea" rows="8" placeholder="Type your scenario here..."></textarea>
+            <small class="text-muted" id="scenarioModalCharCount">0 characters</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveScenarioBtn">Save Scenario</button>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -316,29 +582,367 @@
       var saveBtn = document.getElementById('saveActivityBtn')
       if (!saveBtn) return
     
+      // Scenario input with modal for long text
+      var scenarioInput = document.getElementById('scenario')
+      var scenarioCharCount = document.getElementById('scenarioCharCount')
+      var scenarioModal = new bootstrap.Modal(document.getElementById('scenarioModal'))
+      var scenarioTextarea = document.getElementById('scenarioTextarea')
+      var scenarioModalCharCount = document.getElementById('scenarioModalCharCount')
+      var saveScenarioBtn = document.getElementById('saveScenarioBtn')
+      var fullScenarioText = scenarioInput ? scenarioInput.value : ''
+    
+      // Store full text separately (not limited by maxlength)
+      if (scenarioInput && scenarioInput.value.length > 80) {
+        fullScenarioText = scenarioInput.value
+        scenarioInput.value = scenarioInput.value.substring(0, 80)
+        scenarioInput.style.color = '#6c757d'
+        scenarioInput.style.fontStyle = 'italic'
+        if (scenarioCharCount) {
+          scenarioCharCount.style.display = 'inline'
+          scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+          scenarioCharCount.style.color = '#0d6efd'
+          scenarioCharCount.style.cursor = 'pointer'
+        }
+      }
+    
+      // Update character count for input field
+      function updateInputCharCount() {
+        if (!scenarioInput || !scenarioCharCount) return
+        var len = scenarioInput.value.length
+        if (len >= 70) {
+          scenarioCharCount.style.display = 'inline'
+          scenarioCharCount.textContent = len + '/80'
+          if (len >= 80) {
+            scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+            scenarioCharCount.style.color = '#0d6efd'
+            scenarioCharCount.style.cursor = 'pointer'
+            scenarioInput.style.color = '#6c757d'
+            scenarioInput.style.fontStyle = 'italic'
+          } else {
+            scenarioCharCount.style.color = '#6c757d'
+            scenarioInput.style.color = ''
+            scenarioInput.style.fontStyle = ''
+          }
+        } else {
+          scenarioCharCount.style.display = 'none'
+          scenarioInput.style.color = ''
+          scenarioInput.style.fontStyle = ''
+        }
+      }
+    
+      // Update character count for modal textarea
+      function updateModalCharCount() {
+        if (!scenarioModalCharCount || !scenarioTextarea) return
+        var len = scenarioTextarea.value.length
+        scenarioModalCharCount.textContent = len + ' characters'
+        if (len > 1000) {
+          scenarioModalCharCount.style.color = '#dc3545'
+        } else if (len > 500) {
+          scenarioModalCharCount.style.color = '#ffc107'
+        } else {
+          scenarioModalCharCount.style.color = '#6c757d'
+        }
+      }
+    
+      if (scenarioInput) {
+        // Initialize character count
+        updateInputCharCount()
+    
+        // Monitor input changes
+        scenarioInput.addEventListener('input', function () {
+          var currentValue = scenarioInput.value
+          // If user is typing and reaches limit, open modal
+          if (currentValue.length >= 80 && fullScenarioText.length <= currentValue.length) {
+            // User typed exactly 80 characters, open modal
+            fullScenarioText = currentValue
+            openScenarioModal()
+          } else if (currentValue.length < 80) {
+            fullScenarioText = currentValue
+          }
+          updateInputCharCount()
+        })
+    
+        // Open modal when clicking on the input if text is truncated
+        scenarioInput.addEventListener('click', function () {
+          if (fullScenarioText.length > 80 || scenarioInput.value.length >= 80) {
+            openScenarioModal()
+          }
+        })
+    
+        // Open modal when clicking on character count indicator
+        if (scenarioCharCount) {
+          scenarioCharCount.addEventListener('click', function () {
+            openScenarioModal()
+          })
+        }
+      }
+    
+      // Open scenario modal
+      function openScenarioModal() {
+        if (!scenarioTextarea) return
+        // Load full text into textarea
+        scenarioTextarea.value = fullScenarioText
+        updateModalCharCount()
+        scenarioModal.show()
+      }
+    
+      // Update modal character count as user types
+      if (scenarioTextarea) {
+        scenarioTextarea.addEventListener('input', updateModalCharCount)
+      }
+    
+      // Save scenario from modal
+      if (saveScenarioBtn) {
+        saveScenarioBtn.addEventListener('click', function () {
+          if (!scenarioTextarea || !scenarioInput) return
+          var newText = scenarioTextarea.value
+          fullScenarioText = newText
+    
+          // Update input field (truncate to 80 for display)
+          if (newText.length > 80) {
+            scenarioInput.value = newText.substring(0, 80)
+            scenarioInput.style.color = '#6c757d'
+            scenarioInput.style.fontStyle = 'italic'
+            if (scenarioCharCount) {
+              scenarioCharCount.style.display = 'inline'
+              scenarioCharCount.textContent = '80/80+ (click to edit full text)'
+              scenarioCharCount.style.color = '#0d6efd'
+              scenarioCharCount.style.cursor = 'pointer'
+            }
+          } else {
+            scenarioInput.value = newText
+            scenarioInput.style.color = ''
+            scenarioInput.style.fontStyle = ''
+            if (scenarioCharCount) {
+              scenarioCharCount.style.display = 'none'
+            }
+          }
+    
+          updateInputCharCount()
+          scenarioModal.hide()
+        })
+      }
+    
+      // Update fullScenarioText when modal is closed without saving
+      document.getElementById('scenarioModal').addEventListener('hidden.bs.modal', function () {
+        // Don't update if user saved (already updated)
+        // This is just for cleanup
+      })
+    
+      // Choice inputs with modal for long text
+      var choiceModal = new bootstrap.Modal(document.getElementById('choiceModal'))
+      var choiceTextarea = document.getElementById('choiceTextarea')
+      var choiceModalCharCount = document.getElementById('choiceModalCharCount')
+      var saveChoiceBtn = document.getElementById('saveChoiceBtn')
+      var fullChoiceTexts = {} // Store full text for each choice by index
+      var currentChoiceIndex = null
+    
+      // Initialize choice inputs
+      function initializeChoiceInputs() {
+        var choiceInputs = document.querySelectorAll('.choice-input')
+        choiceInputs.forEach(function (input) {
+          var index = input.getAttribute('data-choice-index')
+          var charCount = document.querySelector('.choice-char-count[data-choice-index="' + index + '"]')
+          // Get the original value from the input (contains full text even if maxlength limits display)
+          // Use defaultValue to get the initial value from the template, or current value
+          var fullValue = input.defaultValue || input.getAttribute('value') || input.value || ''
+    
+          // Store full text
+          fullChoiceTexts[index] = fullValue
+    
+          // If text is longer than 11, truncate display but keep full value stored
+          if (fullValue.length > 11) {
+            input.value = fullValue.substring(0, 11)
+            input.style.color = '#6c757d'
+            input.style.fontStyle = 'italic'
+            if (charCount) {
+              charCount.style.display = 'block'
+              charCount.textContent = '11/11+ (click to edit)'
+              charCount.style.color = '#0d6efd'
+              charCount.style.cursor = 'pointer'
+            }
+          } else {
+            // Ensure full text matches displayed value
+            fullChoiceTexts[index] = input.value
+          }
+    
+          updateChoiceCharCount(input, charCount)
+    
+          // Monitor input changes
+          input.addEventListener('input', function () {
+            var value = input.value
+            if (value.length >= 11 && fullChoiceTexts[index].length <= value.length) {
+              // User typed exactly 11 characters, open modal
+              fullChoiceTexts[index] = value
+              openChoiceModal(index)
+            } else if (value.length < 11) {
+              fullChoiceTexts[index] = value
+            }
+            updateChoiceCharCount(input, charCount)
+          })
+    
+          // Open modal when clicking on the input if text is truncated
+          input.addEventListener('click', function () {
+            if ((fullChoiceTexts[index] && fullChoiceTexts[index].length > 11) || input.value.length >= 11) {
+              openChoiceModal(index)
+            }
+          })
+    
+          // Open modal when clicking on character count indicator
+          if (charCount) {
+            charCount.addEventListener('click', function () {
+              openChoiceModal(index)
+            })
+          }
+        })
+      }
+    
+      // Update character count for choice input
+      function updateChoiceCharCount(input, charCount) {
+        if (!input || !charCount) return
+        var len = input.value.length
+        if (len >= 9) {
+          charCount.style.display = 'block'
+          charCount.textContent = len + '/11'
+          if (len >= 11) {
+            charCount.textContent = '11/11+ (click to edit)'
+            charCount.style.color = '#0d6efd'
+            charCount.style.cursor = 'pointer'
+            input.style.color = '#6c757d'
+            input.style.fontStyle = 'italic'
+          } else {
+            charCount.style.color = '#6c757d'
+            input.style.color = ''
+            input.style.fontStyle = ''
+          }
+        } else {
+          charCount.style.display = 'none'
+          input.style.color = ''
+          input.style.fontStyle = ''
+        }
+      }
+    
+      // Update character count for modal textarea
+      function updateChoiceModalCharCount() {
+        if (!choiceModalCharCount || !choiceTextarea) return
+        var len = choiceTextarea.value.length
+        choiceModalCharCount.textContent = len + ' characters'
+        if (len > 200) {
+          choiceModalCharCount.style.color = '#dc3545'
+        } else if (len > 100) {
+          choiceModalCharCount.style.color = '#ffc107'
+        } else {
+          choiceModalCharCount.style.color = '#6c757d'
+        }
+      }
+    
+      // Open choice modal
+      function openChoiceModal(index) {
+        if (!choiceTextarea) return
+        currentChoiceIndex = index
+        var fullText = fullChoiceTexts[index] || ''
+        choiceTextarea.value = fullText
+        updateChoiceModalCharCount()
+        choiceModal.show()
+      }
+    
+      // Update modal character count as user types
+      if (choiceTextarea) {
+        choiceTextarea.addEventListener('input', updateChoiceModalCharCount)
+      }
+    
+      // Save choice from modal
+      if (saveChoiceBtn) {
+        saveChoiceBtn.addEventListener('click', function () {
+          if (!choiceTextarea || currentChoiceIndex === null) return
+          var newText = choiceTextarea.value
+          fullChoiceTexts[currentChoiceIndex] = newText
+    
+          // Update input field (truncate to 11 for display)
+          var input = document.querySelector('.choice-input[data-choice-index="' + currentChoiceIndex + '"]')
+          var charCount = document.querySelector('.choice-char-count[data-choice-index="' + currentChoiceIndex + '"]')
+    
+          if (input) {
+            if (newText.length > 11) {
+              input.value = newText.substring(0, 11)
+              input.style.color = '#6c757d'
+              input.style.fontStyle = 'italic'
+              if (charCount) {
+                charCount.style.display = 'block'
+                charCount.textContent = '11/11+ (click to edit)'
+                charCount.style.color = '#0d6efd'
+                charCount.style.cursor = 'pointer'
+              }
+            } else {
+              input.value = newText
+              input.style.color = ''
+              input.style.fontStyle = ''
+              if (charCount) {
+                charCount.style.display = 'none'
+              }
+            }
+            updateChoiceCharCount(input, charCount)
+          }
+    
+          choiceModal.hide()
+          currentChoiceIndex = null
+        })
+      }
+    
+      // Initialize choice inputs
+      initializeChoiceInputs()
+    
       // Timer selection
-      var timerRow = document.querySelector('.row.timer')
+      var timerContainer = document.querySelector('.timer-container')
       var selectedSeconds = 0
-      if (timerRow) {
-        var initial = parseInt(timerRow.getAttribute('data-initial-seconds') || '0', 10) || 0
+      if (timerContainer) {
+        var initial = parseInt(timerContainer.getAttribute('data-initial-seconds') || '0', 10) || 0
         selectedSeconds = initial
-        var buttons = Array.from(timerRow.querySelectorAll('.timer-btn'))
+        var buttons = Array.from(timerContainer.querySelectorAll('.timer-btn'))
     
         function applySelected() {
+          var presetTimes = [180, 300, 600, 1200]
+          var matchedPreset = false
+    
           buttons.forEach(function (b) {
             var sec = parseInt(b.getAttribute('data-seconds') || '0', 10) || 0
-            if (sec === selectedSeconds) b.classList.add('selected')
-            else b.classList.remove('selected')
+            if (sec === selectedSeconds && presetTimes.includes(sec)) {
+              b.classList.add('selected')
+              matchedPreset = true
+            } else {
+              b.classList.remove('selected')
+            }
           })
+    
+          // If no preset matches and we have a custom timer, select and update custom button
+          if (!matchedPreset && selectedSeconds > 0) {
+            var customBtn = timerContainer.querySelector('.timer-custom')
+            if (customBtn) {
+              customBtn.classList.add('selected')
+              customBtn.setAttribute('data-seconds', selectedSeconds)
+              var hours = Math.floor(selectedSeconds / 3600)
+              var minutes = Math.floor((selectedSeconds % 3600) / 60)
+              var secs = selectedSeconds % 60
+              var displayText = ''
+              if (hours > 0) displayText += hours + 'h '
+              if (minutes > 0) displayText += minutes + 'm '
+              if (secs > 0) displayText += secs + 's'
+              customBtn.textContent = displayText.trim() || 'Custom'
+            }
+          }
         }
         applySelected()
     
         buttons.forEach(function (btn) {
           btn.addEventListener('click', function () {
             if (btn.classList.contains('timer-custom')) {
+              // Get current custom time if already set
+              var currentCustomSeconds = parseInt(btn.getAttribute('data-seconds')) || 0
+              var currentMins = currentCustomSeconds > 0 ? Math.floor(currentCustomSeconds / 60) : ''
               Swal.fire({
                 title: 'Set custom time (minutes)',
                 input: 'number',
+                inputValue: currentMins,
                 inputAttributes: { min: 1, step: 1 },
                 showCancelButton: true
               }).then(function (res) {
@@ -346,6 +950,9 @@
                 var mins = parseInt(res.value || '0', 10) || 0
                 if (mins <= 0) return
                 selectedSeconds = mins * 60
+                // Update custom button text and data attribute
+                btn.setAttribute('data-seconds', selectedSeconds)
+                btn.textContent = mins + 'm'
                 applySelected()
               })
             } else {
@@ -440,10 +1047,16 @@
       function saveCurrentItem(action, targetItem) {
         var title = document.getElementById('activityTitle')?.value || ''
         var desc = document.getElementById('activityDescription')?.value || ''
-        var scenario = document.getElementById('scenario')?.value || ''
+        // Always use fullScenarioText if it exists (contains complete text), otherwise use input value
+        var scenario = fullScenarioText && fullScenarioText.length > 0 ? fullScenarioText : document.getElementById('scenario')?.value || ''
+        // Use full choice texts if available, otherwise use input values
         var choices = Array.from(document.querySelectorAll('.choice-input'))
           .map(function (el) {
-            return el.value || ''
+            var index = el.getAttribute('data-choice-index')
+            // Use full text if available and longer than input value, otherwise use input value
+            var fullText = fullChoiceTexts && fullChoiceTexts[index] ? fullChoiceTexts[index] : ''
+            var inputValue = el.value || ''
+            return fullText && fullText.length > inputValue.length ? fullText : inputValue
           })
           .filter(function (choice) {
             return choice.trim() !== ''
@@ -470,7 +1083,7 @@
           description: desc,
           scenario: scenario,
           choices: choices,
-          timer_seconds: selectedSeconds,
+          timer_seconds: selectedSeconds, // Timer is saved at activity level, not item level
           item_number: parseInt(item),
           action: action,
           target_item: targetItem || null

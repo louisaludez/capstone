@@ -8,6 +8,214 @@
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'main.css' %}" />
   <link rel="stylesheet" href="{% static 'cafe/css/cafe.css' %}" />
+  <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    @media (min-width: 992px) {
+      .content-wrapper {
+        max-width: 1020px;
+        margin: 0 auto;
+      }
+    
+      /* Fixed dimensions on wide screens - using px instead of vh */
+      .pos-container {
+        height: 800px;
+        padding: 20px 30px 10px 30px;
+      }
+    
+      .pos-content-container {
+        height: 100%;
+        align-items: flex-start;
+      }
+    
+      .left-side {
+        height: 100%;
+        align-self: flex-start;
+      }
+    
+      .right-side {
+        height: 520px;
+        max-height: 520px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-self: flex-start;
+        margin-top: 0;
+        padding-top: 0;
+      }
+    
+      .items {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+    
+      .bottom-section {
+        flex-shrink: 0;
+      }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 991.98px) {
+      .pos-container {
+        padding: 15px 20px 10px 20px;
+        height: auto;
+      }
+    
+      .pos-content-container {
+        flex-direction: column;
+        gap: 20px;
+        height: auto;
+      }
+    
+      .left-side {
+        width: 100%;
+        height: auto;
+        min-height: 400px;
+      }
+    
+      .right-side {
+        width: 100% !important;
+        margin-left: 0 !important;
+        height: auto;
+        min-height: 400px;
+        max-height: none;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .pos-container {
+        padding: 15px 15px 10px 15px;
+        height: auto;
+        min-height: 600px;
+      }
+    
+      h1 {
+        font-size: 1.75rem;
+        margin-bottom: 15px;
+      }
+    
+      .left-side > .first-row {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 8px;
+      }
+    
+      .first-row {
+        height: auto;
+        min-height: 40px;
+      }
+    
+      .left-side > .first-row .col {
+        flex: 1 1 auto;
+        min-width: calc(50% - 5px);
+        max-width: calc(50% - 5px);
+      }
+    
+      .second-row {
+        height: auto;
+        min-height: 30px;
+      }
+    
+      .right-side {
+        min-height: 350px;
+      }
+    
+      .items {
+        height: auto;
+        max-height: 200px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .pos-container {
+        padding: 10px 10px 10px 10px;
+      }
+    
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+      }
+    
+      .left-side > .first-row {
+        gap: 8px;
+        padding: 6px;
+      }
+    
+      .left-side > .first-row .col {
+        min-width: 100%;
+        max-width: 100%;
+        padding: 8px;
+      }
+    
+      .left-side > .first-row span {
+        font-size: 0.7rem;
+      }
+    
+      .left-side > .first-row small {
+        font-size: 0.6rem;
+      }
+    
+      .second-row {
+        margin-top: 8px;
+      }
+    
+      .right-side {
+        min-height: 300px;
+      }
+    
+      .details div {
+        flex-wrap: wrap;
+      }
+    
+      .details div input {
+        width: 100%;
+        margin-top: 5px;
+      }
+    
+      .method > .col {
+        flex-direction: column;
+        gap: 8px;
+      }
+    
+      .method > .col > button {
+        margin-left: 0;
+        width: 100%;
+      }
+    
+      .dt-button {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .pos-container {
+        padding: 8px;
+      }
+    
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 10px;
+      }
+    
+      .left-side {
+        min-height: 300px;
+      }
+    
+      .right-side {
+        min-height: 280px;
+      }
+    
+      .items {
+        max-height: 150px;
+      }
+    }
+  </style>
 {% endblock %}
 
 {% block sidebar %}
@@ -15,109 +223,110 @@
 {% endblock %}
 
 {% block content %}
-  <div class="pos-container">
-    <h1>Cafe POS</h1>
-    <div class="pos-content-container">
-      <div class="left-side">
-        <div class="row first-row">
-          <div class="col filter-box" data-category="">
-            <span>All</span>
-            <small>{{ total_items }} Items</small>
+  <div class="content-wrapper">
+    <div class="pos-container">
+      <h1>Cafe POS</h1>
+      <div class="pos-content-container">
+        <div class="left-side">
+          <div class="row first-row">
+            <div class="col filter-box" data-category="">
+              <span>All</span>
+              <small>{{ total_items }} Items</small>
+            </div>
+            <div class="col filter-box" data-category="Pasta">
+              <span>Pasta</span>
+              <small>{{ pasta_count }} items</small>
+            </div>
+            <div class="col filter-box" data-category="Pastry">
+              <span>Pastry</span>
+              <small>{{ pastry_count }} items</small>
+            </div>
+            <div class="col filter-box" data-category="Hot Drinks">
+              <span>Hot Drinks</span>
+              <small>{{ hot_drinks_count }} items</small>
+            </div>
+            <div class="col filter-box" data-category="Cold Drinks">
+              <span>Cold Drinks</span>
+              <small>{{ cold_drinks_count }} items</small>
+            </div>
+            <div class="col filter-box" data-category="Sandwiches">
+              <span>Sandwiches</span>
+              <small>{{ sandwiches_count }} items</small>
+            </div>
           </div>
-          <div class="col filter-box" data-category="Pasta">
-            <span>Pasta</span>
-            <small>{{ pasta_count }} items</small>
+
+          <div class="row align-items-center second-row">
+            <div class="col-10 d-flex justify-content-start">
+              <input type="text" class="search-bar" placeholder="Search items" />
+            </div>
+            <div class="col-2 d-flex justify-content-end">
+              <img src="{% static 'images/search.png' %}" alt="" id="search-icon" style="cursor: pointer;" />
+            </div>
           </div>
-          <div class="col filter-box" data-category="Pastry">
-            <span>Pastry</span>
-            <small>{{ pastry_count }} items</small>
-          </div>
-          <div class="col filter-box" data-category="Hot Drinks">
-            <span>Hot Drinks</span>
-            <small>{{ hot_drinks_count }} items</small>
-          </div>
-          <div class="col filter-box" data-category="Cold Drinks">
-            <span>Cold Drinks</span>
-            <small>{{ cold_drinks_count }} items</small>
-          </div>
-          <div class="col filter-box" data-category="Sandwiches">
-            <span>Sandwiches</span>
-            <small>{{ sandwiches_count }} items</small>
+
+          <div class="row third-row g-3 mt-1" id="item-results">
+            {% include './includes/item_cards.html' %}
           </div>
         </div>
 
-        <div class="row align-items-center second-row">
-          <div class="col-10 d-flex justify-content-start">
-            <input type="text" class="search-bar" placeholder="Search items" />
-          </div>
-          <div class="col-2 d-flex justify-content-end">
-            <img src="{% static 'images/search.png' %}" alt="" id="search-icon" style="cursor: pointer;" />
-          </div>
-        </div>
-
-        <div class="row third-row g-3 mt-1" id="item-results">
-          {% include './includes/item_cards.html' %}
-        </div>
-      </div>
-
-      <div class="right-side">
-        <div class="row header px-3 py-2">
-          <div class="col d-flex justify-content-between align-items-center">
-            <div class="text-center w-100">
-              <div class="fw-semibold">
-                <select name="customer" id="customer-select">
-                  <option value="">Select Customer</option>
-                  {% for customer in guests %}
-                    <option value="{{ customer.id }}">{{ customer.name }}</option>
-                  {% endfor %}
-                </select>
+        <div class="right-side">
+          <div class="row header px-3 py-2">
+            <div class="col d-flex justify-content-between align-items-center">
+              <div class="text-center w-100">
+                <div class="fw-semibold">
+                  <select name="customer" id="customer-select">
+                    <option value="">Select Customer</option>
+                    {% for customer in guests %}
+                      <option value="{{ customer.id }}">{{ customer.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
               </div>
-              <small class="text-muted">Order no. #00001</small>
-            </div>
-            <img src="{% static 'images/editing.png' %}" alt="Edit" class="ms-2" style="width: 16px; height: 16px; cursor: pointer;" />
-          </div>
-        </div>
-        <hr />
-        <div class="row items">
-          <div class="col-12 d-flex justify-content-center mb-2">
-            <button class="btn btn-outline-dark btn-sm me-1 px-3 py-1 dt-button">Dine In</button>
-            <button class="btn btn-outline-dark btn-sm px-3 py-1 dt-button">Takeout</button>
-          </div>
-        </div>
-
-        <div class="bottom-section mt-auto">
-          <div class="row details">
-            <div class="col-12 d-flex justify-content-between mb-2">
-              <span>Subtotal</span>
-              <input type="text" placeholder="0.00" disabled class="subtotal" id="subtotal" />
-            </div>
-
-            <div class="col-12 d-flex justify-content-between mb-2">
-              <span>Cash Tendered</span>
-              <input type="text" id="cash-tentered" />
-            </div>
-
-            <div class="col-12 d-flex justify-content-between mb-2">
-              <span>Change</span>
-              <input type="text" value="0.00" disabled id="change" />
-            </div>
-
-            <div class="col-12 d-flex justify-content-between mb-2 total">
-              <span>TOTAL</span>
-              <span id="total">0.00</span>
+              <img src="{% static 'images/editing.png' %}" alt="Edit" class="ms-2" style="width: 16px; height: 16px; cursor: pointer;" />
             </div>
           </div>
           <hr />
-          <div class="row method">
-            <div class="col">
-              <span>Payment method</span>
-              <button class="pm">Charge to room</button>
-              <button class="pm">Card Payment</button>
-              <button class="pm">Cash Payment</button>
+          <div class="row items">
+            <div class="col-12 d-flex justify-content-center mb-2">
+              <button class="btn btn-outline-dark btn-sm me-1 px-3 py-1 dt-button">Dine In</button>
+              <button class="btn btn-outline-dark btn-sm px-3 py-1 dt-button">Takeout</button>
             </div>
           </div>
-          <div class="row order">
-            <button class="po-btn" disabled>Place Order</button>
+
+          <div class="bottom-section mt-auto">
+            <div class="row details">
+              <div class="col-12 d-flex justify-content-between mb-2">
+                <span>Subtotal</span>
+                <input type="text" placeholder="0.00" disabled class="subtotal" id="subtotal" />
+              </div>
+
+              <div class="col-12 d-flex justify-content-between mb-2">
+                <span>Cash Tendered</span>
+                <input type="text" id="cash-tentered" />
+              </div>
+
+              <div class="col-12 d-flex justify-content-between mb-2">
+                <span>Change</span>
+                <input type="text" value="0.00" disabled id="change" />
+              </div>
+
+              <div class="col-12 d-flex justify-content-between mb-2 total">
+                <span>TOTAL</span>
+                <span id="total">0.00</span>
+              </div>
+            </div>
+            <hr />
+            <div class="row method">
+              <div class="col">
+                <span>Payment method</span>
+                <button class="pm">Charge to room</button>
+                <button class="pm">Card Payment</button>
+                <button class="pm">Cash Payment</button>
+              </div>
+            </div>
+            <div class="row order">
+              <button class="po-btn" disabled>Place Order</button>
+            </div>
           </div>
         </div>
       </div>

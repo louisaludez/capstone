@@ -25,7 +25,58 @@ document
     console.log("Walk-in button clicked");
     walkinOverlay.style.display = "flex";
 
+    // Update room dropdown to disable rooms under maintenance or in housekeeping
+    updateWalkinRoomDropdownAvailability();
+
   });
+
+// Function to update walk-in room dropdown based on current room statuses
+function updateWalkinRoomDropdownAvailability() {
+  const roomSelect = document.querySelector('.walkin-room');
+  if (!roomSelect) return;
+
+  console.log('[walkin] Updating room dropdown availability');
+
+  // Get current date for room status check
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Fetch current room statuses
+  $.getJSON('/staff/api/room-status/', { date: today })
+    .done(function (data) {
+      console.log('[walkin] Room status data received:', data);
+
+      // Disable rooms that are under maintenance or in housekeeping
+      Array.from(roomSelect.options).forEach(function (option) {
+        if (option.value === '' || option.value === null) return; // Skip placeholder
+
+        const roomCode = option.value;
+        const hkStatus = data.housekeeping_status && data.housekeeping_status[roomCode];
+
+        if (hkStatus === 'under_maintenance' || hkStatus === 'in_progress') {
+          option.disabled = true;
+          option.style.color = '#999';
+          option.style.backgroundColor = '#f0f0f0';
+          // Add indicator to option text
+          if (hkStatus === 'under_maintenance') {
+            option.textContent = option.textContent.replace(/\s*\(.*\)$/, '') + ' (Under Maintenance)';
+          } else if (hkStatus === 'in_progress') {
+            option.textContent = option.textContent.replace(/\s*\(.*\)$/, '') + ' (In Housekeeping)';
+          }
+          console.log(`[walkin] Disabled room ${roomCode}: ${hkStatus}`);
+        } else {
+          option.disabled = false;
+          option.style.color = '';
+          option.style.backgroundColor = '';
+          // Remove any status indicators
+          option.textContent = option.textContent.replace(/\s*\(Under Maintenance\)$/, '')
+            .replace(/\s*\(In Housekeeping\)$/, '');
+        }
+      });
+    })
+    .fail(function (error) {
+      console.error('[walkin] Failed to fetch room status:', error);
+    });
+}
 // Load availability when room changes
 $(document).on("change", ".walkin-room", function () {
   var room = $(this).val();
@@ -66,6 +117,10 @@ $(document).on("change", ".walkin-room", function () {
         onChange: function (selectedDates, dateStr, fp) {
           var isBlocked = blockedDatesSet.has(dateStr);
           try { console.log('[walkin] check-in selected =', dateStr, 'isBlocked?', isBlocked); } catch (e) { }
+          // Trigger balance calculation when check-in date changes
+          if (typeof window.calculateBalance === 'function') {
+            setTimeout(function () { window.calculateBalance(); }, 100);
+          }
         }
       });
 
@@ -89,6 +144,10 @@ $(document).on("change", ".walkin-room", function () {
         onChange: function (selectedDates, dateStr, fp) {
           var isBlocked = blockedDatesSet.has(dateStr);
           try { console.log('[walkin] check-out selected =', dateStr, 'isBlocked?', isBlocked); } catch (e) { }
+          // Trigger balance calculation when check-out date changes
+          if (typeof window.calculateBalance === 'function') {
+            setTimeout(function () { window.calculateBalance(); }, 100);
+          }
         }
       });
 
@@ -181,9 +240,10 @@ $(document).ready(function () {
     updateAddonsSummary();
 
     // Trigger balance recalculation if calculateBalance function exists
-    // Dispatch a custom event that the HTML script can listen to, or call directly
     if (typeof calculateBalance === 'function') {
       calculateBalance();
+    } else if (typeof window.calculateBalance === 'function') {
+      window.calculateBalance();
     } else {
       // Trigger change event on check-in/check-out fields to recalculate
       const checkinField = document.querySelector('.walkin-check-in');
@@ -494,6 +554,99 @@ function printReceipt(data, receiptNumber) {
 }
 
 $(".walkin-book-btn").on("click", function (event) {
+
+  // Check if selected room is under maintenance or in housekeeping
+  const selectedRoom = document.querySelector(".walkin-room").value;
+  if (selectedRoom) {
+    // Get the room element from the front office grid
+    const roomElement = document.querySelector(`[data-room="${selectedRoom}"]`);
+    if (roomElement) {
+      const hasMaintenance = roomElement.classList.contains('maintinance') ||
+        roomElement.classList.contains('maintenance') ||
+        roomElement.getAttribute('data-housekeeping') === 'under_maintenance';
+      const hasHousekeeping = roomElement.classList.contains('housekeeping') ||
+        roomElement.getAttribute('data-housekeeping') === 'in_progress';
+
+      console.log('[walkin] Room check:', {
+        room: selectedRoom,
+        hasMaintenance: hasMaintenance,
+        hasHousekeeping: hasHousekeeping,
+        classes: roomElement.className,
+        dataHousekeeping: roomElement.getAttribute('data-housekeeping')
+      });
+
+      if (hasMaintenance) {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Room Under Maintenance",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🔧</div>
+              <h3 style="color: #d4c21a; font-weight: bold; margin-bottom: 15px;">Room ${selectedRoom} is Under Maintenance</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                This room is currently unavailable for booking due to maintenance work.
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room to proceed with booking.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#d4c21a",
+          confirmButtonClass: "swal2-confirm",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+          customClass: {
+            popup: 'maintenance-error-modal',
+            title: 'maintenance-error-title',
+            htmlContainer: 'maintenance-error-content'
+          }
+        });
+        return;
+      }
+
+      if (hasHousekeeping) {
+        Swal.fire({
+          icon: "info",
+          title: "🧹 Room In Housekeeping",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
+              <h3 style="color: #0f3f86; font-weight: bold; margin-bottom: 15px;">Room ${selectedRoom} is Currently Being Cleaned</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                This room is currently in housekeeping and cannot be booked at this time.
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room or wait until housekeeping is complete.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#0f3f86",
+          confirmButtonClass: "swal2-confirm",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+          customClass: {
+            popup: 'housekeeping-error-modal',
+            title: 'housekeeping-error-title',
+            htmlContainer: 'housekeeping-error-content'
+          }
+        });
+        return;
+      }
+    } else {
+      // If room element not found, check via API
+      console.log('[walkin] Room element not found, checking via API for room:', selectedRoom);
+      // We'll let the backend handle this validation
+    }
+  }
+
   walkinOverlay.style.display = "none";
   const data = {
     guest_name: document.querySelector(".walkin-name").value,
@@ -513,7 +666,6 @@ $(".walkin-book-btn").on("click", function (event) {
     card_number: document.querySelector(".walkin-card-number").value,
     exp_date: document.querySelector(".walkin-card-exp-date").value,
     cvc: document.querySelector(".walkin-card-cvc").value,
-    billing_address: document.querySelector(".walkin-billing-address").value,
     current_balance: (() => {
       const rawValue = document.querySelector(".walkin-balance").value;
       // Simply remove peso symbol and commas
@@ -675,8 +827,85 @@ $(".walkin-book-btn").on("click", function (event) {
         }
       });
     },
-    error: function (error) {
-      console.log("Check-in error:", error);
+    error: function (xhr, status, error) {
+      console.log("Walk-in booking error:", xhr, status, error);
+      let errorMessage = "Failed to book room. Please try again.";
+
+      if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+        errorMessage = xhr.responseJSON.message;
+      } else if (xhr && xhr.responseText) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          if (response.message) {
+            errorMessage = response.message;
+          } else if (response.error) {
+            errorMessage = response.error;
+          }
+        } catch (e) {
+          // If not JSON, use default message
+        }
+      }
+
+      // Check for specific error messages about maintenance or housekeeping
+      if (errorMessage.toLowerCase().includes('maintenance')) {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Room Under Maintenance",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🔧</div>
+              <h3 style="color: #d4c21a; font-weight: bold; margin-bottom: 15px;">Room Unavailable</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                ${errorMessage}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room to proceed with booking.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#d4c21a",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+        });
+      } else if (errorMessage.toLowerCase().includes('housekeeping')) {
+        Swal.fire({
+          icon: "info",
+          title: "🧹 Room In Housekeeping",
+          html: `
+            <div style="text-align: center; padding: 10px;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
+              <h3 style="color: #0f3f86; font-weight: bold; margin-bottom: 15px;">Room Unavailable</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
+                ${errorMessage}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                Please select a different room or wait until housekeeping is complete.
+              </p>
+            </div>
+          `,
+          confirmButtonText: "OK, I Understand",
+          confirmButtonColor: "#0f3f86",
+          width: 500,
+          padding: "2em",
+          backdrop: true,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Booking Failed",
+          text: errorMessage,
+          confirmButtonColor: "#1a2d1e",
+        });
+      }
+
+      // Re-show the modal if it was hidden
+      walkinOverlay.style.display = "flex";
     },
   });
 });

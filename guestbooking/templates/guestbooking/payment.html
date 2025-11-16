@@ -273,9 +273,13 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Card number formatting
+    // Card number formatting - only 16 digits
     document.getElementById('cardNumber').addEventListener('input', function (e) {
       let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '')
+      // Limit to 16 digits
+      if (value.length > 16) {
+        value = value.substring(0, 16)
+      }
       let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value
       e.target.value = formattedValue
     })
@@ -318,10 +322,10 @@
         return
       }
     
-      // Card number validation (basic)
+      // Card number validation - must be exactly 16 digits
       const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '')
-      if (cardNumber.length < 13 || cardNumber.length > 19) {
-        alert('Please enter a valid credit card number.')
+      if (cardNumber.length !== 16) {
+        alert('Please enter a valid credit card number (16 digits).')
         document.getElementById('cardNumber').style.borderColor = '#dc3545'
         return
       }
@@ -405,15 +409,15 @@
       Swal.fire({
         title: 'Your reservation has been confirmed!',
         html: `
-                                              <div style="text-align: center; margin: 20px 0;">
-                                               
-                                                <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                                                  <p style="margin: 5px 0;"><strong>Guest Name:</strong> ${result.guest_name}</p>
-                                                  <p style="margin: 5px 0;"><strong>Room no.:</strong> ${result.room_number}</p>
-                                                  <p style="margin: 5px 0;"><strong>Reference no.:</strong> ${result.reference_number}</p>
-                                                </div>
-                                              </div>
-                                            `,
+                                                      <div style="text-align: center; margin: 20px 0;">
+                                                       
+                                                        <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                                          <p style="margin: 5px 0;"><strong>Guest Name:</strong> ${result.guest_name}</p>
+                                                          <p style="margin: 5px 0;"><strong>Room no.:</strong> ${result.room_number}</p>
+                                                          <p style="margin: 5px 0;"><strong>Reference no.:</strong> ${result.reference_number}</p>
+                                                        </div>
+                                                      </div>
+                                                    `,
         icon: 'success',
         confirmButtonText: 'View Details',
         confirmButtonColor: '#1a2d1a',
@@ -448,15 +452,31 @@
     
     // Real-time validation
     document.addEventListener('DOMContentLoaded', function () {
-      const inputs = document.querySelectorAll('.form-control')
-      inputs.forEach((input) => {
-        input.addEventListener('blur', function () {
-          if (this.value.trim()) {
+      const cardNumberInput = document.getElementById('cardNumber')
+      if (cardNumberInput) {
+        cardNumberInput.addEventListener('blur', function () {
+          const cardNumber = this.value.replace(/\s/g, '')
+          if (cardNumber.length === 16) {
             this.style.borderColor = '#7eb455'
+          } else if (cardNumber.length > 0 && cardNumber.length !== 16) {
+            this.style.borderColor = '#dc3545'
           } else {
             this.style.borderColor = '#cddcc9'
           }
         })
+      }
+    
+      const inputs = document.querySelectorAll('.form-control')
+      inputs.forEach((input) => {
+        if (input.id !== 'cardNumber') {
+          input.addEventListener('blur', function () {
+            if (this.value.trim()) {
+              this.style.borderColor = '#7eb455'
+            } else {
+              this.style.borderColor = '#cddcc9'
+            }
+          })
+        }
       })
     })
   </script>

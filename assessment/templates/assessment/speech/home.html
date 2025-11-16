@@ -5,6 +5,14 @@
 {% endblock %}
 {% block extra_head %}
   <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 15px;
+    }
+    
     .mcq-card {
       text-align: center;
       padding: 20px;
@@ -12,10 +20,11 @@
       border-radius: 12px;
       background-color: #fff;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      width: 90%;
+      width: 100%;
+      max-width: 400px;
       margin: auto;
       font-family: Arial, sans-serif;
-      height: 312px !important;
+      height: 312px;
     }
     
     .card-image img {
@@ -40,14 +49,117 @@
     }
     .container {
       display: flex;
-      justify-content: center; /* centers horizontally */
+      justify-content: center;
       align-items: center;
-      min-height: 100vh; /* full viewport height */
+      min-height: 100vh;
+      padding: 20px;
     }
     
     /* Set minimum height for test cards to maintain current size */
     .col-12 .card {
       min-height: 60px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .container {
+        min-height: auto;
+        padding: 30px 15px;
+      }
+      
+      .mcq-card {
+        height: auto;
+        min-height: 250px;
+        margin-bottom: 20px;
+      }
+      
+      .card-image img {
+        width: 120px;
+      }
+      
+      .card-title {
+        font-size: 18px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 10px;
+      }
+      
+      .mcq-card {
+        padding: 15px;
+        min-height: 220px;
+      }
+      
+      .card-image img {
+        width: 100px;
+        margin-bottom: 10px;
+      }
+      
+      .card-title {
+        font-size: 16px;
+      }
+      
+      .test-title {
+        font-size: 0.85rem;
+      }
+      
+      .test-definition {
+        font-size: 0.55rem !important;
+      }
+      
+      .col-12 .card {
+        padding: 12px !important;
+        min-height: 55px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .container {
+        padding: 15px 8px;
+      }
+      
+      .mcq-card {
+        padding: 12px;
+        min-height: 200px;
+        border-radius: 8px;
+      }
+      
+      .card-image img {
+        width: 80px;
+        margin-bottom: 8px;
+      }
+      
+      .card-title {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+      
+      .test-title {
+        font-size: 0.8rem;
+      }
+      
+      .test-definition {
+        font-size: 0.5rem !important;
+      }
+      
+      .col-12 .card {
+        padding: 10px !important;
+        min-height: 50px;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+      }
+      
+      .col-12 .card > div:last-child {
+        align-self: flex-end;
+      }
+      
+      .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.875rem;
+      }
     }
   </style>
 {% endblock %}
@@ -55,19 +167,20 @@
   {% include './includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="container px-5">
-    <div class="row">
-      <div class="col-4">
-        <div class="mcq-card">
-          <div class="card-image">
-            <img src="{% static 'images/SPTT2.png' %}" alt="Speech Icon" />
-          </div>
-          <div class="card-title">
-            Speech-to-text<br />Speed and <br />Accuracy Test
+  <div class="content-wrapper">
+    <div class="container px-5">
+      <div class="row">
+        <div class="col-12 col-md-4 mb-4 mb-md-0">
+          <div class="mcq-card">
+            <div class="card-image">
+              <img src="{% static 'images/SPTT2.png' %}" alt="Speech Icon" />
+            </div>
+            <div class="card-title">
+              Speech-to-text<br />Speed and <br />Accuracy Test
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-8">
+        <div class="col-12 col-md-8">
         <div class="row g-2">
           <div class="col-12">
             <div class="card d-flex flex-row align-items-center p-2 shadow-sm rounded-3">

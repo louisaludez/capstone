@@ -6,6 +6,79 @@
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}" />
   <style>
+    /* Content wrapper with max-width for larger screens */
+    .content-wrapper {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    @media (min-width: 1200px) {
+      .content-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+    }
+    
+    @media (min-width: 1600px) {
+      .content-wrapper {
+        max-width: 1600px;
+      }
+    }
+    
+    /* Responsive padding */
+    @media (max-width: 575.98px) {
+      .content-wrapper .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+    }
+    
+    /* Header section responsive */
+    .header-section h4 {
+      font-size: 1.25rem;
+    }
+    
+    @media (min-width: 768px) {
+      .header-section h4 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    /* Header row layout */
+    .header-row {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .header-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+    }
+    
+    @media (min-width: 576px) {
+      .header-actions {
+        flex-direction: row;
+        width: auto;
+        align-items: center;
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .header-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+      }
+    
+      .header-actions {
+        margin-left: auto;
+      }
+    }
+    
     /* Real-time search visual feedback */
     #customSearch.searching {
       border-color: #0d6efd !important;
@@ -37,10 +110,23 @@
     .table-hover tbody tr:hover {
       background-color: rgba(0, 0, 0, 0.05);
     }
+    
+    /* Responsive table font sizes */
+    @media (max-width: 767.98px) {
+      .users-table {
+        font-size: 0.75rem;
+      }
+      .users-table th,
+      .users-table td {
+        padding: 0.25rem 0.35rem;
+      }
+    }
+    
     .action-buttons {
       display: flex;
       gap: 0.25rem;
       justify-content: center;
+      flex-wrap: wrap;
     }
     .action-buttons .btn {
       padding: 0.25rem 0.5rem;
@@ -51,6 +137,14 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: all 0.2s ease;
     }
+    
+    @media (max-width: 575.98px) {
+      .action-buttons .btn {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+      }
+    }
+    
     .pagination .page-link {
       color: #495057;
       border-color: #dee2e6;
@@ -76,6 +170,28 @@
     .dataTables_wrapper .dataTables_info {
       padding-top: 0.75rem;
     }
+    
+    /* Search input wrapper - fixed width */
+    .search-input-wrapper {
+      min-width: 200px;
+      max-width: 300px;
+      width: 100%;
+    }
+    
+    @media (min-width: 576px) {
+      .search-input-wrapper {
+        width: 250px;
+        max-width: 300px;
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .search-input-wrapper {
+        width: 280px;
+        max-width: 320px;
+      }
+    }
+    
     /* Make Add User button and search input same height */
     .btn[data-bs-toggle='modal'][data-bs-target='#addUserModal'],
     #customSearch {
@@ -85,62 +201,87 @@
     #customSearch {
       line-height: 1.5;
     }
+    
+    @media (max-width: 575.98px) {
+      .btn[data-bs-toggle='modal'][data-bs-target='#addUserModal'],
+      #customSearch {
+        height: 36px;
+        font-size: 0.875rem;
+      }
+      .search-input-wrapper {
+        max-width: 100%;
+      }
+    }
+    
+    /* Responsive modals */
+    @media (max-width: 575.98px) {
+      .modal-dialog {
+        margin: 0.5rem;
+      }
+      .modal-content {
+        border-radius: 0.5rem;
+      }
+    }
   </style>
 {% endblock %}
 {% block sidebar %}
   {% include './includes/sidebar.html' with active_page='accounts' %}
 {% endblock %}
 {% block content %}
-  <div class="container-fluid p-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="mb-0">Registered HMS Users</h4>
-      <div class="d-flex gap-2 align-items-center">
-        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-plus-lg"></i> Add User</button>
-        <div class="input-group" style="width: auto; min-width: 250px;">
-          <input id="customSearch" type="text" class="form-control form-control-sm" placeholder="Search by username, role, or ID" />
+  <div class="content-wrapper">
+    <div class="container-fluid p-3 p-md-4 p-lg-5">
+      <div class="header-section mb-3 mb-md-4">
+        <div class="header-row">
+          <h4 class="mb-0">Registered HMS Users</h4>
+          <div class="header-actions">
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">Add User</span><span class="d-sm-none">Add User</span></button>
+            <div class="input-group search-input-wrapper">
+              <input id="customSearch" type="text" class="form-control form-control-sm" placeholder="Search by username, role, or ID" />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="table-responsive">
-      <table id="usersTable" class="table table-bordered align-middle mt-2 users-table table-hover">
-        <thead class="table-light text-center">
-          <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Registration Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody class="text-center">
-          {% for user in users %}
+      <div class="table-responsive">
+        <table id="usersTable" class="table table-bordered align-middle mt-2 users-table table-hover">
+          <thead class="table-light text-center">
             <tr>
-              <td>{{ user.id }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.role }}</td>
-              <td class="date-joined" data-date="{{ user.date_joined|date:'c' }}">{{ user.date_joined|date:'F j, Y g:i A' }}</td>
-              <td>
-                <div class="action-buttons">
-                  <button class="btn btn-sm btn-outline-secondary view-user" data-user-id="{{ user.id }}" title="View User"><i class="bi bi-eye"></i></button>
-                  <button class="btn btn-sm btn-outline-primary edit-user" data-user-id="{{ user.id }}" title="Edit User"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-sm btn-outline-danger delete-user" data-user-id="{{ user.id }}" title="Delete User"><i class="bi bi-trash"></i></button>
-                </div>
-              </td>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Registration Date</th>
+              <th>Actions</th>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center py-5">
-                <div class="text-muted">
-                  <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
-                  <h6 class="text-secondary mb-2">No Users Found</h6>
-                  <p class="mb-3 text-muted">There are currently no registered users in the system.</p>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="text-center">
+            {% for user in users %}
+              <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+                <td class="date-joined" data-date="{{ user.date_joined|date:'c' }}">{{ user.date_joined|date:'F j, Y g:i A' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn btn-sm btn-outline-secondary view-user" data-user-id="{{ user.id }}" title="View User"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-primary edit-user" data-user-id="{{ user.id }}" title="Edit User"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger delete-user" data-user-id="{{ user.id }}" title="Delete User"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-5">
+                  <div class="text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                    <h6 class="text-secondary mb-2">No Users Found</h6>
+                    <p class="mb-3 text-muted">There are currently no registered users in the system.</p>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 

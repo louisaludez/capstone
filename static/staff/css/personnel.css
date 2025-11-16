@@ -60,7 +60,11 @@
     background-color: #ad0908 !important;
 }
 
-.maintinance {
+.maintinance,
+.row>div.maintinance,
+[data-room].maintinance,
+div.maintinance.available,
+div.available.maintinance {
     background-color: #d4c21a !important;
 }
 

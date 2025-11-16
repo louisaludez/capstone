@@ -7,6 +7,14 @@
 
 {% block extra_head %}
   <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 15px;
+    }
+    
     .mcq-card {
       text-align: center;
       padding: 20px;
@@ -14,12 +22,12 @@
       border-radius: 12px;
       background-color: #fff;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      width: 250px;
+      width: 100%;
+      max-width: 400px;
       margin: auto;
       font-family: Arial, sans-serif;
-      margin-right: 20px;
-    
-      min-height: 312px !important;
+      margin-right: 0;
+      min-height: 312px;
     }
     
     .card-image img {
@@ -59,9 +67,11 @@
       display: flex;
       border: 1px solid #ccc;
       border-radius: 6px;
-      width: 680px;
+      width: 100%;
+      max-width: 680px;
       overflow: hidden;
-      height: 150px;
+      min-height: 150px;
+      height: auto;
       font-family: Arial, sans-serif;
     }
     
@@ -101,6 +111,166 @@
     .next-activity-card {
       text-align: right;
     }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .container {
+        min-height: auto;
+        padding: 30px 15px;
+      }
+    
+      .mcq-card {
+        min-height: 250px;
+        margin-bottom: 20px;
+      }
+    
+      .card-image img {
+        width: 120px;
+      }
+    
+      .card-title-mcq {
+        font-size: 18px;
+      }
+    
+      .results-container {
+        flex-direction: column;
+        height: auto;
+      }
+    
+      .status-box {
+        min-height: 80px;
+        font-size: 1.3rem;
+      }
+    
+      .score {
+        font-size: 1.5rem;
+      }
+    
+      .next-activity-card {
+        text-align: center;
+        margin-top: 20px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 10px;
+      }
+    
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+      }
+    
+      .mcq-card {
+        padding: 15px;
+        min-height: 220px;
+      }
+    
+      .card-image img {
+        width: 100px;
+        margin-bottom: 10px;
+      }
+    
+      .card-title-mcq {
+        font-size: 16px;
+      }
+    
+      .card-body {
+        height: auto;
+        min-height: 55px;
+      }
+    
+      .results-container {
+        width: 100%;
+      }
+    
+      .score-box {
+        padding: 12px;
+      }
+    
+      .score {
+        font-size: 1.3rem;
+      }
+    
+      .status-box {
+        font-size: 1.1rem;
+        min-height: 70px;
+      }
+    
+      .next-activity-card {
+        text-align: center;
+      }
+    
+      .btn-lg {
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .container {
+        padding: 15px 8px;
+      }
+    
+      h2 {
+        font-size: 1.25rem;
+        margin-bottom: 15px;
+      }
+    
+      .mcq-card {
+        padding: 12px;
+        min-height: 200px;
+        border-radius: 8px;
+      }
+    
+      .card-image img {
+        width: 80px;
+        margin-bottom: 8px;
+      }
+    
+      .card-title-mcq {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+    
+      .card-title {
+        font-size: 0.9rem;
+      }
+    
+      .card-text {
+        font-size: 0.55rem;
+      }
+    
+      .results-container {
+        flex-direction: column;
+        border-radius: 4px;
+      }
+    
+      .score-box {
+        padding: 10px;
+      }
+    
+      .score {
+        font-size: 1.1rem;
+      }
+    
+      .status-box {
+        font-size: 1rem;
+        min-height: 60px;
+        padding: 10px;
+      }
+    
+      .next-activity-card {
+        text-align: center;
+      }
+    
+      .btn-lg {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -109,35 +279,38 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container px-5">
-    <div class="row">
-      <h2>Training Simulation Results</h2>
-      <div class="col-4">
-        <div class="mcq-card">
-          <div class="card-image">
-            <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
-          </div>
-          <div class="card-title-mcq">
-            Multiple Choice<br />Scenario Based<br />Test
-          </div>
-        </div>
-      </div>
-      <div class="col-8">
-        <!-- Test Details Card -->
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">{{ activity.title }}</h5>
-            <p class="card-text">{{ activity.description }}</p>
-          </div>
-        </div>
-
-        <!-- Results Card -->
-        <div class="results-card">
-          <div class="results-container">
-            <div class="score-box">
-              <h4 class="score">Your score is {{ correct_answers }} out of {{ total_questions }} questions.</h4>
+  <div class="content-wrapper">
+    <div class="container px-5">
+      <div class="row">
+        <h2>Training Simulation Results</h2>
+        <div class="col-12 col-md-4 mb-4 mb-md-0">
+          <div class="mcq-card">
+            <div class="card-image">
+              <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
             </div>
-            <div class="status-box {% if passed %}
+            <div class="card-title-mcq">
+              Multiple Choice<br />Scenario Based<br />Test
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-8">
+          <!-- Test Details Card -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{ activity.title }}</h5>
+              <p class="card-text">{{ activity.description }}</p>
+            </div>
+          </div>
+
+          <!-- Results Card -->
+          <div class="results-card">
+            <div class="results-container">
+              <div class="score-box">
+                <h4 class="score">Your score is {{ correct_answers }} out of {{ total_questions }} questions.</h4>
+              </div>
+              <div class="status-box {% if passed %}
+                  
+                  
                 
                 
                 
@@ -203,7 +376,11 @@
 
 
 
-              {% else %}
+
+
+                {% else %}
+                  
+                  
                 
                 
                 
@@ -269,36 +446,39 @@
 
 
 
-              {% endif %}">
-              {% if passed %}
-                <span>Congratulations! You passed!</span>
-              {% else %}
-                <span>You Failed! <br /> Try again.</span>
-              {% endif %}
+
+
+                {% endif %}">
+                {% if passed %}
+                  <span>Congratulations! You passed!</span>
+                {% else %}
+                  <span>You Failed! <br /> Try again.</span>
+                {% endif %}
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Next Activity Card -->
-        {% if passed %}
-          {% if next_activity %}
-            <div class="next-activity-card">
-              <h6 class="mb-3">Up next</h6>
-              <a href="{% url 'mcq_start' next_activity.id %}" class="btn btn-success btn-lg">{{ next_activity.title }} <i class="bi bi-arrow-right ms-2"></i></a>
-            </div>
+          <!-- Next Activity Card -->
+          {% if passed %}
+            {% if next_activity %}
+              <div class="next-activity-card">
+                <h6 class="mb-3">Up next</h6>
+                <a href="{% url 'mcq_start' next_activity.id %}" class="btn btn-success btn-lg">{{ next_activity.title }} <i class="bi bi-arrow-right ms-2"></i></a>
+              </div>
+            {% else %}
+              <div class="next-activity-card">
+                <h6 class="mb-3">All activities completed!</h6>
+                <p class="text-muted">You have finished all available tests.</p>
+                <a href="{% url 'mcq_home' %}" class="btn btn-primary">Back to Home</a>
+              </div>
+            {% endif %}
           {% else %}
             <div class="next-activity-card">
-              <h6 class="mb-3">All activities completed!</h6>
-              <p class="text-muted">You have finished all available tests.</p>
-              <a href="{% url 'mcq_home' %}" class="btn btn-primary">Back to Home</a>
+              <h6 class="mb-3">Take activity again?</h6>
+              <button id="retryBtn" class="btn btn-warning btn-lg" data-activity-id="{{ activity.id }}">Try again<i class="bi bi-arrow-clockwise ms-2"></i></button>
             </div>
           {% endif %}
-        {% else %}
-          <div class="next-activity-card">
-            <h6 class="mb-3">Take activity again?</h6>
-            <button id="retryBtn" class="btn btn-warning btn-lg" data-activity-id="{{ activity.id }}">Try again<i class="bi bi-arrow-clockwise ms-2"></i></button>
-          </div>
-        {% endif %}
+        </div>
       </div>
     </div>
   </div>

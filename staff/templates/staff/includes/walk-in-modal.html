@@ -150,10 +150,7 @@
         </div>
 
         <div class="walkin-field">
-          <label>Billing Address</label><input type="text" class="walkin-billing-address" />
-        </div>
-        <div class="walkin-field">
-          <label>Current Balance</label><input type="text" class="walkin-balance" />
+          <label>Current Balance</label><input type="text" class="walkin-balance" readonly />
         </div>
 
         <div class="walkin-btn-wrapper">
@@ -164,12 +161,11 @@
   </div>
 </div>
 
-<!-- Toggle billing/card visibility based on payment method -->
+<!-- Toggle card fields visibility based on payment method -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const method = document.querySelector('.walkin-payment-method')
     const cardFields = document.querySelector('.walkin-card-fields')
-    const billingField = document.querySelector('.walkin-billing-address')
     const roomSelect = document.querySelector('.walkin-room')
     const checkinField = document.querySelector('.walkin-check-in')
     const checkoutField = document.querySelector('.walkin-check-out')
@@ -200,9 +196,9 @@
   
     // Room type to price mapping
     const roomPrices = {
-      Standard: 1500,
-      Family: 2500,
-      Deluxe: 4500
+      Standard: 3500,
+      Family: 4700,
+      Deluxe: 8900
     }
   
     // Add-on prices
@@ -214,10 +210,26 @@
   
     function applyPaymentVisibility() {
       const isCash = method && method.value === 'cash'
-      if (cardFields) cardFields.style.display = isCash ? 'none' : ''
-      if (billingField) {
-        billingField.closest('.walkin-field').style.display = isCash ? 'none' : ''
-        if (isCash) billingField.value = ''
+      if (cardFields) {
+        if (isCash) {
+          cardFields.style.display = 'none'
+          cardFields.classList.add('hidden')
+          cardFields.style.height = '0px'
+          cardFields.style.padding = '0'
+          cardFields.style.margin = '0'
+          cardFields.style.opacity = '0'
+        } else {
+          // Remove hidden class first
+          cardFields.classList.remove('hidden')
+          // Reset all CSS properties that might have been set
+          cardFields.style.display = 'block'
+          cardFields.style.opacity = '1'
+          cardFields.style.padding = ''
+          cardFields.style.margin = ''
+          cardFields.style.height = 'auto'
+          // Force a reflow to ensure the element is visible
+          void cardFields.offsetHeight
+        }
       }
     }
   
@@ -333,13 +345,24 @@
   
     if (checkinField) {
       checkinField.addEventListener('change', calculateBalance)
+      // Also listen for flatpickr events
+      checkinField.addEventListener('blur', calculateBalance)
     }
   
     if (checkoutField) {
       checkoutField.addEventListener('change', calculateBalance)
+      // Also listen for flatpickr events
+      checkoutField.addEventListener('blur', calculateBalance)
     }
   
     // Setup add-on listeners
     setupAddonListeners()
+  
+    // Recalculate balance when modal opens (in case dates were pre-filled)
+    setTimeout(function () {
+      if (roomSelect && roomSelect.value && checkinField && checkinField.value && checkoutField && checkoutField.value) {
+        calculateBalance()
+      }
+    }, 100)
   })
 </script>

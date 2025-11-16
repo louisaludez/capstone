@@ -14,6 +14,12 @@
     * {
       border-radius: 13px;
     }
+    /* Content wrapper for max-width on large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
     .header-buttons {
       border: 1px solid gray;
       display: flex;
@@ -23,6 +29,8 @@
       min-width: 300px;
       padding: 5px 10px;
       border-radius: 13px;
+      flex-wrap: wrap;
+      gap: 5px;
     }
     .activity-box {
       display: flex;
@@ -32,7 +40,8 @@
       border: 1px solid black;
       border-radius: 13px;
       height: 380px;
-      width: 310px !important;
+      width: 100%;
+      max-width: 310px;
     }
     .activity-box img {
       width: 150px;
@@ -200,10 +209,11 @@
     .div {
       position: absolute;
       top: 5px;
-      left: 540px;
+      right: 10px;
       display: flex;
       align-items: center;
       flex-direction: column;
+      gap: 5px;
     }
     .plus-box {
       width: 100%;
@@ -239,6 +249,84 @@
     .input-container .div {
       display: flex;
     }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .header-buttons {
+        min-width: 100%;
+        width: 100%;
+        justify-content: center;
+      }
+      .header-buttons span {
+        display: none;
+      }
+      .header-buttons .btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        font-size: 11px;
+        padding: 5px 8px;
+      }
+      .activity-box {
+        height: auto;
+        min-height: 300px;
+        padding: 20px;
+      }
+      .activity-box img {
+        width: 120px;
+        height: 120px;
+      }
+      .activity-box span {
+        font-size: 18px;
+      }
+      .input-container {
+        padding-right: 100px;
+      }
+      .div {
+        right: 5px;
+        top: 5px;
+      }
+      .div span {
+        font-size: 10px;
+      }
+      .div a {
+        font-size: 14px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .header-buttons .btn {
+        font-size: 10px;
+        padding: 4px 6px;
+      }
+      .header-buttons .btn i {
+        font-size: 12px;
+      }
+      .activity-box {
+        min-height: 250px;
+        padding: 15px;
+      }
+      .activity-box img {
+        width: 100px;
+        height: 100px;
+      }
+      .activity-box span {
+        font-size: 16px;
+      }
+      .input-container {
+        padding-right: 90px;
+        height: auto;
+        min-height: 60px;
+      }
+      .input-header {
+        font-size: 11px;
+      }
+      .input-container span.form-control {
+        font-size: 11px !important;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -247,58 +335,36 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container-fluid p-5">
-    <div class="row header mt-3 mb-2">
-      <div class="col-6">
-        <h1>Activity Materials</h1>
-      </div>
-      <div class="col-6 d-flex justify-content-end align-items-center">
-        <div class="header-buttons">
-          <button type="button" class="btn" onclick="window.location.href='{% url 'admin_training' %}'" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Training Materials</button>
-          <span>|</span>
-          <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
-          <span>|</span>
-          <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
-          <span>|</span>
-          <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
+  <div class="container-fluid p-3 p-md-5">
+    <div class="content-wrapper">
+      <div class="row header mt-3 mb-2">
+        <div class="col-12 col-md-6 mb-3 mb-md-0">
+          <h1>Activity Materials</h1>
         </div>
-      </div>
-    </div>
-    <div class="row body">
-      <div class="col-4">
-        <div class="activity-box">
-          <img src="{% static 'images/SPTT2.png' %}" alt="" />
-          <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
-        </div>
-      </div>
-      <div class="col-8">
-        <div class="row"></div>
-        <div class="input-list">
-          <!-- Hidden template for cloning -->
-          <div class="input-container template" style="display: none;">
-            <span class="input-header">Activity Title</span>
-            <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
-            <div class="div">
-              <a href="{% url 'add_activity_speech' %}"><span><i class="bi bi-upload"></i></span></a>
-              <span>AddActivity</span>
-            </div>
-            <input type="checkbox" class="corner-checkbox" />
+        <div class="col-12 col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">
+          <div class="header-buttons">
+            <button type="button" class="btn" onclick="window.location.href='{% url 'admin_training' %}'" style="color: #6c757d;"><i class="bi bi-arrow-left"></i> Training Materials</button>
+            <span>|</span>
+            <button class="btn add"><i class="bi bi-plus-lg"></i>Add</button>
+            <span>|</span>
+            <button class="btn remove"><i class="bi bi-dash-lg"></i>Remove</button>
+            <span>|</span>
+            <button class="btn edit"><i class="bi bi-pencil-square"></i>Edit</button>
           </div>
-
-          {% if activities %}
-            {% for a in activities %}
-              <div class="input-container" data-id="{{ a.id }}">
-                <span class="input-header">{{ a.title }}</span>
-                <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">{{ a.description|default:'Description' }}</span>
-                <div class="div">
-                  <a href="{% url 'add_activity_speech' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
-                  <span>AddActivity</span>
-                </div>
-                <input type="checkbox" class="corner-checkbox" />
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="input-container">
+        </div>
+      </div>
+      <div class="row body">
+        <div class="col-12 col-md-4 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+          <div class="activity-box">
+            <img src="{% static 'images/SPTT2.png' %}" alt="" />
+            <span class="text">Speech-to-Text <br /> Speed and Accuracy <br /> Test</span>
+          </div>
+        </div>
+        <div class="col-12 col-md-8">
+          <div class="row"></div>
+          <div class="input-list">
+            <!-- Hidden template for cloning -->
+            <div class="input-container template" style="display: none;">
               <span class="input-header">Activity Title</span>
               <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
               <div class="div">
@@ -307,13 +373,37 @@
               </div>
               <input type="checkbox" class="corner-checkbox" />
             </div>
-          {% endif %}
-        </div>
-        <div class="plus-box">
-          <div class="plus-icon">+</div>
-        </div>
-        <div class="row footer">
-          <button id="saveChangesBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+
+            {% if activities %}
+              {% for a in activities %}
+                <div class="input-container" data-id="{{ a.id }}">
+                  <span class="input-header">{{ a.title }}</span>
+                  <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">{{ a.description|default:'Description' }}</span>
+                  <div class="div">
+                    <a href="{% url 'add_activity_speech' %}?id={{ a.id }}"><span><i class="bi bi-upload"></i></span></a>
+                    <span>AddActivity</span>
+                  </div>
+                  <input type="checkbox" class="corner-checkbox" />
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="input-container">
+                <span class="input-header">Activity Title</span>
+                <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+                <div class="div">
+                  <a href="{% url 'add_activity_speech' %}"><span><i class="bi bi-upload"></i></span></a>
+                  <span>AddActivity</span>
+                </div>
+                <input type="checkbox" class="corner-checkbox" />
+              </div>
+            {% endif %}
+          </div>
+          <div class="plus-box">
+            <div class="plus-icon">+</div>
+          </div>
+          <div class="row footer">
+            <button id="saveChangesBtn"><i class="bi bi-floppy mx-2"></i>Save Changes</button>
+          </div>
         </div>
       </div>
     </div>

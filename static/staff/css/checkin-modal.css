@@ -179,3 +179,60 @@
     opacity: 0;
     pointer-events: none;
 }
+
+/* Error Modal Styles for Maintenance and Housekeeping */
+.maintenance-error-modal {
+    border: 3px solid #d4c21a !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(212, 194, 26, 0.3) !important;
+    animation: shake 0.5s ease-in-out !important;
+}
+
+.housekeeping-error-modal {
+    border: 3px solid #0f3f86 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(15, 63, 134, 0.3) !important;
+    animation: pulse 0.5s ease-in-out !important;
+}
+
+.maintenance-error-title {
+    color: #d4c21a !important;
+    font-weight: bold !important;
+    font-size: 24px !important;
+    margin-bottom: 15px !important;
+}
+
+.housekeeping-error-title {
+    color: #0f3f86 !important;
+    font-weight: bold !important;
+    font-size: 24px !important;
+    margin-bottom: 15px !important;
+}
+
+.maintenance-error-content {
+    color: #333 !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+.housekeeping-error-content {
+    color: #333 !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+/* Enhanced backdrop for error modals */
+.swal2-backdrop-show {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+}

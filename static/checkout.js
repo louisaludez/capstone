@@ -96,14 +96,81 @@ $(".guests-name-checkout").on("change", function () {
       let cafe = toNumber(response.cafe_billing);
       let excessPax = toNumber(response.excess_pax_billing);
       let additional = toNumber(response.additional_charge_billing);
-      $(".guest-billing-checkout").val(billing);
+
+      // Check if guest is walk-in and hide room charges if so
+      const selectedOption = $(".guests-name-checkout option:selected");
+      const bookingSource = selectedOption.attr('data-booking-source') || '';
+      const isWalkin = selectedOption.attr('data-is-walkin');
+      const roomChargesWrapper = document.querySelector('.checkout-room-charges-wrapper');
+
+      console.log('[checkout.js] bookingSource:', bookingSource, 'isWalkin:', isWalkin);
+
+      // Only hide room charges and additional charges if source is 'walkin'
+      const additionalChargesWrapper = document.querySelector('.checkout-additional-charges-wrapper');
+
+      if (bookingSource === 'walkin' && roomChargesWrapper) {
+        roomChargesWrapper.style.display = 'none';
+        roomChargesWrapper.style.visibility = 'hidden';
+        roomChargesWrapper.style.height = '0';
+        roomChargesWrapper.style.margin = '0';
+        roomChargesWrapper.style.padding = '0';
+        console.log('[checkout.js] Hiding Room Charges - guest is walk-in');
+        $(".guest-billing-checkout").val(''); // Clear room charges value
+
+        // Also hide Additional Charges for walk-in guests
+        if (additionalChargesWrapper) {
+          additionalChargesWrapper.style.display = 'none';
+          additionalChargesWrapper.style.visibility = 'hidden';
+          additionalChargesWrapper.style.height = '0';
+          additionalChargesWrapper.style.margin = '0';
+          additionalChargesWrapper.style.padding = '0';
+          console.log('[checkout.js] Hiding Additional Charges - guest is walk-in');
+          $(".guest-additional-charge-checkout").val(''); // Clear additional charges value
+        }
+      } else if (roomChargesWrapper) {
+        roomChargesWrapper.style.display = 'flex';
+        roomChargesWrapper.style.visibility = 'visible';
+        roomChargesWrapper.style.height = '';
+        roomChargesWrapper.style.margin = '';
+        roomChargesWrapper.style.padding = '';
+        console.log('[checkout.js] Showing Room Charges - guest is from reservation');
+        $(".guest-billing-checkout").val(billing);
+
+        // Also show Additional Charges for reservations
+        if (additionalChargesWrapper) {
+          additionalChargesWrapper.style.display = 'flex';
+          additionalChargesWrapper.style.visibility = 'visible';
+          additionalChargesWrapper.style.height = '';
+          additionalChargesWrapper.style.margin = '';
+          additionalChargesWrapper.style.padding = '';
+          console.log('[checkout.js] Showing Additional Charges - guest is from reservation');
+        }
+      } else {
+        $(".guest-billing-checkout").val(billing);
+      }
       $(".guest-rm-billing-checkout").val(roomService);
       $(".guest-laundry-billing-checkout").val(laundry);
       $(".guest-cafe-billing-checkout").val(cafe);
       $(".guest-ep-billing-checkout").val(excessPax);
-      $(".guest-additional-charge-checkout").val(additional);
-      let total =
-        billing + roomService + laundry + cafe + excessPax + additional;
+
+      // Only set additional charges if not walk-in
+      if (bookingSource !== 'walkin') {
+        $(".guest-additional-charge-checkout").val(additional);
+      } else {
+        $(".guest-additional-charge-checkout").val('');
+      }
+
+      // Calculate total - exclude billing (room charges) and additional charges if walk-in
+      let total;
+      if (bookingSource === 'walkin') {
+        // For walk-in: only laundry and cafe (exclude room charges and additional charges)
+        total = laundry + cafe;
+        console.log('[checkout.js] Walk-in total (excluding room charges and additional charges):', total);
+      } else {
+        // For reservations or checkin: include all charges including room charges and additional charges
+        total = billing + roomService + laundry + cafe + excessPax + additional;
+        console.log('[checkout.js] Reservation/Checkin total (including room charges and additional charges):', total);
+      }
       $(".guest-total-balance-checkout").val(total.toFixed(2));
     },
     error: function (message) {

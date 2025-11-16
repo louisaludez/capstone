@@ -5,6 +5,14 @@
 {% endblock %}
 {% block extra_head %}
   <style>
+    /* Content wrapper with max-width for large screens */
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 15px;
+    }
+    
     .mcq-compact-container {
       max-width: 1100px;
       margin: 0 auto;
@@ -143,6 +151,169 @@
       display: flex;
       gap: 10px;
       justify-content: flex-end;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .mcq-compact-container {
+        padding: 15px 0 0 0;
+      }
+      
+      .mcq-row {
+        flex-direction: column;
+        gap: 20px;
+        min-height: auto;
+      }
+      
+      .mcq-left {
+        flex: 1;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        min-height: 250px;
+      }
+      
+      .mcq-right {
+        width: 100%;
+      }
+      
+      .sim-choices-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .sim-timer {
+        justify-self: center;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .mcq-compact-container {
+        padding: 10px 0 0 0;
+      }
+      
+      .mcq-left {
+        padding: 15px;
+        min-height: 220px;
+      }
+      
+      .card-image img {
+        width: 100px;
+        margin-bottom: 10px;
+      }
+      
+      .card-title {
+        font-size: 16px;
+      }
+      
+      .sim-title {
+        font-size: 1rem;
+      }
+      
+      .sim-instructions {
+        font-size: 0.9rem;
+      }
+      
+      .sim-scenario {
+        font-size: 0.95rem;
+        padding: 6px 10px;
+      }
+      
+      .sim-choice-row {
+        font-size: 0.9rem;
+        padding: 6px 8px;
+      }
+      
+      .sim-choice-row input[type='checkbox'] {
+        width: 16px;
+        height: 16px;
+        margin-right: 10px;
+      }
+      
+      .sim-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .sim-next-btn,
+      .sim-prev-btn,
+      .sim-prev-link {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .mcq-compact-container {
+        padding: 8px 0 0 0;
+      }
+      
+      .mcq-left {
+        padding: 12px;
+        min-height: 200px;
+        border-radius: 8px;
+      }
+      
+      .card-image img {
+        width: 80px;
+        margin-bottom: 8px;
+      }
+      
+      .card-title {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+      
+      .sim-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .sim-title {
+        font-size: 0.9rem;
+      }
+      
+      .item-progress {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+      }
+      
+      .sim-instructions {
+        font-size: 0.85rem;
+      }
+      
+      .sim-scenario {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+        margin-bottom: 10px;
+      }
+      
+      .sim-choice-row {
+        font-size: 0.85rem;
+        padding: 5px 6px;
+      }
+      
+      .sim-choice-row input[type='checkbox'] {
+        width: 14px;
+        height: 14px;
+        margin-right: 8px;
+      }
+      
+      .sim-timer {
+        font-size: 0.95rem;
+      }
+      
+      .sim-timer .timer-icon {
+        font-size: 1.8rem;
+      }
+      
+      .sim-next-btn,
+      .sim-prev-btn,
+      .sim-prev-link {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
     }
   </style>
   <script>
@@ -326,9 +497,10 @@
   {% include 'assessment/mcq/includes/sidebar.html' with active_page='home' %}
 {% endblock %}
 {% block content %}
-  <div class="mcq-compact-container p-5">
-    <div class="mcq-row">
-      <div class="mcq-left mt-5">
+  <div class="content-wrapper">
+    <div class="mcq-compact-container p-5">
+      <div class="mcq-row">
+        <div class="mcq-left mt-5">
         <div class="card-image">
           <img src="{% static 'images/type.png' %}" alt="MCQ Icon" />
         </div>

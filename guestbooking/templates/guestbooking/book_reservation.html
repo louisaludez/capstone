@@ -186,7 +186,7 @@
 
           <div class="form-group">
             <label class="form-label" for="phone">Phone Number</label>
-            <input type="tel" class="form-control" id="phone" name="phone" required />
+            <input type="tel" class="form-control" id="phone" name="phone" maxlength="11" required />
           </div>
         </form>
       </div>
@@ -256,11 +256,10 @@
         return
       }
     
-      // Phone validation
-      const phone = document.getElementById('phone').value
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-      if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
-        alert('Please enter a valid phone number.')
+      // Phone validation - must be exactly 11 digits
+      const phone = document.getElementById('phone').value.replace(/[^0-9]/g, '')
+      if (phone.length !== 11) {
+        alert('Please enter a valid phone number (11 digits).')
         document.getElementById('phone').style.borderColor = '#dc3545'
         return
       }
@@ -281,17 +280,43 @@
       window.location.href = '/guestbooking/payment/'
     }
     
-    // Real-time validation
+    // Phone number validation - only 11 digits
     document.addEventListener('DOMContentLoaded', function () {
-      const inputs = document.querySelectorAll('.form-control')
-      inputs.forEach((input) => {
-        input.addEventListener('blur', function () {
-          if (this.value.trim()) {
+      const phoneInput = document.getElementById('phone')
+      if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+          // Only allow digits, max 11
+          let value = e.target.value.replace(/[^0-9]/g, '')
+          if (value.length > 11) {
+            value = value.substring(0, 11)
+          }
+          e.target.value = value
+        })
+    
+        phoneInput.addEventListener('blur', function () {
+          if (this.value.length === 11) {
             this.style.borderColor = '#7eb455'
+          } else if (this.value.length > 0 && this.value.length !== 11) {
+            this.style.borderColor = '#dc3545'
+            alert('Phone number must be exactly 11 digits.')
           } else {
             this.style.borderColor = '#cddcc9'
           }
         })
+      }
+    
+      // Real-time validation for other inputs
+      const inputs = document.querySelectorAll('.form-control')
+      inputs.forEach((input) => {
+        if (input.id !== 'phone') {
+          input.addEventListener('blur', function () {
+            if (this.value.trim()) {
+              this.style.borderColor = '#7eb455'
+            } else {
+              this.style.borderColor = '#cddcc9'
+            }
+          })
+        }
       })
     })
   </script>
