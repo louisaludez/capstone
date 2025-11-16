@@ -214,9 +214,11 @@ $(".checkout-submit-btn").on("click", function () {
         icon: "success",
         title: "Checkout Successful",
         text: response.message || "Guest has been checked out.",
+      }).then(function () {
+        window.location.reload();
       });
       closeCheckoutModal();
-      location.reload();
+
 
     },
     error: function (xhr) {

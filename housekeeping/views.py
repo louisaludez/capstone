@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models
+from django.db.models import Q
 from chat.models import Message
 from users.models import CustomUser
 from django.utils import timezone
@@ -51,27 +52,34 @@ def housekeeping_home(request):
             if 'maintenance' in s or 'under maintenance' in s:
                 status_class = 'maintenance'
                 print(f"  -> Setting status_class to 'maintenance'")
+            elif 'no requests' in s or 'no request' in s:
+                # "No requests" means room is vacant (no housekeeping needed)
+                status_class = 'vacant'
+                print(f"  -> Setting status_class to 'vacant' (no requests)")
             elif 'pending' in s:
-                # Only show pending if there's a booking
-                if has_booking_today:
-                    status_class = 'pending'
-                    print(f"  -> Setting status_class to 'pending' (has booking)")
-                else:
-                    status_class = 'vacant'
-                    print(f"  -> Setting status_class to 'vacant' (no booking)")
+                # Show pending regardless of booking status (persists after checkout)
+                status_class = 'pending'
+                print(f"  -> Setting status_class to 'pending' (persists regardless of booking)")
             elif 'progress' in s or 'in progress' in s:
-                # Only show progress if there's a booking
+                # Show progress regardless of booking status (persists after checkout)
+                status_class = 'progress'
+                print(f"  -> Setting status_class to 'progress' (persists regardless of booking)")
+            else:
+                # For other statuses or no specific status, check booking
                 if has_booking_today:
-                    status_class = 'progress'
-                    print(f"  -> Setting status_class to 'progress' (has booking)")
+                    status_class = 'vacant'
+                    print(f"  -> Setting status_class to 'vacant' (has booking but no active housekeeping status)")
                 else:
                     status_class = 'vacant'
-                    print(f"  -> Setting status_class to 'vacant' (no booking)")
+                    print(f"  -> Setting status_class to 'vacant' (default)")
+        else:
+            # No housekeeping record - check if there's a booking
+            if has_booking_today:
+                status_class = 'vacant'
+                print(f"Room {room_number}: No record but has booking -> 'vacant'")
             else:
                 status_class = 'vacant'
-                print(f"  -> Setting status_class to 'vacant' (default)")
-        else:
-            print(f"Room {room_number}: No record or no status -> 'vacant'")
+                print(f"Room {room_number}: No record or no status -> 'vacant'")
 
         rooms.append({
             "number": room_number,
@@ -143,11 +151,17 @@ def update_status(request):
 
         try:
             print("Attempting to update/create housekeeping record...")
+            # Check if status is "No requests"
+            is_no_requests = status and ('no requests' in status.lower() or 'no request' in status.lower())
+            
             # For "Under Maintenance" and "No requests", use room_number and status as unique key
             # For other statuses, use room_number and request_type as unique key
-            if is_under_maintenance or (status and 'no requests' in status.lower()):
-                # Use room_number only as the key for maintenance/no requests status
-                # This allows one maintenance record per room regardless of request type
+            if is_under_maintenance or is_no_requests:
+                # Use room_number and status as the key for maintenance/no requests status
+                # This allows one maintenance or no-requests record per room
+                # Delete any existing records for this room with different statuses first
+                Housekeeping.objects.filter(room_number=room_number).exclude(status=status).delete()
+                
                 hk, created = Housekeeping.objects.update_or_create(
                     room_number=room_number,
                     status=status,
@@ -158,6 +172,16 @@ def update_status(request):
                 )
             else:
                 # For other statuses, use room_number and request_type as unique keys
+                # But first, delete any "No requests" or "Under Maintenance" records for this room
+                Housekeeping.objects.filter(
+                    room_number=room_number
+                ).filter(
+                    Q(status__icontains='no requests') | 
+                    Q(status__icontains='no request') | 
+                    Q(status__icontains='maintenance') | 
+                    Q(status__icontains='under maintenance')
+                ).delete()
+                
                 hk, created = Housekeeping.objects.update_or_create(
                     room_number=room_number,
                     request_type=request_type,

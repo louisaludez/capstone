@@ -81,35 +81,216 @@ def home(request):
     
     # Get all rooms for dynamic counts
     all_rooms = Room.objects.all().order_by('room_number')
+    total_rooms = all_rooms.count()
     
-    # Get individual rooms for specific room numbers (1-12)
+    # Helper: normalize room string to numeric code
+    def normalize_room_code(room_str):
+        if not room_str:
+            return ""
+        import re
+        match = re.search(r"\d+", str(room_str))
+        return match.group(0) if match else str(room_str)
+    
+    # Get today's date
+    today = timezone.localdate()
+    
+    # Get housekeeping statuses (matching housekeeping_home logic exactly)
+    from housekeeping.models import Housekeeping
+    
+    # Debug: Check all housekeeping records to see what statuses exist
+    # all_hk = Housekeeping.objects.all().values('room_number', 'status').distinct()
+    # print("All housekeeping records:", list(all_hk))
+    
+    # Function to determine room status (matching template display logic)
+    def get_room_status_class(room_number):
+        """Determine room status class matching the template display"""
+        room_code = str(room_number)
+        
+        # Check for active booking today
+        has_booking_today = Booking.objects.filter(
+            room=room_code,
+            status='Checked-in',
+            check_in_date__lte=today,
+            check_out_date__gte=today,
+        ).exists()
+        
+        # Check for pending booking today
+        has_pending_booking = Booking.objects.filter(
+            room=room_code,
+            status='Pending',
+            check_in_date__lte=today,
+            check_out_date__gte=today,
+        ).exists()
+        
+        # Get the most recent housekeeping record for this room
+        # Try exact match first
+        record = Housekeeping.objects.filter(
+            room_number=room_code
+        ).order_by('-created_at').first()
+        
+        # If not found with exact match, try to find by extracting number from room_number
+        if not record:
+            # Try to find records where room_number contains the room code
+            all_records = Housekeeping.objects.filter(
+                room_number__icontains=room_code
+            ).order_by('-created_at')
+            # Filter to get the one that matches the room number exactly (extract number from room_number)
+            for rec in all_records:
+                # Extract numeric part from room_number (re is already imported at top)
+                rec_num = re.search(r'\d+', str(rec.room_number))
+                if rec_num and rec_num.group(0) == room_code:
+                    record = rec
+                    break
+        
+        status_class = 'vacant'
+        if record and record.status:
+            s = record.status.strip().lower()
+            # Replace underscores with spaces for matching
+            s_normalized = s.replace('_', ' ').replace('-', ' ')
+            # Check for maintenance status first (applies regardless of booking)
+            if 'maintenance' in s_normalized or 'under maintenance' in s_normalized:
+                status_class = 'maintenance'
+            elif 'no requests' in s_normalized or 'no request' in s_normalized:
+                # "No requests" means room is vacant (no housekeeping needed)
+                status_class = 'vacant'
+            elif 'pending' in s_normalized:
+                # Show pending regardless of booking status (persists after checkout)
+                status_class = 'pending'
+            elif 'progress' in s_normalized or 'in progress' in s_normalized:
+                # Show progress regardless of booking status (persists after checkout)
+                status_class = 'progress'
+            else:
+                # For other statuses, check booking
+                if has_booking_today:
+                    status_class = 'occupied'
+                elif has_pending_booking:
+                    status_class = 'reserved'
+                else:
+                    status_class = 'vacant'
+        else:
+            # No housekeeping record - check booking
+            if has_booking_today:
+                status_class = 'occupied'
+            elif has_pending_booking:
+                status_class = 'reserved'
+            else:
+                status_class = 'vacant'
+        
+        # Map to CSS class names used in template (matching template default and CSS classes)
+        status_mapping = {
+            'vacant': 'vacant',  # matches template default
+            'occupied': 'occupied',
+            'maintenance': 'maintenance',
+            'pending': 'housekeeping',  # pending housekeeping = housekeeping CSS class
+            'progress': 'housekeeping',  # in progress housekeeping = housekeeping CSS class
+            'reserved': 'reserved',
+        }
+        return status_mapping.get(status_class, 'vacant')  # default matches template default
+    
+    # Get individual rooms and update their status dynamically
     room_1 = Room.objects.filter(room_number='1').first()
+    if room_1:
+        room_1.status = get_room_status_class('1')
     room_2 = Room.objects.filter(room_number='2').first()
+    if room_2:
+        room_2.status = get_room_status_class('2')
     room_3 = Room.objects.filter(room_number='3').first()
+    if room_3:
+        room_3.status = get_room_status_class('3')
     room_4 = Room.objects.filter(room_number='4').first()
+    if room_4:
+        room_4.status = get_room_status_class('4')
     room_5 = Room.objects.filter(room_number='5').first()
+    if room_5:
+        room_5.status = get_room_status_class('5')
     room_6 = Room.objects.filter(room_number='6').first()
+    if room_6:
+        room_6.status = get_room_status_class('6')
     room_7 = Room.objects.filter(room_number='7').first()
+    if room_7:
+        room_7.status = get_room_status_class('7')
     room_8 = Room.objects.filter(room_number='8').first()
+    if room_8:
+        room_8.status = get_room_status_class('8')
     room_9 = Room.objects.filter(room_number='9').first()
+    if room_9:
+        room_9.status = get_room_status_class('9')
     room_10 = Room.objects.filter(room_number='10').first()
+    if room_10:
+        room_10.status = get_room_status_class('10')
     room_11 = Room.objects.filter(room_number='11').first()
+    if room_11:
+        room_11.status = get_room_status_class('11')
     room_12 = Room.objects.filter(room_number='12').first()
+    if room_12:
+        room_12.status = get_room_status_class('12')
     
-    # Count rooms by status
-    room_status_counts = {
-        'available': all_rooms.filter(status='available').count(),
-        'occupied': all_rooms.filter(status='occupied').count(),
-        'maintenance': all_rooms.filter(status='maintenance').count(),
-        'cleaning': all_rooms.filter(status='cleaning').count(),
-        'reserved': all_rooms.filter(status='reserved').count(),
+    # Count rooms by actual displayed status (based on room.status CSS class that will be shown in template)
+    # Count based on the actual room objects that are displayed in the template
+    status_counts = {
+        'vacant': 0,
+        'occupied': 0,
+        'maintenance': 0,
+        'housekeeping': 0,  # housekeeping class (pending/progress)
+        'reserved': 0,
     }
     
-    # Count rooms by type
+    # Count each room's actual displayed status (CSS class) from the room objects
+    room_list = [room_1, room_2, room_3, room_4, room_5, room_6, room_7, room_8, room_9, room_10, room_11, room_12]
+    for i, room in enumerate(room_list, 1):
+        if room and hasattr(room, 'status'):
+            status = room.status  # This is the CSS class name (vacant, occupied, maintenance, housekeeping, reserved)
+            # Debug: print status for each room
+            print(f"Room {i}: status = '{status}'")
+            if status in status_counts:
+                status_counts[status] += 1
+            else:
+                # Default to vacant if status is not recognized
+                print(f"  -> Room {i}: Unrecognized status '{status}', defaulting to vacant")
+                status_counts['vacant'] += 1
+        else:
+            # If room doesn't exist, count as vacant
+            print(f"Room {i}: room object doesn't exist, counting as vacant")
+            status_counts['vacant'] += 1
+    
+    # Debug: Print final counts
+    print(f"Final status_counts: {status_counts}")
+    
+    # Map to template keys (based on actual displayed room status classes)
+    room_status_counts = {
+        'available': status_counts['vacant'],  # vacant = available in the counts display
+        'occupied': status_counts['occupied'],
+        'maintenance': status_counts['maintenance'],
+        'cleaning': status_counts['housekeeping'],  # housekeeping = cleaning (housekeeping class)
+        'reserved': status_counts['reserved'],
+    }
+    
+    # Debug output (uncomment to see counts)
+    # print(f"Status counts: {status_counts}")
+    # print(f"Room status counts: {room_status_counts}")
+    
+    # Count rooms by type (only occupied rooms - matching displayed status)
+    occupied_by_type = {
+        'deluxe': 0,
+        'family': 0,
+        'standard': 0
+    }
+    
+    # Count occupied rooms by type based on actual displayed status
+    for i in range(1, 13):  # Rooms 1-12
+        status_class = get_room_status_class(i)
+        if status_class == 'occupied':
+            try:
+                room = Room.objects.get(room_number=str(i))
+                if room.room_type in occupied_by_type:
+                    occupied_by_type[room.room_type] += 1
+            except Room.DoesNotExist:
+                continue
+    
     room_type_counts = {
-        'deluxe': all_rooms.filter(room_type='deluxe').exclude(status='available').count(),
-        'family': all_rooms.filter(room_type='family').exclude(status='available').count(),
-        'standard': all_rooms.filter(room_type='standard').exclude(status='available').count(),
+        'deluxe': occupied_by_type['deluxe'],
+        'family': occupied_by_type['family'],
+        'standard': occupied_by_type['standard'],
     }
 
     return render(request, "staff/home.html", {
@@ -581,26 +762,105 @@ def room_status(request):
         reserved_rooms = []
     print(f"[DEBUG] Reserved rooms (normalized): {reserved_rooms}")
 
-    # Count rooms by status dynamically (date-aware for occupied and reserved)
-    maintenance_count = all_rooms.filter(status='maintenance').count()
-    cleaning_count = all_rooms.filter(status='cleaning').count()
-    out_of_order_count = all_rooms.filter(status='out_of_order').count()
-
-    occupied_set = set(occupied_rooms)
-    reserved_set = set(reserved_rooms)
-
-    # Available excludes occupied, reserved, maintenance, out_of_order
-    available_count = total_rooms - len(occupied_set) - len(reserved_set) - maintenance_count - out_of_order_count
-    if available_count < 0:
-        available_count = 0
-
+    # Get housekeeping statuses (matching home view logic)
+    from housekeeping.models import Housekeeping
+    
+    # Function to determine room status (matching home view logic)
+    def get_room_status_class_api(room_number, target_date):
+        """Determine room status class matching the template display"""
+        room_code = str(room_number)
+        
+        # Check for active booking on target date
+        has_booking = Booking.objects.filter(
+            room=room_code,
+            status='Checked-in',
+            check_in_date__lte=target_date,
+            check_out_date__gte=target_date,
+        ).exists()
+        
+        # Check for pending booking on target date
+        has_pending_booking = Booking.objects.filter(
+            room=room_code,
+            status='Pending',
+            check_in_date__lte=target_date,
+            check_out_date__gte=target_date,
+        ).exists()
+        
+        # Get the most recent housekeeping record for this room
+        record = Housekeeping.objects.filter(room_number=room_code).order_by('-created_at').first()
+        
+        # If not found with exact match, try to find by extracting number from room_number
+        if not record:
+            all_records = Housekeeping.objects.filter(room_number__icontains=room_code).order_by('-created_at')
+            for rec in all_records:
+                rec_num = re.search(r'\d+', str(rec.room_number))
+                if rec_num and rec_num.group(0) == room_code:
+                    record = rec
+                    break
+        
+        status_class = 'vacant'
+        if record and record.status:
+            s = record.status.strip().lower()
+            # Replace underscores with spaces for matching
+            s_normalized = s.replace('_', ' ').replace('-', ' ')
+            # Check for maintenance status first (applies regardless of booking)
+            if 'maintenance' in s_normalized or 'under maintenance' in s_normalized:
+                status_class = 'maintenance'
+            elif 'no requests' in s_normalized or 'no request' in s_normalized:
+                status_class = 'vacant'
+            elif 'pending' in s_normalized:
+                status_class = 'pending'
+            elif 'progress' in s_normalized or 'in progress' in s_normalized:
+                status_class = 'progress'
+            else:
+                if has_booking:
+                    status_class = 'occupied'
+                elif has_pending_booking:
+                    status_class = 'reserved'
+                else:
+                    status_class = 'vacant'
+        else:
+            if has_booking:
+                status_class = 'occupied'
+            elif has_pending_booking:
+                status_class = 'reserved'
+            else:
+                status_class = 'vacant'
+        
+        # Map to CSS class names
+        status_mapping = {
+            'vacant': 'vacant',
+            'occupied': 'occupied',
+            'maintenance': 'maintenance',
+            'pending': 'housekeeping',
+            'progress': 'housekeeping',
+            'reserved': 'reserved',
+        }
+        return status_mapping.get(status_class, 'vacant')
+    
+    # Count rooms by actual displayed status (based on CSS classes)
+    status_counts = {
+        'vacant': 0,
+        'occupied': 0,
+        'maintenance': 0,
+        'housekeeping': 0,
+        'reserved': 0,
+    }
+    
+    # Count each room's actual displayed status
+    for i in range(1, 13):  # Rooms 1-12
+        status_class = get_room_status_class_api(str(i), d)
+        if status_class in status_counts:
+            status_counts[status_class] += 1
+        else:
+            status_counts['vacant'] += 1
+    
     room_status_counts = {
-        'available': available_count,
-        'occupied': len(occupied_set),
-        'maintenance': maintenance_count,
-        'cleaning': cleaning_count,
-        'reserved': len(reserved_set),
-        'out_of_order': out_of_order_count,
+        'available': status_counts['vacant'],
+        'occupied': status_counts['occupied'],
+        'maintenance': status_counts['maintenance'],
+        'cleaning': status_counts['housekeeping'],
+        'reserved': status_counts['reserved'],
     }
     print(f"[DEBUG] Room status counts: {room_status_counts}")
 
@@ -690,6 +950,10 @@ def room_status(request):
                     print(f"  -> No match, skipping")
     
     print(f"[room_status] Final housekeeping_status: {housekeeping_status}")
+
+    # Create sets for occupied and reserved rooms
+    occupied_set = set(occupied_rooms)
+    reserved_set = set(reserved_rooms)
 
     return JsonResponse({
         "occupied": list(occupied_set),
