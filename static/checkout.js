@@ -216,6 +216,8 @@ $(".checkout-submit-btn").on("click", function () {
         text: response.message || "Guest has been checked out.",
       });
       closeCheckoutModal();
+      location.reload();
+
     },
     error: function (xhr) {
       Swal.fire({
