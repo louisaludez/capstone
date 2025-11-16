@@ -288,6 +288,11 @@ def messenger(request):
     receiver_role = request.GET.get('receiver_role', 'Admin')
     # Base on app service, not user role
     current_service = 'Room Service'
+    
+    # Get the actual user's role (simplified) - messages are saved with the user's actual role
+    from users.models import CustomUser
+    user = request.user
+    user_actual_role = user.role if hasattr(user, 'role') else None
 
     # room name deterministic ordering with simplified roles
     def simplify_role(role):
@@ -320,22 +325,68 @@ def messenger(request):
 
     user_roles = get_related_roles(current_service)
     receiver_roles = get_related_roles(receiver_role)
+    
+    # Also get simplified roles for matching (messages are saved with simplified roles)
+    simplified_user_role = simplify_role(current_service)
+    simplified_receiver_role = simplify_role(receiver_role)
+    
+    # Get the user's actual simplified role (for matching messages they sent)
+    simplified_user_actual_role = simplify_role(user_actual_role) if user_actual_role else None
+    user_actual_roles = get_related_roles(user_actual_role) if user_actual_role else []
+    
+    # Build query conditions
+    # Show messages in the conversation between current_service and receiver_role
+    # Match on sender_service to find messages sent from this service/app context
+    query_conditions = models.Q()
+    
+    # Primary match: Messages sent from this service context (e.g., Room Service -> Admin)
+    query_conditions |= (models.Q(sender_service=simplified_user_role) & models.Q(receiver_role=simplified_receiver_role))
+    query_conditions |= (models.Q(sender_service=simplified_user_role) & models.Q(receiver_role__in=receiver_roles))
+    
+    # Also match messages where receiver sent to this service (Admin -> Room Service)
+    query_conditions |= (models.Q(sender_role=simplified_receiver_role) & models.Q(receiver_role=simplified_user_role))
+    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role=simplified_user_role))
+    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
+    
+    # Match on expanded role lists (for backward compatibility with old messages without sender_service)
+    query_conditions |= (models.Q(sender_role=simplified_user_role) & models.Q(receiver_role=simplified_receiver_role))
+    query_conditions |= (models.Q(sender_role=simplified_receiver_role) & models.Q(receiver_role=simplified_user_role))
+    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
+    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
+    
+    messages_qs = Message.objects.filter(query_conditions).order_by('created_at')
+    
+    print(f"[messenger] Querying messages:")
+    print(f"  user_roles={user_roles}")
+    print(f"  receiver_roles={receiver_roles}")
+    print(f"  simplified_user_role='{simplified_user_role}'")
+    print(f"  simplified_receiver_role='{simplified_receiver_role}'")
+    print(f"  user_actual_role='{user_actual_role}'")
+    print(f"  simplified_user_actual_role='{simplified_user_actual_role}'")
+    print(f"  user_actual_roles={user_actual_roles}")
+    print(f"  Found {messages_qs.count()} messages")
+    
+    # Debug: Print first few messages to see what's in the database
+    all_messages = Message.objects.all().order_by('-created_at')[:5]
+    print(f"[messenger] Recent messages in DB:")
+    for m in all_messages:
+        print(f"  ID={m.id}, sender_role='{m.sender_role}', receiver_role='{m.receiver_role}', body='{m.body[:30]}...'")
 
-    messages_qs = Message.objects.filter(
-        (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles)) |
-        (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    ).order_by('created_at')
-
-    for msg in messages_qs:
+    # Convert queryset to list to ensure it's evaluated and messages are available
+    messages_list = list(messages_qs)
+    for msg in messages_list:
         try:
             sender = CustomUser.objects.get(id=msg.sender_id)
             msg.sender_username = sender.username
         except CustomUser.DoesNotExist:
             msg.sender_username = "Unknown User"
+    
+    print(f"[messenger] Passing {len(messages_list)} messages to template")
 
     return render(request, 'housekeeping/messenger.html', {
         'room_name': room_name,
         'receiver_role': receiver_role,
-        'messages': messages_qs,
+        'messages': messages_list,
         'current_user_id': request.user.id,
+        'current_service': current_service,
     })

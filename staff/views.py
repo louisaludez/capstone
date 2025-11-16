@@ -854,7 +854,7 @@ def room_status(request):
             status_counts[status_class] += 1
         else:
             status_counts['vacant'] += 1
-    
+
     room_status_counts = {
         'available': status_counts['vacant'],
         'occupied': status_counts['occupied'],

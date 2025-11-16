@@ -357,13 +357,30 @@ def admin_messenger(request):
 
     user_roles = get_related_roles(current_service)
     receiver_roles = get_related_roles(receiver_role)
+    simplified_receiver_role = simplify_role(receiver_role)
 
-    messages_qs = Message.objects.filter(
-        (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles)) |
-        (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    ).order_by('created_at')
-
-    for msg in messages_qs:
+    # Build query conditions
+    # Show messages in the conversation between Admin and receiver_role
+    # Match on sender_service to find messages sent from the selected service
+    query_conditions = models.Q()
+    
+    # Primary match: Messages sent from the selected service to Admin (e.g., Room Service -> Admin)
+    query_conditions |= (models.Q(sender_service=simplified_receiver_role) & models.Q(receiver_role=simplify_role(current_service)))
+    query_conditions |= (models.Q(sender_service=simplified_receiver_role) & models.Q(receiver_role__in=user_roles))
+    
+    # Also match messages where Admin sent to the service (Admin -> Room Service)
+    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role=simplified_receiver_role))
+    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
+    
+    # Match on expanded role lists (for backward compatibility with old messages without sender_service)
+    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
+    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
+    
+    messages_qs = Message.objects.filter(query_conditions).order_by('created_at')
+    
+    # Convert queryset to list to ensure it's evaluated
+    messages_list = list(messages_qs)
+    for msg in messages_list:
         try:
             sender = CustomUser.objects.get(id=msg.sender_id)
             msg.sender_username = sender.username
@@ -373,8 +390,9 @@ def admin_messenger(request):
     return render(request, "adminNew/messenger.html", {
         "room_name": room_name,
         "receiver_role": receiver_role,
-        "messages": messages_qs,
+        "messages": messages_list,
         "current_user_id": request.user.id,
+        "current_service": current_service,
     })
 def admin_front_office_reports(request):
     from django.core.paginator import Paginator

@@ -22,13 +22,21 @@
           <button class="btn {% if receiver_role == 'Personnel' %}
               
               
+              
+              
               btn-success
+
+
 
 
             {% else %}
               
               
+              
+              
               btn-outline-dark
+
+
 
 
             {% endif %} py-2 service-btn"
@@ -40,13 +48,21 @@
           <button class="btn {% if receiver_role == 'Laundry' %}
               
               
+              
+              
               btn-success
+
+
 
 
             {% else %}
               
               
+              
+              
               btn-outline-dark
+
+
 
 
             {% endif %} py-2 service-btn"
@@ -58,13 +74,21 @@
           <button class="btn {% if receiver_role == 'Cafe' %}
               
               
+              
+              
               btn-success
+
+
 
 
             {% else %}
               
               
+              
+              
               btn-outline-dark
+
+
 
 
             {% endif %} py-2 service-btn"
@@ -76,13 +100,21 @@
           <button class="btn {% if receiver_role == 'Room Service' %}
               
               
+              
+              
               btn-success
+
+
 
 
             {% else %}
               
               
+              
+              
               btn-outline-dark
+
+
 
 
             {% endif %} py-2 service-btn"
@@ -94,13 +126,21 @@
           <button class="btn {% if receiver_role == 'Admin' %}
               
               
+              
+              
               btn-success
+
+
 
 
             {% else %}
               
               
+              
+              
               btn-outline-dark
+
+
 
 
             {% endif %} py-2 service-btn"
@@ -134,13 +174,21 @@
                 <div class="{% if msg.sender_id == current_user_id %}
                     
                     
+                    
+                    
                     text-end me-2
+
+
 
 
                   {% else %}
                     
                     
+                    
+                    
                     me-2
+
+
 
 
                   {% endif %}">
@@ -168,7 +216,7 @@
       </div>
     </div>
   </div>
-  <div id="chat-config" data-room-name="{{ room_name }}" data-sender-id="{{ request.user.id }}" data-sender-username="{{ request.user.username }}" data-receiver-role="{{ receiver_role }}"></div>
+  <div id="chat-config" data-room-name="{{ room_name }}" data-sender-id="{{ request.user.id }}" data-sender-username="{{ request.user.username }}" data-receiver-role="{{ receiver_role }}" data-sender-service="{{ current_service }}"></div>
 {% endblock %}
 
 {% block extra_js %}

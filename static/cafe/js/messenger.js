@@ -21,6 +21,7 @@
     const senderId = cfg.getAttribute('data-sender-id');
     const senderUsername = cfg.getAttribute('data-sender-username');
     const receiverRole = cfg.getAttribute('data-receiver-role');
+    const senderService = cfg.getAttribute('data-sender-service') || '';
 
     let chatSocket = null;
     let reconnectAttempts = 0;
@@ -162,7 +163,7 @@
         isSending = true;
 
         if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-            chatSocket.send(JSON.stringify({ body: message, sender_id: senderId, receiver_role: receiverRole }));
+            chatSocket.send(JSON.stringify({ body: message, sender_id: senderId, receiver_role: receiverRole, sender_service: senderService }));
             input.value = '';
             // Reset flag after a short delay
             setTimeout(() => {

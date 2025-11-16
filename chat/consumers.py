@@ -105,6 +105,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             body = data['body']
             sender_id = data['sender_id']
             receiver_role = data['receiver_role']
+            sender_service = data.get('sender_service', '')  # Service context (e.g., 'Room Service', 'Cafe')
             subject = data.get('subject', '')
 
             if not is_valid_role(receiver_role):
@@ -120,10 +121,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
 
             # Save message to database
-            message = await self.save_message(sender_id, receiver_role, subject, body)
+            message = await self.save_message(sender_id, receiver_role, subject, body, sender_service)
 
             # Compute base conversation room (symmetric)
-            conv_roles = sorted([simplify_role(sender_role), simplify_role(receiver_role)])
+            # Use sender_service if available, otherwise use sender_role
+            sender_context = simplify_role(sender_service) if sender_service else simplify_role(sender_role)
+            receiver_context = simplify_role(receiver_role)
+            conv_roles = sorted([sender_context, receiver_context])
             base_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
 
             # Prepare message data
@@ -135,7 +139,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'sender_id': sender_id,
                 'sender_role': sender_role,  # Use actual role for display
                 'sender_username': sender_username,
-                'receiver_role': simplify_role(receiver_role),
+                'receiver_role': receiver_context,
+                'sender_service': simplify_role(sender_service) if sender_service else '',
                 'subject': subject,
                 'timestamp': str(message.created_at),
                 'base_room': base_room,
@@ -178,14 +183,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_id = event['sender_id']
             sender_role = event.get('sender_role')
             sender_roles = set(get_related_roles(sender_role)) if sender_role else set()
+            sender_service = event.get('sender_service', '')
+            base_room = event.get('base_room', '')
+            
+            # Get the user's simplified role for matching
+            user_simplified_role = simplify_role(self.user_role)
+            
+            # Check if user is connected to the base conversation room
+            # If so, they should receive the message (they're part of this conversation)
+            is_in_base_room = base_room and base_room in self.rooms
             
             # Send the message if:
             # 1. The user is the sender, OR
-            # 2. The user's roles overlap with the receiver roles
+            # 2. The user is connected to the base conversation room (they're viewing this conversation), OR
+            # 3. The user's roles overlap with the receiver roles, OR
+            # 4. The user's roles overlap with the sender roles, OR
+            # 5. The user is viewing a conversation where sender_service matches their service context
+            #    (e.g., housekeeping user viewing Room Service -> Admin conversation)
             should_receive = (
                 str(self.user.id) == str(sender_id) or
+                is_in_base_room or
                 bool(self.user_roles.intersection(receiver_roles)) or
-                bool(self.user_roles.intersection(sender_roles))
+                bool(self.user_roles.intersection(sender_roles)) or
+                (sender_service and user_simplified_role == sender_service) or
+                (sender_service and user_simplified_role in get_related_roles(sender_service))
             )
             
             if should_receive:
@@ -206,18 +227,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Error in chat_message: {str(e)}")
 
     @sync_to_async
-    def save_message(self, sender_id, receiver_role, subject, body):
+    def save_message(self, sender_id, receiver_role, subject, body, sender_service=''):
         try:
             sender = User.objects.get(id=sender_id)
             sender_role = simplify_role(sender.role)
+            # Simplify receiver_role to match how it's stored
+            receiver_role_simplified = simplify_role(receiver_role)
+            # Simplify sender_service if provided
+            sender_service_simplified = simplify_role(sender_service) if sender_service else ''
             message = Message.objects.create(
                 sender_id=sender_id,
                 sender_role=sender_role,
-                receiver_role=receiver_role,
+                receiver_role=receiver_role_simplified,
+                sender_service=sender_service_simplified,
                 subject=subject,
                 body=body
             )
+            print(f"Message saved: sender_role='{sender_role}', receiver_role='{receiver_role_simplified}', sender_service='{sender_service_simplified}', body='{body[:50]}...'")
             return message
         except Exception as e:
             print(f"Error saving message: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
             raise 
