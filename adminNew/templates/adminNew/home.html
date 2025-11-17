@@ -73,7 +73,15 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                     success
+
+
+
+
 
 
 
@@ -147,7 +155,15 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                     danger
+
+
+
+
 
 
 
@@ -542,17 +558,18 @@
           datasets: datasets
         }
     
+        // Display forecast method only (metrics are printed to console)
         if (!document.getElementById('forecastMethodIndicator')) {
           const methodIndicator = document.createElement('div')
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                                                                                                                                                <small class="text-muted">
-                                                                                                                                                  <i class="bi bi-info-circle"></i> 
-                                                                                                                                                  Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                                                                                                                                                  ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                                                                                                                                                </small>
-                                                                                                                                              `
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle"></i> 
+                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                    </small>
+                  `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })

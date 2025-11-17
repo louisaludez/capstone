@@ -115,7 +115,9 @@ def admin_home(request):
 def admin_home_forecast_json(request):
     from .sarima_forecast import get_reservation_forecast
     import json
-    data = get_reservation_forecast() or {}
+    # Check if force_retrain parameter is provided
+    force_retrain = request.GET.get('force_retrain', 'false').lower() == 'true'
+    data = get_reservation_forecast(force_retrain=force_retrain) or {}
     return JsonResponse(data, safe=False)
 
 @require_GET
@@ -431,11 +433,13 @@ def admin_front_office_reports(request):
     total_revenue += float(total_laundry)
 
     # FO metrics
-    total_reservations = Booking.objects.filter(status='Pending').count()
-    total_checkins = Booking.objects.filter(status='Checked-in').count()
+    # Total check-ins: bookings with source='checkin' OR source='reservation' (merged)
+    total_checkins = Booking.objects.filter(source__in=['checkin', 'reservation']).count()
     total_checkouts = Booking.objects.filter(status='Checked-out').count()
     # Walk-ins: bookings with source='walkin'
     walkins = Booking.objects.filter(source='walkin').count()
+    # Total reservations (for reference, but check-ins includes reservations)
+    total_reservations = Booking.objects.filter(source='reservation').count()
 
     # Search, filter, and sort functionality
     search_query = request.GET.get('search', '')

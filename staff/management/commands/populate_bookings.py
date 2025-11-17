@@ -8,7 +8,7 @@ from staff.models import Guest, Booking, Room, Payment
 
 
 class Command(BaseCommand):
-    help = 'Populate the database with at least 500 past bookings (at least 1 year old)'
+    help = 'Populate the database with bookings from today to 5 years past, with seasonal patterns for SARIMA modeling'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -17,6 +17,72 @@ class Command(BaseCommand):
             default=500,
             help='Number of bookings to create (default: 500)',
         )
+
+    def get_seasonal_weight(self, date):
+        """
+        Calculate seasonal weight for a given date.
+        Returns a weight factor that influences booking probability.
+        Higher weight = more likely to have bookings on that date.
+        """
+        month = date.month
+        weekday = date.weekday()  # 0=Monday, 6=Sunday
+        
+        # Monthly seasonal patterns
+        # Summer months (June, July, August): peak season
+        # Holiday months (December, January): high season
+        # Spring (April, May): moderate
+        # Fall (September, October): moderate
+        # Winter (February, March, November): low season
+        monthly_weights = {
+            1: 1.5,   # January - Holiday season
+            2: 0.6,   # February - Low season
+            3: 0.7,   # March - Low season
+            4: 1.2,   # April - Spring moderate
+            5: 1.3,   # May - Spring moderate
+            6: 1.8,   # June - Summer peak
+            7: 2.0,   # July - Summer peak (highest)
+            8: 1.8,   # August - Summer peak
+            9: 1.1,   # September - Fall moderate
+            10: 1.2,  # October - Fall moderate
+            11: 0.8,  # November - Low season
+            12: 1.6,  # December - Holiday season
+        }
+        
+        # Weekly patterns - weekends are more popular
+        # Friday (4), Saturday (5), Sunday (6) get higher weights
+        if weekday in [4, 5, 6]:  # Friday, Saturday, Sunday
+            weekly_weight = 1.4
+        elif weekday in [0, 3]:  # Monday, Thursday
+            weekly_weight = 1.1
+        else:  # Tuesday, Wednesday
+            weekly_weight = 0.9
+        
+        return monthly_weights[month] * weekly_weight
+
+    def select_date_with_seasonal_pattern(self, start_date, end_date):
+        """
+        Select a date between start_date and end_date with seasonal weighting.
+        Uses weighted random selection based on seasonal patterns.
+        Optimized for large date ranges by sampling and weighting.
+        """
+        # For efficiency with large ranges, we'll use a two-step approach:
+        # 1. First, randomly select a date (uniform distribution)
+        # 2. Then, accept/reject based on seasonal weight (acceptance-rejection sampling)
+        
+        max_weight = 2.8  # Maximum possible weight (July weekend = 2.0 * 1.4)
+        
+        while True:
+            # Random date in range
+            days_diff = (end_date - start_date).days
+            random_days = random.randint(0, days_diff)
+            candidate_date = start_date + timedelta(days=random_days)
+            
+            # Get weight for this date
+            weight = self.get_seasonal_weight(candidate_date)
+            
+            # Acceptance-rejection sampling: accept with probability weight/max_weight
+            if random.random() < (weight / max_weight):
+                return candidate_date
 
     def handle(self, *args, **options):
         count = options['count']
@@ -72,12 +138,12 @@ class Command(BaseCommand):
             'Simmons', 'Romero', 'Jordan', 'Patterson', 'Alexander', 'Hamilton', 'Graham', 'Reynolds'
         ]
         
-        # Calculate date range: from 2 years ago to 1 year ago (all past, at least 1 year old)
+        # Calculate date range: from today to 5 years past
         today = timezone.now().date()
-        end_date = today - timedelta(days=1)  # 1 year ago
-        start_date = end_date - timedelta(days=365)  # 2 years ago
+        start_date = today - timedelta(days=5*365)  # 5 years ago
+        end_date = today  # Today
         
-        self.stdout.write(f'Creating {count} bookings from {start_date} to {end_date}...')
+        self.stdout.write(f'Creating {count} bookings from {start_date} to {end_date} (5 years of data with seasonal patterns)...')
         
         created_count = 0
         guest_count = 0
@@ -110,20 +176,27 @@ class Command(BaseCommand):
             if guest_created:
                 guest_count += 1
             
-            # Generate random check-in date (within the past year range)
-            days_offset = random.randint(0, 365)
-            check_in_date = start_date + timedelta(days=days_offset)
+            # Generate check-in date with seasonal pattern weighting
+            # Use seasonal weighting to create realistic booking patterns
+            check_in_date = self.select_date_with_seasonal_pattern(start_date, end_date)
             
-            # Generate check-out date (1-7 days after check-in)
-            stay_duration = random.randint(1, 7)
+            # Generate check-out date (1-7 days after check-in, with longer stays in peak seasons)
+            # Peak seasons tend to have longer stays
+            month = check_in_date.month
+            if month in [6, 7, 8, 12, 1]:  # Peak seasons
+                stay_duration = random.choices([1, 2, 3, 4, 5, 6, 7], weights=[5, 10, 15, 20, 20, 15, 15])[0]
+            else:
+                stay_duration = random.choices([1, 2, 3, 4, 5, 6, 7], weights=[15, 20, 20, 15, 10, 10, 10])[0]
+            
             check_out_date = check_in_date + timedelta(days=stay_duration)
             
-            # Ensure check-out is still in the past (before end_date)
+            # Ensure check-out is not in the future
             if check_out_date > end_date:
                 check_out_date = end_date
                 # Adjust check-in if needed
                 if check_in_date >= check_out_date:
                     check_in_date = check_out_date - timedelta(days=1)
+                    stay_duration = 1
             
             # Select random room
             room_number = random.choice(room_numbers)
@@ -218,7 +291,8 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f'Successfully created {created_count} bookings with {guest_count} new guests and payments.\n'
-                f'Date range: {start_date} to {end_date} (all at least 1 year old)'
+                f'Date range: {start_date} to {end_date} (5 years of historical data)\n'
+                f'Seasonal patterns included: Summer peaks (Jun-Aug), Holiday peaks (Dec-Jan), Weekend preferences'
             )
         )
 
