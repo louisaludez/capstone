@@ -258,10 +258,28 @@ def edit_task(request, task_id):
     task = get_object_or_404(Housekeeping, id=task_id)
     
     if request.method == 'POST':
-        task.room_number = request.POST.get('room_number')
-        task.guest_name = request.POST.get('guest_name')
-        task.request_type = request.POST.get('request_type')
-        task.status = request.POST.get('status')
+        # Update room_number if provided
+        room_number = request.POST.get('room_number')
+        if room_number:
+            task.room_number = room_number
+        
+        # Preserve guest_name if empty string is submitted (don't overwrite existing value)
+        guest_name = request.POST.get('guest_name', '').strip()
+        if guest_name:
+            task.guest_name = guest_name
+        # If empty, preserve the existing guest_name (don't overwrite with empty string)
+        # This prevents losing the customer name when only updating status
+        
+        # Update request_type if provided
+        request_type = request.POST.get('request_type', '').strip()
+        if request_type:
+            task.request_type = request_type
+        
+        # Update status if provided
+        status = request.POST.get('status')
+        if status:
+            task.status = status
+        
         task.save()
         
         messages.success(request, 'Task updated successfully!')

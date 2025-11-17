@@ -112,8 +112,9 @@
           <select class="form-select form-select-sm" id="statusFilter">
             <option value="">All Status</option>
             <option value="Pending">Pending</option>
-            <option value="In progress">In Progress</option>
-            <option value="Finished">Finished</option>
+            <option value="In progress">In progress</option>
+
+            <option value="Under Maintenance">Under Maintenance</option>
           </select>
         </div>
         <div class="col-md-2">
@@ -138,7 +139,6 @@
               <input type="checkbox" />
             </th>
             <th>Room no.</th>
-            <th>Customer</th>
             <th>Service Type</th>
             <th>Date and Time</th>
             <th>Status</th>
@@ -152,7 +152,6 @@
                 <input type="checkbox" value="{{ task.id }}" />
               </td>
               <td>{{ task.room_number }}</td>
-              <td>{{ task.guest_name }}</td>
               <td>{{ task.request_type }}</td>
               <td>
                 {{ task.created_at|date:'H:i' }}<br />{{ task.created_at|date:'d/m/Y' }}
@@ -164,6 +163,10 @@
                   <span class="badge bg-success status-badge">Finished</span>
                 {% elif task.status == 'In progress' %}
                   <span class="badge bg-info text-dark status-badge">In progress</span>
+                {% elif task.status == 'Under Maintenance' or 'maintenance' in task.status|lower %}
+                  <span class="badge bg-danger status-badge">Under Maintenance</span>
+                {% else %}
+                  <span class="badge bg-secondary status-badge">{{ task.status }}</span>
                 {% endif %}
               </td>
               <td>
@@ -176,7 +179,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="7" class="text-center py-5">
+              <td colspan="6" class="text-center py-5">
                 <div class="text-muted">
                   <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
                   <h6 class="text-secondary mb-2">No Housekeeping Tasks Found</h6>
@@ -298,10 +301,6 @@
             <p id="viewRoomNumber" class="mb-0"></p>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Guest Name</label>
-            <p id="viewGuestName" class="mb-0"></p>
-          </div>
-          <div class="mb-3">
             <label class="form-label fw-bold">Request Type</label>
             <p id="viewRequestType" class="mb-0"></p>
           </div>
@@ -337,10 +336,6 @@
               <input type="text" class="form-control" id="editRoomNumber" name="room_number" required />
             </div>
             <div class="mb-3">
-              <label for="editGuestName" class="form-label">Guest Name</label>
-              <input type="text" class="form-control" id="editGuestName" name="guest_name" />
-            </div>
-            <div class="mb-3">
               <label for="editRequestType" class="form-label">Request Type</label>
               <input type="text" class="form-control" id="editRequestType" name="request_type" />
             </div>
@@ -350,6 +345,7 @@
                 <option value="Pending">Pending</option>
                 <option value="In progress">In progress</option>
                 <option value="Finished">Finished</option>
+                <option value="Under Maintenance">Under Maintenance</option>
               </select>
             </div>
           </div>
@@ -476,20 +472,52 @@
       clearFiltersBtn.addEventListener('click', clearFilters)
     
       function filterTasks() {
-        const searchTerm = searchInput.value.toLowerCase()
-        const statusValue = statusFilter.value
+        const searchTerm = searchInput.value.toLowerCase().trim()
+        const statusValue = statusFilter.value.trim()
         const rows = document.querySelectorAll('tbody tr')
     
         rows.forEach((row) => {
           if (row.querySelector('.text-muted')) return // Skip empty state row
     
-          const roomNumber = row.cells[1].textContent.toLowerCase()
-          const guestName = row.cells[2].textContent.toLowerCase()
-          const requestType = row.cells[3].textContent.toLowerCase()
-          const status = row.cells[5].textContent
+          const roomNumber = row.cells[1].textContent.trim().toLowerCase()
+          const requestType = row.cells[2].textContent.trim().toLowerCase()
     
-          const matchesSearch = roomNumber.includes(searchTerm) || guestName.includes(searchTerm) || requestType.includes(searchTerm)
-          const matchesStatus = !statusValue || status === statusValue
+          // Get status from badge text, handling case-insensitive comparison
+          const statusBadge = row.cells[4].querySelector('.badge')
+          const status = statusBadge ? statusBadge.textContent.trim() : row.cells[4].textContent.trim()
+          const statusNormalized = status.toLowerCase()
+    
+          // Normalize status filter value for comparison
+          const statusFilterNormalized = statusValue.toLowerCase()
+    
+          // Map common status variations
+          const statusMap = {
+            pending: ['pending'],
+            'in progress': ['in progress', 'inprogress'],
+            finished: ['finished', 'complete', 'completed'],
+            'under maintenance': ['under maintenance', 'maintenance']
+          }
+    
+          // Check if status matches (case-insensitive)
+          let matchesStatus = true
+          if (statusValue) {
+            matchesStatus = false
+            // Direct match
+            if (statusNormalized === statusFilterNormalized) {
+              matchesStatus = true
+            } else {
+              // Check variations
+              for (const [key, variations] of Object.entries(statusMap)) {
+                if (statusFilterNormalized === key && variations.some((v) => statusNormalized.includes(v))) {
+                  matchesStatus = true
+                  break
+                }
+              }
+            }
+          }
+    
+          // Check search term match
+          const matchesSearch = !searchTerm || roomNumber.includes(searchTerm) || requestType.includes(searchTerm)
     
           if (matchesSearch && matchesStatus) {
             row.style.display = ''
@@ -499,7 +527,9 @@
         })
     
         // Show/hide empty state message
-        const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])')
+        const visibleRows = Array.from(document.querySelectorAll('tbody tr')).filter((row) => {
+          return row.style.display !== 'none' && !row.querySelector('.text-muted')
+        })
         const emptyRow = document.querySelector('tbody tr .text-muted')
         if (emptyRow) {
           if (visibleRows.length === 0) {
@@ -533,7 +563,6 @@
         })
         .then((data) => {
           document.getElementById('viewRoomNumber').textContent = data.room_number
-          document.getElementById('viewGuestName').textContent = data.guest_name || 'N/A'
           document.getElementById('viewRequestType').textContent = data.request_type || 'N/A'
           document.getElementById('viewStatus').textContent = data.status
           document.getElementById('viewCreatedAt').textContent = data.created_at
@@ -569,7 +598,6 @@
         .then((data) => {
           document.getElementById('editTaskId').value = data.id
           document.getElementById('editRoomNumber').value = data.room_number
-          document.getElementById('editGuestName').value = data.guest_name || ''
           document.getElementById('editRequestType').value = data.request_type || ''
           document.getElementById('editStatus').value = data.status
     

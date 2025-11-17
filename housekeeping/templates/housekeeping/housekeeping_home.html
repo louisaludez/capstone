@@ -255,6 +255,8 @@
               
               
               
+              
+              
             
             
             
@@ -288,7 +290,11 @@
 
 
 
+
+
             {% else %}
+              
+              
               
               
               
@@ -308,6 +314,8 @@
             
             
             false
+
+
 
 
 
@@ -368,7 +376,6 @@
           <thead class="table-light text-center">
             <tr>
               <th>Room no.</th>
-              <th>Customer</th>
               <th>Service Type</th>
               <th>Date and Time</th>
               <th>Status</th>
@@ -378,7 +385,6 @@
             {% for request in housekeeping %}
               <tr>
                 <td>{{ request.room_number }}</td>
-                <td>{{ request.guest_name }}</td>
                 <td>{{ request.request_type }}</td>
                 <td>
                   {{ request.created_at|date:'H:i' }}<br />{{ request.created_at|date:'d/m/Y' }}
@@ -390,6 +396,8 @@
                     <span class="badge bg-success status-badge">Finished</span>
                   {% elif request.status == 'In progress' %}
                     <span class="badge bg-info text-dark status-badge">In progress</span>
+                  {% elif request.status == 'Under Maintenance' or 'maintenance' in request.status|lower %}
+                    <span class="badge bg-danger status-badge">Under Maintenance</span>
                   {% else %}
                     <span class="badge bg-secondary status-badge">{{ request.status }}</span>
                   {% endif %}
@@ -397,7 +405,7 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="6" class="text-center py-5">
+                <td colspan="4" class="text-center py-5">
                   <div class="text-muted">
                     <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
                     <h6 class="text-secondary mb-2">No Housekeeping Requests Found</h6>

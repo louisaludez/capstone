@@ -35,176 +35,7 @@
             <canvas id="statsChart" style="height: 220px; max-height: 220px; width: 100%;"></canvas>
             <div class="d-flex flex-wrap justify-content-between mt-2 gap-2">
               <button class="btn btn-sm btn-outline-secondary" id="downloadReportBtn"><i class="bi bi-download"></i> Download Report</button>
-              <div>
-                <span class="text-{% if growth_percentage|add:0 >= 0 %}
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    success
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                  {% else %}
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    danger
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                  {% endif %}">
-                  {% if growth_percentage|add:0 >= 0 %}+{% endif %}{{ growth_percentage }}%
-                </span>
-                <span class="text-muted ms-2">Month-over-Month Growth</span>
-              </div>
               <div>
                 <span class="h6">{{ total_guests }}</span><span class="text-muted ms-2">Total No. of Guests</span>
               </div>
@@ -564,12 +395,12 @@
           methodIndicator.id = 'forecastMethodIndicator'
           methodIndicator.className = 'mt-2 text-center'
           methodIndicator.innerHTML = `
-                    <small class="text-muted">
-                      <i class="bi bi-info-circle"></i> 
-                      Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
-                      ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
-                    </small>
-                  `
+                        <small class="text-muted">
+                          <i class="bi bi-info-circle"></i> 
+                          Forecast Method: <strong>${forecastMethod.toUpperCase()}</strong>
+                          ${forecastMethod === 'sarima' ? ' (Seasonal ARIMA)' : ''}
+                        </small>
+                      `
           canvasEl.parentNode.appendChild(methodIndicator)
         }
       })
