@@ -182,14 +182,14 @@ def update_status(request):
                     Q(status__icontains='under maintenance')
                 ).delete()
                 
-                hk, created = Housekeeping.objects.update_or_create(
-                    room_number=room_number,
-                    request_type=request_type,
-                    defaults={
-                        'status': status,
-                        'guest_name': guest_name
-                    }
-                )
+            hk, created = Housekeeping.objects.update_or_create(
+                room_number=room_number,
+                request_type=request_type,
+                defaults={
+                    'status': status,
+                    'guest_name': guest_name
+                }
+            )
             if created:
                 print(f"✓ New Housekeeping record created: {hk}")
                 message = f'New housekeeping record created for room {room_number}, service {request_type}, status {status}'
@@ -343,7 +343,7 @@ def messenger(request):
 
     user_roles = get_related_roles(current_service)
     receiver_roles = get_related_roles(receiver_role)
-    
+
     # Also get simplified roles for matching (messages are saved with simplified roles)
     simplified_user_role = simplify_role(current_service)
     simplified_receiver_role = simplify_role(receiver_role)
@@ -373,7 +373,7 @@ def messenger(request):
     query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
     
     messages_qs = Message.objects.filter(query_conditions).order_by('created_at')
-    
+
     print(f"[messenger] Querying messages:")
     print(f"  user_roles={user_roles}")
     print(f"  receiver_roles={receiver_roles}")

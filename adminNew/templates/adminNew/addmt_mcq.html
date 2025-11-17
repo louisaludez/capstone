@@ -490,14 +490,20 @@
           if (!list) return
           var rows = Array.from(list.querySelectorAll('.input-container'))
     
-          if (rows.length <= 1) {
-            Swal.fire({ icon: 'info', title: 'Nothing to remove', text: 'At least one row is required.' })
+          // Check if any rows are selected
+          var selectedRows = rows.filter(function (row) {
+            var cb = row.querySelector('.corner-checkbox')
+            return cb && cb.checked
+          })
+    
+          if (selectedRows.length === 0) {
+            Swal.fire({ icon: 'info', title: 'Nothing to remove', text: 'Please select at least one row to remove.' })
             return
           }
     
           Swal.fire({
             title: 'Remove selected rows?',
-            text: 'Rows with checked corner boxes will be removed. This only applies after Save.',
+            text: selectedRows.length === 1 ? 'The selected row will be removed. This only applies after Save.' : `${selectedRows.length} rows will be removed. This only applies after Save.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Remove',
@@ -548,14 +554,14 @@
         var template = document.createElement('div')
         template.className = 'input-container'
         template.innerHTML = `
-                                      <span class="input-header">Activity Title</span>
-                                      <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
-                                      <div class="div">
-                                        <a href="{% url 'add_activity_mcq' %}?new_item=true"><span><i class="bi bi-upload"></i></span></a>
-                                        <span>AddActivity</span>
-                                      </div>
-                                      <input type="checkbox" class="corner-checkbox" />
-                                    `
+                                          <span class="input-header">Activity Title</span>
+                                          <span class="form-control" style="border: none; background-color: transparent; font-size: 12px; margin-top: 0; margin-bottom: 10px; height: 10px;">Description</span>
+                                          <div class="div">
+                                            <a href="{% url 'add_activity_mcq' %}?new_item=true"><span><i class="bi bi-upload"></i></span></a>
+                                            <span>AddActivity</span>
+                                          </div>
+                                          <input type="checkbox" class="corner-checkbox" />
+                                        `
     
         // append the new template to the list
         list.appendChild(template)

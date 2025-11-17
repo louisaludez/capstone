@@ -1105,6 +1105,13 @@
       }
     
       function performSave(payload) {
+        // Ensure timer_seconds is always included in payload
+        if (payload.timer_seconds === undefined || payload.timer_seconds === null) {
+          payload.timer_seconds = selectedSeconds
+        }
+        console.log('Saving payload:', payload)
+        console.log('Timer seconds being sent:', payload.timer_seconds)
+    
         fetch(window.location.pathname, {
           method: 'POST',
           headers: {

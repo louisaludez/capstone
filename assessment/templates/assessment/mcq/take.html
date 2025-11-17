@@ -322,41 +322,149 @@
       const preselected = '{{ selected_choice_id|default:""|escapejs }}'
       const nextBtn = document.getElementById('btn-next')
     
-      // Timer setup
+      // Timer setup - continuous across all items
       const timerEl = document.querySelector('.sim-timer')
       const timerText = document.getElementById('timer-text')
+      const storageKey = 'mcq_timer_' + {{ attempt.id }}
+      const activityTimerSeconds = parseInt('{{ attempt.activity.timer_seconds|default:0 }}', 10) || 0
+      
+      // Debug logging
+      console.log('Timer Debug:', {
+        timerEl: !!timerEl,
+        timerText: !!timerText,
+        activityTimerSeconds: activityTimerSeconds,
+        storageKey: storageKey
+      })
+      
       let remaining = 0
-      if (timerEl) {
-        const total = parseInt(timerEl.getAttribute('data-seconds') || '0', 10)
-        remaining = isNaN(total) || total <= 0 ? 5 * 60 : total
-        function renderTime(s) {
-          const m = Math.floor(s / 60)
-          const sec = s % 60
-          if (timerText) timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+      let timerInterval = null
+      
+      function renderTime(s) {
+        const m = Math.floor(s / 60)
+        const sec = s % 60
+        if (timerText) {
+          timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
         }
-        renderTime(remaining)
-        setInterval(function () {
-          if (remaining <= 0) return
-          remaining -= 1
-          renderTime(remaining)
-          if (remaining === 0) {
-            // Auto-submit current selection (if any)
-            const selected = Array.from(checkboxes).find((cb) => cb.checked)
-            if (selected) {
-              nextBtn && nextBtn.click()
-            } else {
-              // Submit empty to record timeout
-              const formData = new FormData()
-              fetch('{% url "mcq_submit" attempt.id %}', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
-                body: formData
-              }).finally(function () {
-                window.location.href = '{% url "mcq_home" %}'
-              })
-            }
+      }
+      
+      if (timerEl && timerText) {
+        if (activityTimerSeconds > 0) {
+          // Check if timer exists in sessionStorage (continues across items)
+          const savedTimer = sessionStorage.getItem(storageKey)
+          const savedTimestamp = sessionStorage.getItem(storageKey + '_start')
+          
+          if (savedTimer && savedTimestamp) {
+            // Calculate remaining time based on elapsed time
+            const elapsed = Math.floor((Date.now() - parseInt(savedTimestamp)) / 1000)
+            remaining = Math.max(0, parseInt(savedTimer) - elapsed)
+            console.log('Timer resumed from storage:', { savedTimer, elapsed, remaining })
+          } else {
+            // Initialize timer from activity timer (total time for all items)
+            remaining = activityTimerSeconds
+            sessionStorage.setItem(storageKey, remaining.toString())
+            sessionStorage.setItem(storageKey + '_start', Date.now().toString())
+            console.log('Timer initialized:', { remaining, activityTimerSeconds })
           }
-        }, 1000)
+          
+          function updateTimer() {
+            if (remaining <= 0) {
+              if (timerInterval) {
+                clearInterval(timerInterval)
+                timerInterval = null
+              }
+              // Auto-submit entire assessment when timer reaches zero
+              autoSubmitAssessment()
+              return
+            }
+            remaining -= 1
+            renderTime(remaining)
+            // Update sessionStorage with current remaining time
+            sessionStorage.setItem(storageKey, remaining.toString())
+          }
+          
+          // Initialize display
+          renderTime(remaining)
+          timerInterval = setInterval(updateTimer, 1000)
+        } else {
+          // No timer set, show "--:--" or hide timer
+          if (timerText) {
+            timerText.textContent = '--:--'
+          }
+        }
+        
+        function autoSubmitAssessment() {
+          // Clear timer from sessionStorage immediately
+          sessionStorage.removeItem(storageKey)
+          sessionStorage.removeItem(storageKey + '_start')
+          
+          // Save current answer if any, then complete all remaining items
+          const selected = Array.from(checkboxes).find((cb) => cb.checked)
+          const formData = new FormData()
+          
+          if (selected) {
+            formData.append('choice_id', selected.value)
+          }
+          // Don't append choice_id if no selection - this will submit empty answer
+          
+          // Save current timer state before auto-submitting
+          if (timerInterval && activityTimerSeconds > 0) {
+            sessionStorage.setItem(storageKey, remaining.toString())
+            sessionStorage.setItem(storageKey + '_start', Date.now().toString())
+          }
+          
+          fetch('{% url "mcq_submit" attempt.id %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok && data.next_item) {
+              // There are more items, recursively complete them
+              completeRemainingItems() 
+            } else {
+              // All items completed, go to results
+              window.location.href = '{% url "mcq_results" attempt.id %}'
+            }
+          })
+          .catch(() => {
+            // On error, try to go to results anyway
+            window.location.href = '{% url "mcq_results" attempt.id %}'
+          })
+        }
+        
+        function completeRemainingItems() {
+          // Submit empty answers for all remaining items to complete the assessment
+          const formData = new FormData()
+          // No choice_id means empty answer
+          
+          fetch('{% url "mcq_submit" attempt.id %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '' },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok && data.next_item) {
+              // Still more items, continue completing
+              completeRemainingItems()
+            } else {
+              // All items completed, go to results
+              window.location.href = '{% url "mcq_results" attempt.id %}'
+            }
+          })
+          .catch(() => {
+            // On error, try to go to results anyway
+            window.location.href = '{% url "mcq_results" attempt.id %}'
+          })
+        }
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+          if (timerInterval) {
+            clearInterval(timerInterval)
+          }
+        })
       }
     
       function updateNextState() {
@@ -373,6 +481,12 @@
               }
             })
             // autosave selection
+            // Also save timer state when auto-saving
+            if (timerInterval && activityTimerSeconds > 0) {
+              sessionStorage.setItem(storageKey, remaining.toString())
+              sessionStorage.setItem(storageKey + '_start', Date.now().toString())
+            }
+            
             const fd = new FormData()
             fd.append('choice_id', cb.value)
             fetch('{% url "mcq_save" attempt.id %}', {
@@ -399,6 +513,16 @@
           e.preventDefault()
           const selected = Array.from(checkboxes).find((cb) => cb.checked)
           if (!selected) return
+          
+          // Save current timer state before submitting
+          if (timerInterval && activityTimerSeconds > 0) {
+            // Update sessionStorage with current remaining time
+            sessionStorage.setItem(storageKey, remaining.toString())
+            // Update start timestamp to current time for accurate calculation on next page
+            sessionStorage.setItem(storageKey + '_start', Date.now().toString())
+            console.log('Timer state saved before submit:', { remaining, storageKey })
+          }
+          
           const formData = new FormData()
           formData.append('choice_id', selected.value)
           fetch('{% url "mcq_submit" attempt.id %}', {
@@ -415,7 +539,11 @@
                   // Move to next item in same activity
                   window.location.href = data.redirect
                 } else if (data.redirect) {
-                  // Redirect to results page
+                  // Redirect to results page - clear timer
+                  if (activityTimerSeconds > 0) {
+                    sessionStorage.removeItem(storageKey)
+                    sessionStorage.removeItem(storageKey + '_start')
+                  }
                   window.location.href = data.redirect
                 } else {
                   window.location.href = '{% url "mcq_home" %}'

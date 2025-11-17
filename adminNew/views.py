@@ -40,15 +40,15 @@ def admin_home(request):
     additional_charge_revenue = 0.0
     front_office_revenue = 0.0
     total_cafe = CafeOrder.objects.exclude(payment_method='room').aggregate(
-    total_sum=Sum('total')
-)['total_sum'] or 0
+        total_sum=Sum('total')
+    )['total_sum'] or 0
     total_laundry = LaundryTransaction.objects.exclude(payment_method='Charge to room').aggregate(
-    total_sum=Sum('total_amount')
-)['total_sum'] or 0
+        total_sum=Sum('total_amount')
+    )['total_sum'] or 0
     
     valid_guests = Guest.objects.filter(
-    booking__status__in=['Checked-in', 'Checked-out']
-).distinct()
+        booking__status__in=['Checked-in', 'Checked-out']
+    ).distinct()
 
 
     for guest_obj in valid_guests:
@@ -410,14 +410,14 @@ def admin_front_office_reports(request):
 
     for guest_obj in valid_guests:
         try:
-         total_revenue += (
+            total_revenue += (
                 float(guest_obj.billing or 0) +
                 float(guest_obj.room_service_billing or 0) +
                 float(guest_obj.laundry_billing or 0) +
                 float(guest_obj.cafe_billing or 0) +
                 float(guest_obj.excess_pax_billing or 0) +
                 float(guest_obj.additional_charge_billing or 0)
-        )
+            )
         except (ValueError, TypeError):
             continue
     
@@ -1368,9 +1368,19 @@ def add_activity_mcq(request):
                 activity = get_object_or_404(Activity, id=activity_id)
             else:
                 # Create new activity
+                initial_timer = data.get("timer_seconds")
+                if initial_timer is not None:
+                    try:
+                        initial_timer = int(initial_timer)
+                    except (ValueError, TypeError):
+                        initial_timer = 0
+                else:
+                    initial_timer = 0
+                
                 activity = Activity.objects.create(
                     title=data.get("title", "New Activity"),
                     description=data.get("description", ""),
+                    timer_seconds=initial_timer,
                     created_by=request.user if request.user.is_authenticated else None
                 )
             
@@ -1381,9 +1391,20 @@ def add_activity_mcq(request):
             activity.description = data.get("description", activity.description)
             # Timer is set once for the entire activity, applies to all items
             # Always save timer_seconds (even if 0) so it can be updated/cleared
-            timer_seconds = int(data.get("timer_seconds", activity.timer_seconds if activity.timer_seconds else 0))
+            timer_seconds = data.get("timer_seconds")
+            if timer_seconds is not None:
+                try:
+                    timer_seconds = int(timer_seconds)
+                except (ValueError, TypeError):
+                    timer_seconds = activity.timer_seconds if activity.timer_seconds else 0
+            else:
+                # If timer_seconds is not provided, keep existing value
+                timer_seconds = activity.timer_seconds if activity.timer_seconds else 0
+            
+            print(f"[add_activity][POST] timer_seconds received: {data.get('timer_seconds')}, parsed: {timer_seconds}, existing: {activity.timer_seconds}")
             activity.timer_seconds = timer_seconds
-            activity.save()
+            activity.save(update_fields=['title', 'description', 'timer_seconds'])
+            print(f"[add_activity][POST] timer_seconds saved: {activity.timer_seconds}")
             
             # Handle current item
             if action == "save" or action == "add_next":

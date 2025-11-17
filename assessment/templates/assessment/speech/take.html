@@ -567,26 +567,84 @@
 {% block extra_js %}
   <script>
     let timerInterval;
-    let timeRemaining = {{ timer_seconds|default:0 }};
     let isPlaying = false;
+    let remainingTime = 0; // Track remaining time globally
     
-    // Timer functionality
-    function startTimer() {
-      if (timeRemaining <= 0) return;
+    // Timer functionality with sessionStorage persistence
+    function initializeTimer() {
+      const timerEl = document.querySelector('.sim-timer');
+      const timerText = document.getElementById('timer-text');
+      if (!timerEl || !timerText) return;
       
-      timerInterval = setInterval(function() {
-        timeRemaining--;
-        const timerElement = document.getElementById('timer');
-        if (timerElement) {
-          timerElement.textContent = timeRemaining;
+      const totalSeconds = parseInt(timerEl.getAttribute('data-seconds') || '0', 10);
+      if (isNaN(totalSeconds) || totalSeconds <= 0) {
+        timerText.textContent = '--:--';
+        return;
+      }
+      
+      // Check sessionStorage for existing timer state
+      const storageKey = 'speech_timer_{{ attempt.id }}';
+      const savedState = sessionStorage.getItem(storageKey);
+      let remaining = totalSeconds;
+      let startTime = Date.now();
+      
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState);
+          const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
+          remaining = Math.max(0, state.remaining - elapsed);
+          startTime = state.timestamp;
+        } catch (e) {
+          console.error('Error parsing timer state:', e);
+          remaining = totalSeconds;
         }
-        
-        if (timeRemaining <= 0) {
-          clearInterval(timerInterval);
-          alert('Time\'s up! Your transcription will be auto-submitted.');
-          submitTranscription();
-        }
-      }, 1000);
+      }
+      
+      remainingTime = remaining; // Store in global variable
+      
+      // Render initial time
+      function renderTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+      }
+      
+      renderTime(remaining);
+      
+      // Start timer countdown
+      if (remaining > 0) {
+        timerInterval = setInterval(function() {
+          remainingTime--;
+          renderTime(remainingTime);
+          
+          // Save timer state to sessionStorage
+          sessionStorage.setItem(storageKey, JSON.stringify({
+            remaining: remainingTime,
+            timestamp: Date.now()
+          }));
+          
+          if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            sessionStorage.removeItem(storageKey);
+            // Auto-submit without confirmation
+            autoSubmitTranscription();
+          }
+        }, 1000);
+      } else {
+        // Timer already expired, auto-submit immediately
+        autoSubmitTranscription();
+      }
+    }
+    
+    // Save timer state to sessionStorage
+    function saveTimerState() {
+      if (remainingTime > 0 && timerInterval) {
+        const storageKey = 'speech_timer_{{ attempt.id }}';
+        sessionStorage.setItem(storageKey, JSON.stringify({
+          remaining: remainingTime,
+          timestamp: Date.now()
+        }));
+      }
     }
     
     // Audio controls
@@ -601,10 +659,6 @@
         const pauseBtn = document.getElementById('pauseBtn');
         if (playBtn) playBtn.style.display = 'none';
         if (pauseBtn) pauseBtn.style.display = 'inline-block';
-        
-        if (timeRemaining > 0 && !timerInterval) {
-          startTimer();
-        }
       }
     }
     
@@ -679,7 +733,42 @@
       });
     }
     
-    // Submit transcription
+    // Auto-submit transcription (no confirmation)
+    function autoSubmitTranscription() {
+      const text = document.getElementById('transcriptionText').value;
+      
+      // Clear timer from sessionStorage
+      sessionStorage.removeItem('speech_timer_{{ attempt.id }}');
+      
+      const formData = new FormData();
+      formData.append('transcription_text', text || '');
+      
+      fetch('{% url "speech_submit" attempt.id %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.ok) {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            window.location.href = "{% url 'speech_home' %}";
+          }
+        } else {
+          alert(data && data.error ? data.error : 'Submission failed. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Submit error:', error);
+        alert('Submission failed. Please try again.');
+      });
+    }
+    
+    // Submit transcription (with confirmation)
     function submitTranscription() {
       const text = document.getElementById('transcriptionText').value;
       
@@ -689,6 +778,14 @@
       }
       
       if (confirm('Are you sure you want to submit your transcription?')) {
+        // Clear timer from sessionStorage
+        if (timerInterval) {
+          clearInterval(timerInterval);
+        }
+        // Save final timer state before clearing
+        saveTimerState();
+        sessionStorage.removeItem('speech_timer_{{ attempt.id }}');
+        
         const formData = new FormData();
         formData.append('transcription_text', text);
         
@@ -768,33 +865,17 @@
         });
       }
       
-      // Timer setup (similar to MCQ)
-      const timerEl = document.querySelector('.sim-timer');
-      const timerText = document.getElementById('timer-text');
-      let remaining = 0;
-      if (timerEl) {
-        const total = parseInt(timerEl.getAttribute('data-seconds') || '0', 10);
-        remaining = isNaN(total) || total <= 0 ? 0 : total;
-        function renderTime(s) {
-          const m = Math.floor(s / 60);
-          const sec = s % 60;
-          if (timerText) timerText.textContent = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-        }
-        if (remaining > 0) {
-          renderTime(remaining);
-          setInterval(function () {
-            if (remaining <= 0) return;
-            remaining -= 1;
-            renderTime(remaining);
-            if (remaining === 0) {
-              // Auto-submit when time runs out
-              submitTranscription();
-            }
-          }, 1000);
-        } else {
-          if (timerText) timerText.textContent = '--:--';
-        }
+      // Save timer state when user types in transcription
+      const transcriptionTextarea = document.getElementById('transcriptionText');
+      if (transcriptionTextarea) {
+        transcriptionTextarea.addEventListener('input', function() {
+          // Save timer state to sessionStorage when user interacts
+          saveTimerState();
+        });
       }
+      
+      // Initialize timer on page load
+      initializeTimer();
     });
   </script>
 {% endblock %}

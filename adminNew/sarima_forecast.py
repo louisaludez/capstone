@@ -854,14 +854,14 @@ def get_reservation_forecast(force_retrain=False):
     print("\n" + "="*60)
     print("TRAINING NEW MODEL (ARIMA vs SARIMA vs Holt-Winters)")
     print("="*60)
-    
+
     # Get all bookings from Booking table, filter out null booking_date
     # Only fetch booking_date field (room_id and other fields not included)
     bookings = Booking.objects.exclude(booking_date__isnull=True).only('booking_date').order_by('booking_date')
     bookings_count = bookings.count()
     print(f"Total bookings in database (excluding null booking_date): {bookings_count}")
     print(f"Using only booking_date field from Booking table (room_id not included)")
-
+    
     # Prepare data
     print("Preparing time series data...")
     series = forecaster.prepare_data(bookings)
