@@ -17,6 +17,16 @@ from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date
 import re
 from datetime import timedelta
+from io import BytesIO
+from django.template.loader import get_template
+import os
+try:
+    from xhtml2pdf import pisa
+    XHTML2PDF_AVAILABLE = True
+    print("[INIT] xhtml2pdf library loaded successfully")
+except ImportError as e:
+    XHTML2PDF_AVAILABLE = False
+    print(f"[INIT] xhtml2pdf library not available: {e}")
 @decorator.role_required('staff', 'SUPER_ADMIN')
 def home(request):
     # Only guests with at least one Checked-in booking should appear for checkout selection
@@ -395,28 +405,104 @@ def book_room(request):
     if request.method == 'POST':
         try:
             print("[DEBUG] Received POST request for booking room")
+            
+            # Collect validation errors
+            errors = []
+            
+            # Validate required fields
+            guest_name = request.POST.get('guest_name', '').strip()
+            if not guest_name:
+                errors.append('Name is required')
+            
+            guest_email = request.POST.get('guest_email', '').strip()
+            if not guest_email:
+                errors.append('Email is required')
+            elif '@' not in guest_email:
+                errors.append('Please enter a valid email address')
+            
+            guest_mobile = request.POST.get('guest_mobile', '').strip()
+            if not guest_mobile:
+                errors.append('Mobile number is required')
+            
+            room_number = request.POST.get('room', '').strip()
+            if not room_number:
+                errors.append('Room selection is required')
+            
+            check_in_date = request.POST.get('check_in', '').strip()
+            if not check_in_date:
+                errors.append('Check-in date is required')
+            
+            check_out_date = request.POST.get('check_out', '').strip()
+            if not check_out_date:
+                errors.append('Check-out date is required')
+            
+            adults = request.POST.get('adults', '').strip()
+            if not adults:
+                errors.append('Number of adults is required')
+            else:
+                try:
+                    adults_int = int(adults)
+                    if adults_int < 1:
+                        errors.append('At least 1 adult is required')
+                except ValueError:
+                    errors.append('Number of adults must be a valid number')
+            
+            # Validate dates format and order
+            if check_in_date and check_out_date:
+                try:
+                    check_in = datetime.strptime(check_in_date, '%Y-%m-%d').date()
+                    check_out = datetime.strptime(check_out_date, '%Y-%m-%d').date()
+                    
+                    if check_out <= check_in:
+                        errors.append('Check-out date must be after check-in date')
+                    
+                    if check_in < datetime.now().date():
+                        errors.append('Check-in date cannot be in the past')
+                except ValueError:
+                    errors.append('Invalid date format. Please use YYYY-MM-DD format')
+            
+            # Validate payment method and card fields if card payment
+            payment_method = request.POST.get('payment_method', '').strip()
+            if payment_method == 'card':
+                card_number = request.POST.get('card_number', '').strip()
+                exp_date = request.POST.get('exp_date', '').strip()
+                cvc = request.POST.get('cvc', '').strip()
+                
+                if not card_number:
+                    errors.append('Card number is required for card payment')
+                elif len(card_number.replace(' ', '').replace('-', '')) < 13:
+                    errors.append('Card number must be at least 13 digits')
+                
+                if not exp_date:
+                    errors.append('Expiration date is required for card payment')
+                elif not re.match(r'^\d{2}/\d{2}$', exp_date):
+                    errors.append('Expiration date must be in MM/YY format')
+                
+                if not cvc:
+                    errors.append('CVC is required for card payment')
+                elif len(cvc) < 3:
+                    errors.append('CVC must be at least 3 digits')
+            
+            # Return validation errors if any
+            if errors:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Please fix the validation errors below.',
+                    'errors': errors
+                }, status=400)
 
             # Create guest
             print("[DEBUG] Creating guest")
             guest = Guest.objects.create(
-                name=request.POST.get('guest_name'),
-                address=request.POST.get('guest_address'),
-                zip_code=request.POST.get('guest_zip_code'),
-                email=request.POST.get('guest_email'),
-                date_of_birth=request.POST.get('guest_birth')
+                name=guest_name,
+                address=request.POST.get('guest_address', ''),
+                zip_code=request.POST.get('guest_zip_code', ''),
+                email=guest_email,
+                date_of_birth=request.POST.get('guest_birth') or None
             )
             print(f"[DEBUG] Guest created: {guest}")
 
-            # Fetch room number and dates
-            room_number = request.POST.get('room')
-            check_in_date = request.POST.get('check_in')
-            check_out_date = request.POST.get('check_out')
             print(f"[DEBUG] Room number: {room_number}, Check-in: {check_in_date}, Check-out: {check_out_date}")
-
-            # Validate dates
-            if not check_in_date or not check_out_date:
-                print("[DEBUG] Missing check-in or check-out dates")
-                return JsonResponse({'success': False, 'message': 'Check-in and check-out dates are required.'}, status=400)
 
             # Parse dates
             check_in_date = datetime.strptime(check_in_date, '%Y-%m-%d').date()
@@ -1130,3 +1216,431 @@ def room_availability(request):
         })
 
     return JsonResponse({'blocked': blocked})
+
+@decorator.role_required('staff', 'SUPER_ADMIN')
+def statement_of_account(request, guest_id):
+    """Generate and display statement of account for a guest"""
+    try:
+        guest = get_object_or_404(Guest, id=guest_id)
+        
+        # Get the most recent booking
+        booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
+        
+        # Get all payments
+        payments = []
+        if booking:
+            try:
+                payment = Payment.objects.get(booking=booking)
+                # Get payment method display name
+                method_display = dict(Payment.PAYMENT_METHODS).get(payment.method, payment.method.title())
+                payments.append({
+                    'date': payment.created_at,
+                    'method': method_display,
+                    'amount': payment.total_balance,
+                    'description': f'Payment for Booking #{booking.id}'
+                })
+            except Payment.DoesNotExist:
+                pass
+        
+        # Get laundry transactions
+        from laundry.models import LaundryTransaction
+        laundry_transactions = LaundryTransaction.objects.filter(guest=guest).order_by('-created_at')
+        
+        # Get cafe orders
+        from cafe.models import CafeOrder
+        cafe_orders = CafeOrder.objects.filter(guest=guest).order_by('-order_date')
+        
+        # Calculate billing totals
+        def safe_float(value):
+            try:
+                return float(value) if value else 0.0
+            except (ValueError, TypeError):
+                return 0.0
+        
+        room_charges = safe_float(guest.billing)
+        room_service = safe_float(guest.room_service_billing)
+        laundry_total = safe_float(guest.laundry_billing)
+        cafe_total = safe_float(guest.cafe_billing)
+        excess_pax = safe_float(guest.excess_pax_billing)
+        additional_charges = safe_float(guest.additional_charge_billing)
+        
+        # Calculate total charges
+        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        
+        # Calculate total payments - convert Decimal to float
+        total_payments = sum(float(p['amount']) for p in payments)
+        
+        # Calculate outstanding balance - ensure both are floats
+        outstanding_balance = float(total_charges) - float(total_payments)
+        
+        # Prepare transaction history
+        transactions = []
+        
+        # Add room charges if exists
+        if room_charges > 0 and booking:
+            transactions.append({
+                'date': booking.check_in_date,
+                'description': f'Room Charges - {booking.room}',
+                'type': 'Charge',
+                'amount': room_charges,
+                'category': 'Room'
+            })
+        
+        # Add laundry transactions
+        for lt in laundry_transactions:
+            if lt.payment_method == 'room':  # Only show charges to room
+                transactions.append({
+                    'date': lt.date_time,
+                    'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
+                    'type': 'Charge',
+                    'amount': float(lt.total_amount),
+                    'category': 'Laundry'
+                })
+        
+        # Add cafe orders
+        for co in cafe_orders:
+            if co.payment_method == 'room':  # Only show charges to room
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Order #{co.id}',
+                    'type': 'Charge',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+        
+        # Add room service if exists
+        if room_service > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Room Service',
+                'type': 'Charge',
+                'amount': room_service,
+                'category': 'Room Service'
+            })
+        
+        # Add excess pax if exists
+        if excess_pax > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Excess Pax Charges',
+                'type': 'Charge',
+                'amount': excess_pax,
+                'category': 'Excess Pax'
+            })
+        
+        # Add additional charges if exists
+        if additional_charges > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Additional Charges',
+                'type': 'Charge',
+                'amount': additional_charges,
+                'category': 'Additional'
+            })
+        
+        # Add payments to transactions
+        for payment in payments:
+            transactions.append({
+                'date': payment['date'],
+                'description': payment['description'],
+                'type': 'Payment',
+                'amount': float(payment['amount']),
+                'category': 'Payment'
+            })
+        
+        # Sort transactions by date (newest first)
+        transactions.sort(key=lambda x: x['date'], reverse=True)
+        
+        context = {
+            'guest': guest,
+            'booking': booking,
+            'room_charges': room_charges,
+            'room_service': room_service,
+            'laundry_total': laundry_total,
+            'cafe_total': cafe_total,
+            'excess_pax': excess_pax,
+            'additional_charges': additional_charges,
+            'total_charges': total_charges,
+            'total_payments': total_payments,
+            'outstanding_balance': outstanding_balance,
+            'transactions': transactions,
+            'statement_date': timezone.now().date(),
+            'statement_number': f"SOA-{guest.id:05d}-{timezone.now().strftime('%Y%m%d')}"
+        }
+        
+        return render(request, 'staff/statement_of_account.html', context)
+        
+    except Exception as e:
+        print(f"Error generating statement of account: {e}")
+        messages.error(request, f'Error generating statement: {str(e)}')
+        return redirect('HomeStaff')
+
+@decorator.role_required('staff', 'SUPER_ADMIN')
+def statement_of_account_pdf(request, guest_id):
+    """Generate and download statement of account as PDF"""
+    print(f"[PDF] ====== PDF REQUEST RECEIVED ======")
+    print(f"[PDF] Method: {request.method}")
+    print(f"[PDF] Path: {request.path}")
+    print(f"[PDF] User: {request.user}")
+    print(f"[PDF] User role: {getattr(request.user, 'role', None)}")
+    print(f"[PDF] Guest ID: {guest_id}")
+    print(f"[PDF] XHTML2PDF_AVAILABLE: {XHTML2PDF_AVAILABLE}")
+    try:
+        guest = get_object_or_404(Guest, id=guest_id)
+        
+        # Get the most recent booking
+        booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
+        
+        # Get all payments
+        payments = []
+        if booking:
+            try:
+                payment = Payment.objects.get(booking=booking)
+                # Get payment method display name
+                method_display = dict(Payment.PAYMENT_METHODS).get(payment.method, payment.method.title())
+                payments.append({
+                    'date': payment.created_at,
+                    'method': method_display,
+                    'amount': payment.total_balance,
+                    'description': f'Payment for Booking #{booking.id}'
+                })
+            except Payment.DoesNotExist:
+                pass
+        
+        # Get laundry transactions
+        from laundry.models import LaundryTransaction
+        laundry_transactions = LaundryTransaction.objects.filter(guest=guest).order_by('-created_at')
+        
+        # Get cafe orders
+        from cafe.models import CafeOrder
+        cafe_orders = CafeOrder.objects.filter(guest=guest).order_by('-order_date')
+        
+        # Calculate billing totals
+        def safe_float(value):
+            try:
+                return float(value) if value else 0.0
+            except (ValueError, TypeError):
+                return 0.0
+        
+        room_charges = safe_float(guest.billing)
+        room_service = safe_float(guest.room_service_billing)
+        laundry_total = safe_float(guest.laundry_billing)
+        cafe_total = safe_float(guest.cafe_billing)
+        excess_pax = safe_float(guest.excess_pax_billing)
+        additional_charges = safe_float(guest.additional_charge_billing)
+        
+        # Calculate total charges
+        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        
+        # Calculate total payments - convert Decimal to float
+        total_payments = sum(float(p['amount']) for p in payments)
+        
+        # Calculate outstanding balance - ensure both are floats
+        outstanding_balance = float(total_charges) - float(total_payments)
+        
+        # Prepare transaction history
+        transactions = []
+        
+        # Add room charges if exists
+        if room_charges > 0 and booking:
+            transactions.append({
+                'date': booking.check_in_date,
+                'description': f'Room Charges - {booking.room}',
+                'type': 'Charge',
+                'amount': room_charges,
+                'category': 'Room'
+            })
+        
+        # Add laundry transactions
+        for lt in laundry_transactions:
+            if lt.payment_method == 'room':  # Only show charges to room
+                transactions.append({
+                    'date': lt.date_time,
+                    'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
+                    'type': 'Charge',
+                    'amount': float(lt.total_amount),
+                    'category': 'Laundry'
+                })
+        
+        # Add cafe orders
+        for co in cafe_orders:
+            if co.payment_method == 'room':  # Only show charges to room
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Order #{co.id}',
+                    'type': 'Charge',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+        
+        # Add room service if exists
+        if room_service > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Room Service',
+                'type': 'Charge',
+                'amount': room_service,
+                'category': 'Room Service'
+            })
+        
+        # Add excess pax if exists
+        if excess_pax > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Excess Pax Charges',
+                'type': 'Charge',
+                'amount': excess_pax,
+                'category': 'Excess Pax'
+            })
+        
+        # Add additional charges if exists
+        if additional_charges > 0:
+            transactions.append({
+                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'description': 'Additional Charges',
+                'type': 'Charge',
+                'amount': additional_charges,
+                'category': 'Additional'
+            })
+        
+        # Add payments to transactions
+        for payment in payments:
+            transactions.append({
+                'date': payment['date'],
+                'description': payment['description'],
+                'type': 'Payment',
+                'amount': float(payment['amount']),
+                'category': 'Payment'
+            })
+        
+        # Sort transactions by date (newest first)
+        # Normalize all dates to timezone-aware datetime for consistent comparison
+        from datetime import datetime as dt
+        for transaction in transactions:
+            trans_date = transaction['date']
+            if isinstance(trans_date, date) and not isinstance(trans_date, dt):
+                # Convert date to timezone-aware datetime
+                naive_dt = dt.combine(trans_date, dt_time.min)
+                transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
+            elif isinstance(trans_date, dt):
+                # Ensure datetime is timezone-aware
+                if timezone.is_naive(trans_date):
+                    transaction['date'] = timezone.make_aware(trans_date)
+                # If already aware, keep as is
+            else:
+                # Try to convert other types
+                try:
+                    if hasattr(trans_date, 'date'):
+                        naive_dt = dt.combine(trans_date.date(), dt_time.min)
+                        transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
+                    else:
+                        naive_dt = dt.combine(trans_date, dt_time.min)
+                        transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
+                except:
+                    # Fallback: use current timezone-aware datetime
+                    transaction['date'] = timezone.now()
+        
+        transactions.sort(key=lambda x: x['date'], reverse=True)
+        
+        context = {
+            'guest': guest,
+            'booking': booking,
+            'room_charges': room_charges,
+            'room_service': room_service,
+            'laundry_total': laundry_total,
+            'cafe_total': cafe_total,
+            'excess_pax': excess_pax,
+            'additional_charges': additional_charges,
+            'total_charges': total_charges,
+            'total_payments': total_payments,
+            'outstanding_balance': outstanding_balance,
+            'transactions': transactions,
+            'statement_date': timezone.now().date(),
+            'statement_number': f"SOA-{guest.id:05d}-{timezone.now().strftime('%Y%m%d')}"
+        }
+        
+        # Generate PDF
+        print(f"[PDF] XHTML2PDF_AVAILABLE check: {XHTML2PDF_AVAILABLE}")
+        if XHTML2PDF_AVAILABLE:
+            print("[PDF] Generating PDF...")
+            template = get_template('staff/statement_of_account_pdf.html')
+            html = template.render(context)
+            result = BytesIO()
+            
+            # Generate PDF
+            try:
+                print("[PDF] Calling pisa.pisaDocument...")
+                html_bytes = html.encode("UTF-8")
+                pdf = pisa.pisaDocument(BytesIO(html_bytes), result)
+                
+                print(f"[PDF] PDF generation result - err: {pdf.err}")
+                if not pdf.err:
+                    # Get PDF data from BytesIO
+                    result.seek(0)
+                    pdf_data = result.getvalue()
+                    
+                    print(f"[PDF] PDF data size: {len(pdf_data)} bytes")
+                    if len(pdf_data) > 0:
+                        print(f"[PDF] First 20 bytes: {pdf_data[:20]}")
+                    
+                    # Verify it's actually PDF (starts with %PDF)
+                    if len(pdf_data) == 0:
+                        print(f"[PDF] ERROR: PDF data is empty!")
+                        return HttpResponse(
+                            'Error: Generated PDF is empty',
+                            content_type='text/plain',
+                            status=500
+                        )
+                    elif pdf_data.startswith(b'%PDF'):
+                        response = HttpResponse(pdf_data, content_type='application/pdf')
+                        # Clean filename - remove special characters
+                        safe_name = "".join(c for c in guest.name if c.isalnum() or c in (' ', '-', '_')).strip()
+                        safe_name = safe_name.replace(' ', '_')
+                        filename = f"Statement_of_Account_{safe_name}_{timezone.now().strftime('%Y%m%d')}.pdf"
+                        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                        response['Content-Length'] = str(len(pdf_data))
+                        print(f"[PDF] Returning PDF response with filename: {filename}, size: {len(pdf_data)} bytes")
+                        return response
+                    else:
+                        print(f"[PDF] ERROR: Generated data is not a valid PDF! First bytes: {pdf_data[:50]}")
+                        return HttpResponse(
+                            f'Error: Generated file is not a valid PDF. Size: {len(pdf_data)} bytes',
+                            content_type='text/plain',
+                            status=500
+                        )
+                else:
+                    # If PDF generation fails, return error response
+                    print(f"[PDF] PDF generation error: {pdf.err}")
+                    return HttpResponse(
+                        f'Error generating PDF: {pdf.err}',
+                        content_type='text/plain',
+                        status=500
+                    )
+            except Exception as pdf_error:
+                import traceback
+                print(f"[PDF] PDF generation exception: {pdf_error}")
+                print(f"[PDF] Traceback: {traceback.format_exc()}")
+                return HttpResponse(
+                    f'Error generating PDF: {str(pdf_error)}',
+                    content_type='text/plain',
+                    status=500
+                )
+        else:
+            # If xhtml2pdf is not available, return error
+            print("[PDF] ERROR: xhtml2pdf library not available!")
+            return HttpResponse(
+                'PDF generation library (xhtml2pdf) is not installed. Please install it using: pip install xhtml2pdf',
+                content_type='text/plain',
+                status=500
+            )
+        
+    except Exception as e:
+        import traceback
+        print(f"[PDF] Error generating PDF statement: {e}")
+        print(f"[PDF] Traceback: {traceback.format_exc()}")
+        # Return error as plain text instead of redirecting
+        return HttpResponse(
+            f'Error generating PDF: {str(e)}\n\nTraceback:\n{traceback.format_exc()}',
+            content_type='text/plain',
+            status=500
+        )

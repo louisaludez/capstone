@@ -13,4 +13,6 @@ urlpatterns = [
     path("api/room-status/", views.room_status, name="room_status"),
     path("api/checkout/",views.perform_checkout, name="perform_checkout"),
     path("api/room-availability/", views.room_availability, name="room_availability"),
+    path("statement-of-account/<int:guest_id>/", views.statement_of_account, name="statement_of_account"),
+    path("statement-of-account/<int:guest_id>/pdf/", views.statement_of_account_pdf, name="statement_of_account_pdf"),
 ]

@@ -102,21 +102,49 @@
      pointer-events: none;
  }
 
- .checkout-btn-wrapper {
-     display: flex;
-     justify-content: flex-end;
-     margin-top: 10px;
- }
+.checkout-btn-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
 
- .checkout-submit-btn {
-     background: #0c4d00;
-     color: #fff;
-     border: none;
-     padding: 5px 14px;
-     border-radius: 5px;
-     font-size: 12px;
-     cursor: pointer;
- }
+.checkout-submit-btn {
+    background: #0c4d00;
+    color: #fff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.checkout-statement-btn {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: not-allowed;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.checkout-statement-btn:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.checkout-statement-btn:not(:disabled):hover {
+    background: #2980b9;
+}
+
+.checkout-statement-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: auto; /* Allow click events even when disabled so we can show message */
+}
 
  .checkout-countdown {
      display: flex;

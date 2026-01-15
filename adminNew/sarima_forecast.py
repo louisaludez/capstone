@@ -408,7 +408,7 @@ class ReservationForecaster:
             else:
                 params = self.find_optimal_params(train_series)
                 order, seasonal_order = params[:3], params[3:]
-            
+        
             model = SARIMAX(train_series, order=order, seasonal_order=seasonal_order,
                           enforce_stationarity=False, enforce_invertibility=False)
             fitted_model = model.fit(disp=False, maxiter=200)
@@ -467,7 +467,7 @@ class ReservationForecaster:
         
         # Save to pickle file for fast loading
         self._save_model_to_pickle(best_result, results, series)
-        
+
         return True
     
     def _save_model_to_pickle(self, best_result, comparison_results, full_series):
@@ -604,26 +604,44 @@ class ReservationForecaster:
                 # Holt-Winters forecast
                 forecast = self.fitted_model.forecast(steps=steps)
                 # Holt-Winters doesn't provide confidence intervals easily, use simple approximation
-                std = np.std(forecast) if len(forecast) > 1 else forecast[0] * 0.1
+                std = np.std(forecast) if len(forecast) > 1 else (float(forecast[0]) * 0.1 if hasattr(forecast, '__len__') else 0.1)
                 lower_bound = np.maximum(forecast - 1.96 * std, 0)
                 upper_bound = forecast + 1.96 * std
             else:
                 # ARIMA or SARIMA forecast
-                forecast = self.fitted_model.forecast(steps=steps)
+                try:
+                    forecast = self.fitted_model.forecast(steps=steps)
+                except Exception:
+                    # fallback if forecast() fails
+                    try:
+                        forecast = np.array(self.fitted_model.predict(steps))
+                    except Exception:
+                        forecast = np.zeros(steps)
                 try:
                     confidence_intervals = self.fitted_model.get_forecast(steps=steps).conf_int()
-                    lower_bound = confidence_intervals.iloc[:, 0] if hasattr(confidence_intervals, 'iloc') else forecast - forecast * 0.2
-                    upper_bound = confidence_intervals.iloc[:, 1] if hasattr(confidence_intervals, 'iloc') else forecast + forecast * 0.2
-                except:
+                    if hasattr(confidence_intervals, 'iloc'):
+                        lower_bound = confidence_intervals.iloc[:, 0]
+                        upper_bound = confidence_intervals.iloc[:, 1]
+                    else:
+                        # If conf_int returns arrays
+                        lower_bound = confidence_intervals[:, 0]
+                        upper_bound = confidence_intervals[:, 1]
+                except Exception:
                     # Fallback if confidence intervals not available
-                    std = np.std(forecast) if len(forecast) > 1 else forecast[0] * 0.1
+                    std = np.std(forecast) if len(forecast) > 1 else (float(forecast[0]) * 0.1 if hasattr(forecast, '__len__') else 0.1)
                     lower_bound = np.maximum(forecast - 1.96 * std, 0)
                     upper_bound = forecast + 1.96 * std
             
             # Ensure forecasts are non-negative (bookings can't be negative)
             forecast = np.maximum(forecast, 0)
-            lower_bound = np.maximum(lower_bound, 0) if hasattr(lower_bound, '__iter__') else max(0, lower_bound)
-            upper_bound = np.maximum(upper_bound, 0) if hasattr(upper_bound, '__iter__') else max(0, upper_bound)
+            if hasattr(lower_bound, '__iter__'):
+                lower_bound = np.maximum(lower_bound, 0)
+            else:
+                lower_bound = max(0, lower_bound)
+            if hasattr(upper_bound, '__iter__'):
+                upper_bound = np.maximum(upper_bound, 0)
+            else:
+                upper_bound = max(0, upper_bound)
             
             # Convert to lists
             if hasattr(forecast, 'tolist'):

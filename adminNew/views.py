@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 import calendar
     
 # Create your views here.
+@decorator.admin_required
 def admin_home(request):
     
     users = CustomUser.objects.all()
@@ -112,6 +113,7 @@ def admin_home(request):
     })
 
 @require_GET
+@decorator.admin_required
 def admin_home_forecast_json(request):
     from .sarima_forecast import get_reservation_forecast
     import json
@@ -121,6 +123,7 @@ def admin_home_forecast_json(request):
     return JsonResponse(data, safe=False)
 
 @require_GET
+@decorator.admin_required
 def admin_home_monthly_data(request):
     """Get monthly guest and revenue data for a specific month"""
     from datetime import datetime
@@ -198,10 +201,12 @@ def admin_home_monthly_data(request):
         'laundry_revenue': f"{float(laundry_revenue):.2f}",
     })
 
+@decorator.admin_required
 def admin_account(request):
     users = CustomUser.objects.all()
     return render(request, "adminNew/accounts.html", {"users": users})
 
+@decorator.admin_required
 def add_user(request):
     if request.method == 'POST':
         try:
@@ -247,6 +252,7 @@ def add_user(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 
+@decorator.admin_required
 def view_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     data = {
@@ -259,6 +265,7 @@ def view_user(request, user_id):
     }
     return JsonResponse(data)
 
+@decorator.admin_required
 def delete_user(request, user_id):
     if request.method == 'POST':
         try:
@@ -273,6 +280,7 @@ def delete_user(request, user_id):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+@decorator.admin_required
 def edit_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
@@ -320,8 +328,10 @@ def edit_user(request, user_id):
         'role': user.role
     }
     return JsonResponse(data)
+@decorator.admin_required
 def admin_reports(request):
     return render(request, "adminNew/reports.html")
+@decorator.admin_required
 def admin_messenger(request):
     receiver_role = request.GET.get('receiver_role', 'Personnel')
     # Base on app service, not user role
@@ -396,6 +406,7 @@ def admin_messenger(request):
         "current_user_id": request.user.id,
         "current_service": current_service,
     })
+@decorator.admin_required
 def admin_front_office_reports(request):
     from django.core.paginator import Paginator
     from django.db.models import Q
@@ -510,6 +521,7 @@ def admin_front_office_reports(request):
     return render(request, "adminNew/front_office_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_front_office_reports_export(request):
     """Export Front Office reports as CSV using current filters and sort."""
     import csv
@@ -599,6 +611,7 @@ def admin_front_office_reports_export(request):
     response = HttpResponse(csv_content, content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="front_office_report.csv"'
     return response
+@decorator.admin_required
 def admin_cafe_reports(request):
     from cafe.models import CafeOrder, CafeOrderItem
 
@@ -671,6 +684,7 @@ def admin_cafe_reports(request):
     return render(request, "adminNew/cafe_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_cafe_reports_export(request):
     """Export Cafe reports as CSV using current filters and sort."""
     import csv
@@ -754,6 +768,7 @@ def admin_cafe_reports_export(request):
     response['Content-Disposition'] = 'attachment; filename="cafe_report.csv"'
     return response
 
+@decorator.admin_required
 def admin_housekeeping_reports(request):
     from housekeeping.models import Housekeeping
     from django.core.paginator import Paginator
@@ -818,6 +833,7 @@ def admin_housekeeping_reports(request):
     return render(request, "adminNew/housekeeping_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_housekeeping_reports_export(request):
     """Export Housekeeping reports as CSV using current filters and sort."""
     import csv
@@ -896,6 +912,7 @@ def admin_housekeeping_reports_export(request):
     response['Content-Disposition'] = 'attachment; filename="housekeeping_report.csv"'
     return response
 
+@decorator.admin_required
 def admin_laundry_reports(request):
     from laundry.models import LaundryTransaction
 
@@ -969,6 +986,7 @@ def admin_laundry_reports(request):
     return render(request, "adminNew/laundry_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_laundry_reports_export(request):
     """Export Laundry reports as CSV using current filters and sort."""
     import csv
@@ -1052,6 +1070,7 @@ def admin_laundry_reports_export(request):
     response['Content-Disposition'] = 'attachment; filename="laundry_report.csv"'
     return response
 
+@decorator.admin_required
 def admin_mcq_reports(request):
     from assessment.models import McqAttempt
     from django.core.paginator import Paginator
@@ -1114,6 +1133,7 @@ def admin_mcq_reports(request):
     return render(request, "adminNew/mcq_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_mcq_reports_export(request):
     """Export MCQ reports as CSV using current filters and sort."""
     import csv
@@ -1190,6 +1210,7 @@ def admin_mcq_reports_export(request):
     response['Content-Disposition'] = 'attachment; filename="mcq_report.csv"'
     return response
 
+@decorator.admin_required
 def admin_speech_reports(request):
     from assessment.models import SpeechAttempt
     from django.core.paginator import Paginator
@@ -1261,6 +1282,7 @@ def admin_speech_reports(request):
     return render(request, "adminNew/speech_reports.html", context)
 
 @require_GET
+@decorator.admin_required
 def admin_speech_reports_export(request):
     """Export Speech reports as CSV using current filters and sort."""
     import csv
@@ -1345,11 +1367,13 @@ def admin_speech_reports_export(request):
     response['Content-Disposition'] = 'attachment; filename="speech_report.csv"'
     return response
 
+@decorator.admin_required
 def admin_training(request):
     return render(request, "adminNew/training.html")
 
 
    
+@decorator.admin_required
 def add_activity_mcq(request):
     print("[add_activity] method=", request.method)
     if request.method == "POST":
@@ -1537,6 +1561,7 @@ def add_activity_mcq(request):
     return render(request, "adminNew/add_activity_mcq.html", context)
 
 
+@decorator.admin_required
 def view_mcq_activity(request):
     """View for displaying MCQ activity items in a separate page"""
     activity_id = request.GET.get("id")
@@ -1562,6 +1587,7 @@ def view_mcq_activity(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@decorator.admin_required
 def add_activity_speech(request):
     print("[add_activity_speech] method=", request.method)
     if request.method == "POST":
@@ -1655,6 +1681,7 @@ def add_activity_speech(request):
     return render(request, "adminNew/add_activity_speech.html", context)
 
 
+@decorator.admin_required
 def view_speech_activity(request):
     """View for displaying speech activity items similar to MCQ page layout"""
     activity_id = request.GET.get("id")
@@ -1685,6 +1712,7 @@ def view_speech_activity(request):
 
 
 @csrf_exempt
+@decorator.admin_required
 def save_activities(request):
     print("[save_activities] method=", request.method)
     if request.method != "POST":
@@ -1729,6 +1757,7 @@ def save_activities(request):
         print("[save_activities][error]", e)
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
+@decorator.admin_required
 def addmt_mcq(request):
     print("[admin_activity_materials] method=GET user=", request.user if request.user.is_authenticated else "anonymous")
     activities = Activity.objects.order_by("created_at")
@@ -1739,6 +1768,7 @@ def addmt_mcq(request):
     print(f"[admin_activity_materials] activities_count={count}")
     return render(request, "adminNew/addmt_mcq.html", {"activities": activities})
 @csrf_exempt
+@decorator.admin_required
 def delete_activity_items(request):
     """Delete selected activity items"""
     if request.method != "POST":
@@ -1782,6 +1812,7 @@ def delete_activity_items(request):
         print("[delete_activity_items][error]", e)
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
+@decorator.admin_required
 def addmt_speech_to_text(request):
     print("[addmt_speech_to_text] method=", request.method)
     if request.method == "POST":

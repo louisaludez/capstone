@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Statement of Account</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      font-size: 12px;
+      color: #000;
+      line-height: 1.4;
+    }
+    
+    .statement-container {
+      max-width: 100%;
+      padding: 20px;
+    }
+    
+    .statement-header {
+      text-align: center;
+      border-bottom: 3px solid #2c3e50;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .statement-header h1 {
+      color: #2c3e50;
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+    
+    .statement-header .statement-number {
+      color: #7f8c8d;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+    
+    .statement-info {
+      display: table;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+    
+    .info-section {
+      display: table-cell;
+      width: 50%;
+      vertical-align: top;
+      padding-right: 20px;
+    }
+    
+    .info-section:last-child {
+      padding-right: 0;
+      padding-left: 20px;
+    }
+    
+    .info-section h3 {
+      color: #2c3e50;
+      font-size: 14px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ecf0f1;
+      padding-bottom: 5px;
+    }
+    
+    .info-section p {
+      margin: 5px 0;
+      color: #34495e;
+      font-size: 11px;
+    }
+    
+    .info-section strong {
+      color: #2c3e50;
+      display: inline-block;
+      width: 100px;
+    }
+    
+    .billing-summary {
+      margin: 30px 0;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 3px;
+    }
+    
+    .billing-summary h3 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .billing-row {
+      display: table;
+      width: 100%;
+      padding: 8px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .billing-row:last-child {
+      border-bottom: none;
+    }
+    
+    .billing-row.total {
+      font-weight: bold;
+      font-size: 14px;
+      color: #2c3e50;
+      border-top: 2px solid #2c3e50;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+    
+    .billing-label {
+      display: table-cell;
+      width: 70%;
+      color: #555;
+    }
+    
+    .billing-amount {
+      display: table-cell;
+      width: 30%;
+      text-align: right;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+    
+    .transactions-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 30px 0;
+      font-size: 10px;
+    }
+    
+    .transactions-table thead {
+      background: #2c3e50;
+      color: white;
+    }
+    
+    .transactions-table th {
+      padding: 8px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 10px;
+    }
+    
+    .transactions-table td {
+      padding: 8px;
+      border-bottom: 1px solid #ecf0f1;
+      font-size: 10px;
+    }
+    
+    .charge-amount {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    
+    .payment-amount {
+      color: #27ae60;
+      font-weight: 600;
+    }
+    
+    .category-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #95a5a6;
+      color: white;
+    }
+    
+    .outstanding-balance {
+      margin-top: 30px;
+      padding: 15px;
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 3px;
+      text-align: center;
+    }
+    
+    .outstanding-balance.zero {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+    
+    .outstanding-balance h3 {
+      color: #856404;
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+    
+    .outstanding-balance.zero h3 {
+      color: #155724;
+    }
+    
+    .outstanding-balance .balance-amount {
+      font-size: 24px;
+      font-weight: bold;
+      color: #856404;
+    }
+    
+    .outstanding-balance.zero .balance-amount {
+      color: #155724;
+    }
+    
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 15px;
+      border-top: 1px solid #ecf0f1;
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="statement-container">
+    <div class="statement-header">
+      <h1>STATEMENT OF ACCOUNT</h1>
+      <div class="statement-number">Statement #: {{ statement_number }}</div>
+      <div style="margin-top: 10px; color: #7f8c8d; font-size: 12px;">
+        Date: {{ statement_date|date:"F d, Y" }}
+      </div>
+    </div>
+
+    <div class="statement-info">
+      <div class="info-section">
+        <h3>Guest Information</h3>
+        <p><strong>Name:</strong> {{ guest.name }}</p>
+        <p><strong>Email:</strong> {{ guest.email|default:"N/A" }}</p>
+        <p><strong>Address:</strong> {{ guest.address|default:"N/A" }}</p>
+        {% if guest.mobile %}
+        <p><strong>Mobile:</strong> {{ guest.mobile }}</p>
+        {% endif %}
+      </div>
+
+      <div class="info-section">
+        <h3>Booking Information</h3>
+        {% if booking %}
+        <p><strong>Room:</strong> {{ booking.room }}</p>
+        <p><strong>Check-in:</strong> {{ booking.check_in_date|date:"F d, Y" }}</p>
+        <p><strong>Check-out:</strong> {{ booking.check_out_date|date:"F d, Y"|default:"N/A" }}</p>
+        <p><strong>Booking #:</strong> {{ booking.id|stringformat:"05d" }}</p>
+        {% else %}
+        <p>No active booking</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="billing-summary">
+      <h3>Billing Summary</h3>
+      {% if room_charges > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Room Charges</span>
+        <span class="billing-amount">₱{{ room_charges|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      {% if room_service > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Room Service</span>
+        <span class="billing-amount">₱{{ room_service|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      {% if laundry_total > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Laundry</span>
+        <span class="billing-amount">₱{{ laundry_total|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      {% if cafe_total > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Cafe</span>
+        <span class="billing-amount">₱{{ cafe_total|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      {% if excess_pax > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Excess Pax</span>
+        <span class="billing-amount">₱{{ excess_pax|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      {% if additional_charges > 0 %}
+      <div class="billing-row">
+        <span class="billing-label">Additional Charges</span>
+        <span class="billing-amount">₱{{ additional_charges|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      <div class="billing-row total">
+        <span class="billing-label">Total Charges</span>
+        <span class="billing-amount">₱{{ total_charges|floatformat:2 }}</span>
+      </div>
+      <div class="billing-row">
+        <span class="billing-label">Total Payments</span>
+        <span class="billing-amount" style="color: #27ae60;">₱{{ total_payments|floatformat:2 }}</span>
+      </div>
+    </div>
+
+    {% if transactions %}
+    <h3 style="color: #2c3e50; margin-top: 30px; margin-bottom: 15px; font-size: 14px;">Transaction History</h3>
+    <table class="transactions-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Type</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+          <td>{{ transaction.date|date:"M d, Y" }}</td>
+          <td>{{ transaction.description }}</td>
+          <td>
+            <span class="category-badge">{{ transaction.category }}</span>
+          </td>
+          <td>{{ transaction.type }}</td>
+          <td style="text-align: right;">
+            {% if transaction.type == 'Charge' %}
+            <span class="charge-amount">-₱{{ transaction.amount|floatformat:2 }}</span>
+            {% else %}
+            <span class="payment-amount">+₱{{ transaction.amount|floatformat:2 }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <div class="outstanding-balance {% if outstanding_balance == 0 %}zero{% endif %}">
+      <h3>Outstanding Balance</h3>
+      <div class="balance-amount">
+        {% if outstanding_balance == 0 %}
+        ₱0.00 (Paid in Full)
+        {% else %}
+        ₱{{ outstanding_balance|floatformat:2 }}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <p>This is a computer-generated statement. No signature is required.</p>
+      <p>For inquiries, please contact the front desk.</p>
+    </div>
+  </div>
+</body>
+</html>
+

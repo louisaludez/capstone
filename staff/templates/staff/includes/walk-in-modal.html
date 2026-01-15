@@ -10,19 +10,24 @@
         <div class="walkin-section-title">Guest Information</div>
         <div class="walkin-field">
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
-          <label>Name</label><input type="text" class="walkin-name" />
+          <label>Name <span style="color: red;">*</span></label><input type="text" class="walkin-name" required />
+          <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
         </div>
         <div class="walkin-field">
           <label>Address</label><input type="text" class="walkin-address" />
+          <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
         </div>
         <div class="walkin-field">
-          <label>Mobile no.</label><input type="text" class="walkin-mobile" />
+          <label>Mobile no. <span style="color: red;">*</span></label><input type="text" class="walkin-mobile" required />
+          <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
         </div>
         <div class="walkin-field">
           <label>Date of Birth</label><input id="dob" type="text" placeholder="Birthday" class="walkin-birth" />
+          <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
         </div>
         <div class="walkin-field">
-          <label>Email</label><input type="email" class="walkin-email" />
+          <label>Email <span style="color: red;">*</span></label><input type="email" class="walkin-email" required />
+          <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
         </div>
 
         <div class="walkin-section-title">Booking Information</div>
@@ -45,18 +50,22 @@
         </div>
         <div class="walkin-inline-row">
           <div class="walkin-field">
-            <label>Check-in Date</label><input id="checkin" type="text" class="walkin-check-in" disabled />
+            <label>Check-in Date <span style="color: red;">*</span></label><input id="checkin" type="text" class="walkin-check-in" required />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
           <div class="walkin-field">
-            <label>Check-out Date</label><input id="checkout" type="text" class="walkin-check-out" disabled />
+            <label>Check-out Date <span style="color: red;">*</span></label><input id="checkout" type="text" class="walkin-check-out" required />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
         </div>
         <div class="walkin-inline-row">
           <div class="walkin-field">
-            <label>No. of Adults</label><input type="number" class="walkin-no-of-adults" />
+            <label>No. of Adults <span style="color: red;">*</span></label><input type="number" class="walkin-no-of-adults" min="1" required />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
           <div class="walkin-field">
-            <label>No. of Children</label><input type="number" class="walkin-no-of-children" />
+            <label>No. of Children</label><input type="number" class="walkin-no-of-children" min="0" />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
         </div>
         <div class="walkin-inline-row">
@@ -136,16 +145,19 @@
         </div>
         <div class="walkin-card-fields">
           <div class="walkin-field">
-            <label>Card Number</label>
-            <input type="text" placeholder="(if applicable)" class="walkin-card-number" />
+            <label>Card Number <span style="color: red;">*</span></label>
+            <input type="text" placeholder="(if applicable)" class="walkin-card-number" maxlength="19" />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
           <div class="walkin-field">
-            <label>Exp. Date</label>
-            <input type="text" class="walkin-card-exp-date" />
+            <label>Exp. Date <span style="color: red;">*</span></label>
+            <input type="text" class="walkin-card-exp-date" placeholder="MM/YY" maxlength="5" />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
           <div class="walkin-field">
-            <label>CVC</label>
-            <input type="text" class="walkin-card-cvc" />
+            <label>CVC <span style="color: red;">*</span></label>
+            <input type="text" class="walkin-card-cvc" maxlength="4" />
+            <small class="validation-error" style="color: red; display: none; font-size: 11px;"></small>
           </div>
         </div>
 
@@ -234,23 +246,28 @@
     }
   
     function toggleDateFields() {
-      const isRoomSelected = roomSelect && roomSelect.value && roomSelect.value !== ''
+      // Allow date selection without requiring room selection first
+      // Dates can be selected independently, but room is still required for booking
       if (checkinField) {
-        checkinField.disabled = !isRoomSelected
-        if (!isRoomSelected) {
-          checkinField.value = ''
-          checkinField.placeholder = 'Select a room first'
-        } else {
-          checkinField.placeholder = 'Check-in Date'
-        }
+        checkinField.placeholder = 'Check-in Date'
       }
       if (checkoutField) {
-        checkoutField.disabled = !isRoomSelected
-        if (!isRoomSelected) {
-          checkoutField.value = ''
-          checkoutField.placeholder = 'Select a room first'
-        } else {
-          checkoutField.placeholder = 'Check-out Date'
+        checkoutField.placeholder = 'Check-out Date'
+      }
+  
+      // Reinitialize flatpickr if needed when room is selected
+      const isRoomSelected = roomSelect && roomSelect.value && roomSelect.value !== ''
+      if (isRoomSelected && window.wiCheckinPicker && window.wiCheckoutPicker) {
+        // Update flatpickr instances if they exist
+        try {
+          if (window.wiCheckinPicker) {
+            window.wiCheckinPicker.set('minDate', 'today')
+          }
+          if (window.wiCheckoutPicker) {
+            window.wiCheckoutPicker.set('minDate', checkinField?.value || 'today')
+          }
+        } catch (e) {
+          console.log('Flatpickr update:', e)
         }
       }
     }
@@ -331,7 +348,9 @@
     }
   
     if (method) {
-      method.addEventListener('change', applyPaymentVisibility)
+      method.addEventListener('change', function () {
+        applyPaymentVisibility()
+      })
       applyPaymentVisibility()
     }
   
@@ -344,15 +363,23 @@
     }
   
     if (checkinField) {
-      checkinField.addEventListener('change', calculateBalance)
+      checkinField.addEventListener('change', function () {
+        calculateBalance()
+      })
       // Also listen for flatpickr events
-      checkinField.addEventListener('blur', calculateBalance)
+      checkinField.addEventListener('blur', function () {
+        calculateBalance()
+      })
     }
   
     if (checkoutField) {
-      checkoutField.addEventListener('change', calculateBalance)
+      checkoutField.addEventListener('change', function () {
+        calculateBalance()
+      })
       // Also listen for flatpickr events
-      checkoutField.addEventListener('blur', calculateBalance)
+      checkoutField.addEventListener('blur', function () {
+        calculateBalance()
+      })
     }
   
     // Setup add-on listeners
@@ -364,5 +391,564 @@
         calculateBalance()
       }
     }, 100)
+  
+    // Validation functions - only show red border, no text messages
+    function showError(field, message) {
+      // Only show red border, no text message
+      field.style.borderColor = '#dc3545'
+      field.style.borderWidth = '2px'
+    }
+  
+    function clearError(field) {
+      // Remove red border
+      field.style.borderColor = ''
+      field.style.borderWidth = ''
+    }
+  
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return re.test(email)
+    }
+  
+    function validateMobile(mobile) {
+      // Remove spaces, dashes, and parentheses
+      const cleaned = mobile.replace(/[\s\-\(\)]/g, '')
+      // Check if it's 10-15 digits (allowing country codes)
+      return /^\d{10,15}$/.test(cleaned)
+    }
+  
+    function validateCardNumber(cardNumber) {
+      // Remove spaces and dashes
+      const cleaned = cardNumber.replace(/[\s\-]/g, '')
+      // Check if it's 13-19 digits (standard card length)
+      return /^\d{13,19}$/.test(cleaned)
+    }
+  
+    function validateExpDate(expDate) {
+      // Format: MM/YY
+      const re = /^(0[1-9]|1[0-2])\/([0-9]{2})$/
+      if (!re.test(expDate)) return false
+  
+      const [month, year] = expDate.split('/')
+      const currentDate = new Date()
+      const currentYear = currentDate.getFullYear() % 100
+      const currentMonth = currentDate.getMonth() + 1
+      const expYear = parseInt(year, 10)
+      const expMonth = parseInt(month, 10)
+  
+      // Check if expiration date is in the future
+      if (expYear < currentYear) return false
+      if (expYear === currentYear && expMonth < currentMonth) return false
+  
+      return true
+    }
+  
+    function validateCVC(cvc) {
+      // CVC should be 3-4 digits
+      return /^\d{3,4}$/.test(cvc)
+    }
+  
+    function validateDateOfBirth(dob) {
+      if (!dob) return true // Optional field
+      const birthDate = new Date(dob)
+      const today = new Date()
+      // Check if date is valid and not in the future
+      return !isNaN(birthDate.getTime()) && birthDate <= today
+    }
+  
+    // Real-time validation on input
+    const nameField = document.querySelector('.walkin-name')
+    const emailField = document.querySelector('.walkin-email')
+    const mobileField = document.querySelector('.walkin-mobile')
+    const dobField = document.querySelector('.walkin-birth')
+    const adultsField = document.querySelector('.walkin-no-of-adults')
+    const childrenField = document.querySelector('.walkin-no-of-children')
+    const cardNumberField = document.querySelector('.walkin-card-number')
+    const expDateField = document.querySelector('.walkin-card-exp-date')
+    const cvcField = document.querySelector('.walkin-card-cvc')
+  
+    // Function to check if form has errors and disable/enable button
+    function updateBookButtonState() {
+      // Query button each time in case it wasn't found initially
+      const bookButton = document.querySelector('.walkin-book-btn')
+      if (!bookButton) {
+        console.warn('Book button not found')
+        return
+      }
+  
+      // Check if required fields are empty or have errors
+      let hasErrors = false
+      let missingFields = []
+  
+      // Check required fields - first check if they're empty
+      if (!nameField || !nameField.value || !nameField.value.trim()) {
+        hasErrors = true
+        missingFields.push('Name')
+      }
+  
+      if (!emailField || !emailField.value || !emailField.value.trim()) {
+        hasErrors = true
+        missingFields.push('Email')
+      } else if (emailField.value.trim() && !validateEmail(emailField.value)) {
+        hasErrors = true
+      }
+  
+      if (!mobileField || !mobileField.value || !mobileField.value.trim()) {
+        hasErrors = true
+        missingFields.push('Mobile number')
+      } else if (mobileField.value.trim() && !validateMobile(mobileField.value)) {
+        hasErrors = true
+      }
+  
+      if (!roomSelect || !roomSelect.value || roomSelect.value === '' || roomSelect.value === null) {
+        hasErrors = true
+        missingFields.push('Room')
+      }
+  
+      if (!checkinField || !checkinField.value || !checkinField.value.trim()) {
+        hasErrors = true
+        missingFields.push('Check-in date')
+      }
+  
+      if (!checkoutField || !checkoutField.value || !checkoutField.value.trim()) {
+        hasErrors = true
+        missingFields.push('Check-out date')
+      }
+  
+      if (!adultsField || !adultsField.value) {
+        hasErrors = true
+        missingFields.push('Number of adults')
+      } else {
+        const adults = parseInt(adultsField.value, 10)
+        if (isNaN(adults) || adults < 1) {
+          hasErrors = true
+        }
+      }
+  
+      // Check date validity and order (only if both dates are filled)
+      if (checkinField && checkoutField && checkinField.value && checkoutField.value) {
+        const checkin = new Date(checkinField.value)
+        const checkout = new Date(checkoutField.value)
+        if (isNaN(checkin.getTime()) || isNaN(checkout.getTime())) {
+          hasErrors = true
+        } else if (checkout <= checkin) {
+          hasErrors = true
+        }
+      }
+  
+      // Check optional fields that must be valid if provided
+      if (dobField && dobField.value && !validateDateOfBirth(dobField.value)) {
+        hasErrors = true
+      }
+      if (childrenField && childrenField.value) {
+        const children = parseInt(childrenField.value, 10)
+        if (isNaN(children) || children < 0) {
+          hasErrors = true
+        }
+      }
+  
+      // Check card fields ONLY if payment method is card
+      const paymentMethodValue = method ? method.value : null
+  
+      // Only validate card fields if payment method is explicitly "card"
+      if (paymentMethodValue === 'card') {
+        // Check if card fields are actually visible (not hidden)
+        let cardFieldsVisible = true
+        try {
+          if (cardFields) {
+            const computedStyle = window.getComputedStyle(cardFields)
+            cardFieldsVisible = computedStyle.display !== 'none' && computedStyle.opacity !== '0' && !cardFields.classList.contains('hidden')
+          }
+        } catch (e) {
+          // If we can't check visibility, assume visible if payment is card
+          cardFieldsVisible = true
+        }
+  
+        // Only validate card fields if they are visible
+        if (cardFieldsVisible && cardFields && cardFields.style.display !== 'none') {
+          if (!cardNumberField || !cardNumberField.value || !cardNumberField.value.trim()) {
+            hasErrors = true
+            missingFields.push('Card number')
+          } else if (cardNumberField.value.trim() && !validateCardNumber(cardNumberField.value)) {
+            hasErrors = true
+          }
+          if (!expDateField || !expDateField.value || !expDateField.value.trim()) {
+            hasErrors = true
+            missingFields.push('Expiration date')
+          } else if (expDateField.value.trim() && !validateExpDate(expDateField.value)) {
+            hasErrors = true
+          }
+          if (!cvcField || !cvcField.value || !cvcField.value.trim()) {
+            hasErrors = true
+            missingFields.push('CVC')
+          } else if (cvcField.value.trim() && !validateCVC(cvcField.value)) {
+            hasErrors = true
+          }
+        }
+      }
+      // If payment is cash, skip card field validation entirely - no errors for card fields
+  
+      // Button is always enabled - validation happens on backend
+      // This function is kept for potential future use but doesn't disable button
+    }
+  
+    if (nameField) {
+      nameField.addEventListener('blur', function () {
+        if (!this.value.trim()) {
+          showError(this, 'Name is required')
+        } else {
+          clearError(this)
+        }
+      })
+      nameField.addEventListener('input', function () {
+        if (this.value.trim()) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (emailField) {
+      emailField.addEventListener('blur', function () {
+        if (!this.value.trim()) {
+          showError(this, 'Email is required')
+        } else if (!validateEmail(this.value)) {
+          showError(this, 'Please enter a valid email address')
+        } else {
+          clearError(this)
+        }
+      })
+      emailField.addEventListener('input', function () {
+        if (this.value.trim() && validateEmail(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (mobileField) {
+      mobileField.addEventListener('blur', function () {
+        if (!this.value.trim()) {
+          showError(this, '')
+        } else if (!validateMobile(this.value)) {
+          showError(this, '')
+        } else {
+          clearError(this)
+        }
+      })
+      mobileField.addEventListener('input', function () {
+        if (this.value.trim() && validateMobile(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (dobField) {
+      dobField.addEventListener('blur', function () {
+        if (this.value && !validateDateOfBirth(this.value)) {
+          showError(this, 'Please enter a valid date of birth')
+        } else {
+          clearError(this)
+        }
+      })
+      dobField.addEventListener('change', function () {
+        if (!this.value || validateDateOfBirth(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (adultsField) {
+      adultsField.addEventListener('blur', function () {
+        const value = parseInt(this.value, 10)
+        if (!this.value || isNaN(value) || value < 1) {
+          showError(this, 'At least 1 adult is required')
+        } else {
+          clearError(this)
+        }
+      })
+      adultsField.addEventListener('input', function () {
+        const value = parseInt(this.value, 10)
+        if (this.value && !isNaN(value) && value >= 1) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (childrenField) {
+      childrenField.addEventListener('blur', function () {
+        if (this.value) {
+          const value = parseInt(this.value, 10)
+          if (isNaN(value) || value < 0) {
+            showError(this, 'Please enter a valid number (0 or greater)')
+          } else {
+            clearError(this)
+          }
+        }
+      })
+      childrenField.addEventListener('input', function () {
+        if (!this.value) {
+          clearError(this)
+        } else {
+          const value = parseInt(this.value, 10)
+          if (!isNaN(value) && value >= 0) {
+            clearError(this)
+          }
+        }
+      })
+    }
+  
+    // Card field validations (only when payment method is card)
+    if (cardNumberField) {
+      cardNumberField.addEventListener('input', function () {
+        // Format card number with spaces every 4 digits
+        let value = this.value.replace(/\s/g, '')
+        value = value.match(/.{1,4}/g)?.join(' ') || value
+        this.value = value
+      })
+  
+      cardNumberField.addEventListener('blur', function () {
+        if (method && method.value === 'card') {
+          if (!this.value.trim()) {
+            showError(this, '')
+          } else if (!validateCardNumber(this.value)) {
+            showError(this, '')
+          } else {
+            clearError(this)
+          }
+        }
+      })
+      cardNumberField.addEventListener('input', function () {
+        if (method && method.value === 'card' && this.value.trim() && validateCardNumber(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (expDateField) {
+      expDateField.addEventListener('input', function () {
+        // Format as MM/YY
+        let value = this.value.replace(/\D/g, '')
+        if (value.length >= 2) {
+          value = value.substring(0, 2) + '/' + value.substring(2, 4)
+        }
+        this.value = value
+      })
+  
+      expDateField.addEventListener('blur', function () {
+        if (method && method.value === 'card') {
+          if (!this.value.trim()) {
+            showError(this, '')
+          } else if (!validateExpDate(this.value)) {
+            showError(this, '')
+          } else {
+            clearError(this)
+          }
+        }
+      })
+      expDateField.addEventListener('input', function () {
+        if (method && method.value === 'card' && this.value.trim() && validateExpDate(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    if (cvcField) {
+      cvcField.addEventListener('input', function () {
+        // Only allow digits
+        this.value = this.value.replace(/\D/g, '')
+      })
+  
+      cvcField.addEventListener('blur', function () {
+        if (method && method.value === 'card') {
+          if (!this.value.trim()) {
+            showError(this, '')
+          } else if (!validateCVC(this.value)) {
+            showError(this, '')
+          } else {
+            clearError(this)
+          }
+        }
+      })
+      cvcField.addEventListener('input', function () {
+        if (method && method.value === 'card' && this.value.trim() && validateCVC(this.value)) {
+          clearError(this)
+        }
+      })
+    }
+  
+    // Make validation function globally accessible for walkin.js
+    window.validateWalkinForm = function () {
+      let isValid = true
+      const errors = []
+  
+      // Clear all previous errors - only reset borders, no text messages
+      document.querySelectorAll('.walkin-field input, .walkin-field select').forEach((field) => {
+        field.style.borderColor = ''
+        field.style.borderWidth = ''
+      })
+  
+      // Validate Name
+      if (!nameField || !nameField.value.trim()) {
+        isValid = false
+        if (nameField) showError(nameField, '')
+        errors.push('Name is required')
+      }
+  
+      // Validate Email
+      if (!emailField || !emailField.value.trim()) {
+        isValid = false
+        if (emailField) showError(emailField, '')
+        errors.push('Email is required')
+      } else if (emailField && !validateEmail(emailField.value)) {
+        isValid = false
+        showError(emailField, '')
+        errors.push('Invalid email format')
+      }
+  
+      // Validate Mobile
+      if (!mobileField || !mobileField.value.trim()) {
+        isValid = false
+        if (mobileField) showError(mobileField, '')
+        errors.push('Mobile number is required')
+      } else if (mobileField && !validateMobile(mobileField.value)) {
+        isValid = false
+        showError(mobileField, '')
+        errors.push('Invalid mobile number format')
+      }
+  
+      // Validate Date of Birth (optional but must be valid if provided)
+      if (dobField && dobField.value && !validateDateOfBirth(dobField.value)) {
+        isValid = false
+        showError(dobField, '')
+        errors.push('Invalid date of birth')
+      }
+  
+      // Validate Room
+      if (!roomSelect || !roomSelect.value || roomSelect.value === '') {
+        isValid = false
+        if (roomSelect) {
+          roomSelect.style.borderColor = '#dc3545'
+          roomSelect.style.borderWidth = '2px'
+        }
+        errors.push('Please select a room')
+      } else {
+        roomSelect.style.borderColor = ''
+        roomSelect.style.borderWidth = ''
+      }
+  
+      // Validate Check-in Date
+      if (!checkinField || !checkinField.value) {
+        isValid = false
+        if (checkinField) showError(checkinField, '')
+        errors.push('Check-in date is required')
+      }
+  
+      // Validate Check-out Date
+      if (!checkoutField || !checkoutField.value) {
+        isValid = false
+        if (checkoutField) showError(checkoutField, '')
+        errors.push('Check-out date is required')
+      }
+  
+      // Validate dates are valid and check-out is after check-in
+      if (checkinField && checkoutField && checkinField.value && checkoutField.value) {
+        const checkin = new Date(checkinField.value)
+        const checkout = new Date(checkoutField.value)
+  
+        if (isNaN(checkin.getTime())) {
+          isValid = false
+          showError(checkinField, '')
+          errors.push('Invalid check-in date')
+        } else {
+          clearError(checkinField)
+        }
+  
+        if (isNaN(checkout.getTime())) {
+          isValid = false
+          showError(checkoutField, '')
+          errors.push('Invalid check-out date')
+        } else {
+          clearError(checkoutField)
+        }
+  
+        if (!isNaN(checkin.getTime()) && !isNaN(checkout.getTime()) && checkout <= checkin) {
+          isValid = false
+          showError(checkoutField, '')
+          errors.push('Check-out date must be after check-in date')
+        } else if (!isNaN(checkin.getTime()) && !isNaN(checkout.getTime())) {
+          clearError(checkoutField)
+        }
+      }
+  
+      // Validate Adults
+      if (!adultsField || !adultsField.value) {
+        isValid = false
+        if (adultsField) showError(adultsField, '')
+        errors.push('Number of adults is required')
+      } else if (adultsField) {
+        const adults = parseInt(adultsField.value, 10)
+        if (isNaN(adults) || adults < 1) {
+          isValid = false
+          showError(adultsField, '')
+          errors.push('At least 1 adult is required')
+        } else {
+          clearError(adultsField)
+        }
+      }
+  
+      // Validate Children (optional but must be valid if provided)
+      if (childrenField && childrenField.value) {
+        const children = parseInt(childrenField.value, 10)
+        if (isNaN(children) || children < 0) {
+          isValid = false
+          showError(childrenField, '')
+          errors.push('Invalid number of children')
+        } else {
+          clearError(childrenField)
+        }
+      }
+  
+      // Validate Card fields if payment method is card
+      if (method && method.value === 'card') {
+        if (!cardNumberField || !cardNumberField.value.trim()) {
+          isValid = false
+          if (cardNumberField) showError(cardNumberField, '')
+          errors.push('Card number is required')
+        } else if (cardNumberField && !validateCardNumber(cardNumberField.value)) {
+          isValid = false
+          showError(cardNumberField, '')
+          errors.push('Invalid card number')
+        } else if (cardNumberField) {
+          clearError(cardNumberField)
+        }
+  
+        if (!expDateField || !expDateField.value.trim()) {
+          isValid = false
+          if (expDateField) showError(expDateField, '')
+          errors.push('Expiration date is required')
+        } else if (expDateField && !validateExpDate(expDateField.value)) {
+          isValid = false
+          showError(expDateField, '')
+          errors.push('Invalid expiration date')
+        } else if (expDateField) {
+          clearError(expDateField)
+        }
+  
+        if (!cvcField || !cvcField.value.trim()) {
+          isValid = false
+          if (cvcField) showError(cvcField, '')
+          errors.push('CVC is required')
+        } else if (cvcField && !validateCVC(cvcField.value)) {
+          isValid = false
+          showError(cvcField, '')
+          errors.push('Invalid CVC')
+        } else if (cvcField) {
+          clearError(cvcField)
+        }
+      }
+  
+      return { isValid, errors }
+    }
+  
+    // Button is always enabled - validation happens on backend
   })
 </script>

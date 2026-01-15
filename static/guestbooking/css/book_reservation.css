@@ -1,0 +1,128 @@
+.main-content {
+      background: #fff;
+      border: 1px solid #8b5cf6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px;
+    }
+    
+    .page-title {
+      color: #1a2d1a;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      color: #1a2d1a;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    
+    .required-field {
+      color: #dc3545;
+      font-size: 0.8rem;
+      margin-bottom: 15px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-label {
+      color: #1a2d1a;
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+      font-size: 0.9rem;
+    }
+    
+    .form-control {
+      border: 1px solid #cddcc9;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    
+    .form-control:focus {
+      border-color: #7eb455;
+      box-shadow: 0 0 0 0.2rem rgba(126, 180, 85, 0.25);
+      outline: none;
+    }
+    
+    .payment-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .payment-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .payment-option input[type='radio'] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+    
+    .payment-option label {
+      color: #1a2d1a;
+      font-weight: 500;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    
+    .payment-icons {
+      display: flex;
+      gap: 8px;
+      margin-left: 15px;
+    }
+    
+    .payment-icon {
+      width: 35px;
+      height: 22px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      overflow: hidden;
+    }
+    .payment-icon img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .payment-icon.visa,
+    .payment-icon.mastercard,
+    .payment-icon.amex {
+      background: transparent;
+    }
+    
+    .payment-note {
+      color: #6c757d;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    
+    .next-btn {
+      background: #1a2d1a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .next-btn:hover {
+      background: #0b440c;
+    }

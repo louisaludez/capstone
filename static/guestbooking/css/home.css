@@ -1,0 +1,331 @@
+.booking-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .booking-card {
+      border: 1px solid #2e7d32;
+      border-radius: 10px;
+      padding: 20px;
+      width: 100%;
+      max-width: 800px;
+      background-color: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stay-type {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .stay-btn {
+      padding: 8px 16px;
+      border: 1px solid #2e7d32;
+      background: white;
+      color: #2e7d32;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .stay-btn.active {
+      background: #e8f5e9;
+      font-weight: 600;
+    }
+    
+    .booking-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .date-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid #2e7d32;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background-color: #fff;
+      gap: 10px;
+      flex: 2;
+      min-width: 300px;
+    }
+    
+    .guest-select {
+      display: flex;
+      align-items: center;
+      border: 1px solid #2e7d32;
+      border-radius: 8px;
+      padding: 10px 15px;
+      background-color: #fff;
+      gap: 10px;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .date-input label,
+    .guest-select label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    
+    .separator {
+      padding: 0 10px;
+      color: #ccc;
+    }
+    
+    .dropdown-icon {
+      margin-left: auto;
+      color: #2e7d32;
+    }
+    
+    .search-btn-wrapper {
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .search-btn {
+      padding: 10px 40px;
+      background-color: #74b65d;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    
+    .search-btn:hover {
+      background-color: #689f38;
+    }
+    
+    .btns {
+      width: 200px;
+      border: 1px solid black;
+    }
+    
+    .calendars {
+      width: 110px;
+      border: 1px solid black !important;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .active-btn {
+      background-color: #e6ffd6 !important;
+    }
+    
+    /* Calendar Popup Styles */
+    .calendar-popup {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 300px;
+      display: none;
+    }
+    
+    .calendar-popup.show {
+      display: block;
+    }
+    
+    .calendar-header {
+      background: #2e7d32;
+      color: white;
+      padding: 10px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .calendar-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .calendar-nav button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .calendar-body {
+      padding: 15px;
+    }
+    
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .calendar-weekday {
+      text-align: center;
+      font-weight: bold;
+      color: #666;
+      font-size: 12px;
+    }
+    
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    
+    .calendar-day {
+      text-align: center;
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .calendar-day:hover {
+      background: #f0f0f0;
+    }
+    
+    .calendar-day.selected {
+      background: #2e7d32;
+      color: white;
+    }
+    
+    .calendar-day.range {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .calendar-day.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    /* Guest Popup Styles */
+    .guest-popup {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 200px;
+      display: none;
+    }
+    
+    .guest-popup::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid white;
+    }
+    
+    .guest-popup::after {
+      content: '';
+      position: absolute;
+      top: -9px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #ddd;
+    }
+    
+    .guest-popup.show {
+      display: block;
+    }
+    
+    .guest-section {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .guest-section:last-child {
+      border-bottom: none;
+    }
+    
+    .guest-section h6 {
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .guest-counter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .guest-counter button {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .guest-counter button:hover {
+      background: #e0e0e0;
+    }
+    
+    .guest-counter button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .guest-counter span {
+      font-weight: bold;
+      min-width: 30px;
+      text-align: center;
+    }
+    
+    .child-age-select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+    
+    .guest-info {
+      font-size: 10px;
+      color: #666;
+      margin-top: 6px;
+      font-style: italic;
+    }
+    
+    /* Hide check-out calendar for day use stays */
+    .overnight-mode .checkout-calendar,
+    .overnight-mode #checkout-calendar-popup {
+      display: none !important;
+    }
+    
+    .overnight-mode .calendars {
+      justify-content: center !important;
+    }
