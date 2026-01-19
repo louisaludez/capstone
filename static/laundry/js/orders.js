@@ -359,7 +359,7 @@ $(document).ready(function () {
               <p><strong>Bags:</strong> ${data.no_of_bags}</p>
               <p><strong>Specifications:</strong> ${data.specifications || 'None'}</p>
               <p><strong>Date:</strong> ${data.date_time}</p>
-              <p><strong>Payment:</strong> ${data.payment_method}</p>
+              <p><strong>Payment Method:</strong> ${data.payment_method === 'cash' ? 'Cash' : data.payment_method === 'room' ? 'Charge to Room' : data.payment_method}</p>
               <p><strong>Total:</strong> $${data.total_amount}</p>
               <p><strong>Status:</strong> ${data.status}</p>
               <p><strong>Created:</strong> ${data.created_at}</p>
@@ -411,13 +411,6 @@ $(document).ready(function () {
                   <option value="cancelled" ${data.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                 </select>
               </div>
-              <div class="mb-3">
-                <label class="form-label">Payment Method</label>
-                <select class="form-select" id="edit-payment-method">
-                  <option value="cash" ${data.payment_method === 'cash' ? 'selected' : ''}>Cash</option>
-                  <option value="room" ${data.payment_method === 'room' ? 'selected' : ''}>Charge to Room</option>
-                </select>
-              </div>
             </form>
           `,
           showCancelButton: true,
@@ -428,8 +421,8 @@ $(document).ready(function () {
               service_type: document.getElementById('edit-service-type').value,
               no_of_bags: parseInt(document.getElementById('edit-no-bags').value),
               specifications: document.getElementById('edit-specifications').value,
-              status: document.getElementById('edit-status').value,
-              payment_method: document.getElementById('edit-payment-method').value
+              status: document.getElementById('edit-status').value
+              // Payment method is disabled and not included in the update
             };
           }
         }).then((result) => {

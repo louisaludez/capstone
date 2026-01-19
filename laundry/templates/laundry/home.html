@@ -161,6 +161,22 @@
         margin-right: auto;
       }
     }
+    
+    /* Style for auto-filled date field */
+    .date-time-laundry[readonly] {
+      background-color: #f8f9fa;
+      cursor: not-allowed;
+    }
+    
+    /* Style for other specification input */
+    .other-input-container {
+      margin-left: 1.5rem;
+      padding-top: 0.5rem;
+    }
+    
+    .other-input-container input {
+      margin-top: 0.25rem;
+    }
   </style>
 {% endblock %}
 {% block sidebar %}
@@ -206,7 +222,7 @@
           </div>
           <div class="date-time-pos">
             <label for="date-time">Date and Time</label>
-            <input type="date" name="date-time" id="" class="form-control date-time-laundry" />
+            <input type="datetime-local" name="date-time" id="dateTimeLaundry" class="form-control date-time-laundry" readonly />
           </div>
         </div>
         <div class="right-side">
@@ -229,6 +245,14 @@
             <label for="fabric" class="form-check-label">Fabric Conditioner</label>
             <input type="checkbox" name="fabric" id="fabric" class="form-check-input" />
           </div>
+          <div class="other-pos form-check">
+            <label for="other" class="form-check-label">Other</label>
+            <input type="checkbox" name="other" id="other" class="form-check-input" />
+          </div>
+          <div class="other-input-container" id="otherInputContainer" style="display: none; margin-top: 10px;">
+            <label for="otherSpecification" class="form-label">Specify other item:</label>
+            <input type="text" name="other-specification" id="otherSpecification" class="form-control" placeholder="Enter other specification" />
+          </div>
         </div>
       </div>
       <div class="footer-bottons">
@@ -242,23 +266,55 @@
 {% block extra_js %}
   <script>
     $(document).ready(function () {
+      // Set current date and time automatically
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const hours = String(now.getHours()).padStart(2, '0')
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}`
+      $('#dateTimeLaundry').val(currentDateTime)
+    
       // Multiple checkbox logic - allow multiple selections
       $('.form-check-input').on('change', function () {
         // No need to uncheck others - allow multiple selections
         console.log('Checkbox changed:', $(this).attr('id'), $(this).is(':checked'))
+    
+        // Show/hide other input field when "Other" checkbox is toggled
+        if ($(this).attr('id') === 'other') {
+          if ($(this).is(':checked')) {
+            $('#otherInputContainer').slideDown()
+            $('#otherSpecification').focus()
+          } else {
+            $('#otherInputContainer').slideUp()
+            $('#otherSpecification').val('')
+          }
+        }
       })
     
       function getCheckedValue() {
-        const checked = $('.form-check-input:checked')
-        if (checked.length === 0) return null
-        if (checked.length === 1) return checked.attr('id')
-        // Return comma-separated string of selected specifications for multiple selections
-        return checked
-          .map(function () {
-            return this.id
-          })
-          .get()
-          .join(', ')
+        const checked = $('.form-check-input:checked').not('#other')
+        const otherChecked = $('#other').is(':checked')
+        const otherValue = $('#otherSpecification').val().trim()
+    
+        let specifications = []
+    
+        // Add checked specifications (excluding "other")
+        checked.each(function () {
+          specifications.push($(this).attr('id'))
+        })
+    
+        // Add "other" specification if checked and has value
+        if (otherChecked && otherValue) {
+          specifications.push(`Other: ${otherValue}`)
+        } else if (otherChecked && !otherValue) {
+          specifications.push('Other')
+        }
+    
+        if (specifications.length === 0) return null
+        if (specifications.length === 1) return specifications[0]
+        return specifications.join(', ')
       }
     
       let selectedGuest = null
@@ -284,7 +340,14 @@
         const csrf = $('input[name="csrfmiddlewaretoken"]').val()
         const serviceType = $('.service-type-laundry').val()
         const specifications = getCheckedValue()
-        const dateTime = $('.date-time-laundry').val()
+        // Ensure date and time is always current
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
+        const hours = String(now.getHours()).padStart(2, '0')
+        const minutes = String(now.getMinutes()).padStart(2, '0')
+        const dateTime = `${year}-${month}-${day}T${hours}:${minutes}`
         const guest = $('.guest-name-laundry').val()
         const payment = 'Charge to room'
     
@@ -319,12 +382,12 @@
                 Swal.fire({
                   title: '<bold>Transaction <br>Successful!</bold>',
                   html: `
-                                                                                      <p style="color: #1a2d1e !important">
-                                                                                        Transaction recorded to Guest <strong>${guestName}</strong>.<br>
-                                                                                        Room no. <strong>${roomNo}</strong><br>
-                                                                                        Reference no. <strong>${referenceNo}</strong>
-                                                                                      </p>
-                                                                                    `,
+                                                                                                          <p style="color: #1a2d1e !important">
+                                                                                                            Transaction recorded to Guest <strong>${guestName}</strong>.<br>
+                                                                                                            Room no. <strong>${roomNo}</strong><br>
+                                                                                                            Reference no. <strong>${referenceNo}</strong>
+                                                                                                          </p>
+                                                                                                        `,
                   icon: 'success',
                   showConfirmButton: false,
                   customClass: {
@@ -349,29 +412,29 @@
         Swal.fire({
           title: '<strong>Cash Payment</strong>',
           html: `
-                                                                              <div style="text-align: left;" class="cash-payment-modal">
-                                                                                <div style="margin-bottom: 10px;">
-                                                                                  <label style="display: block; text-align: left;">Cash Tendered</label>
-                                                                                  <div style="display: flex; justify-content: center;">
-                                                                                    <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
-                                                                                  </div>
-                                                                                </div>
-                                                                    
-                                                                                <div style="margin-bottom: 10px;">
-                                                                                  <label style="display: block; text-align: left;">Total</label>
-                                                                                  <div style="display: flex; justify-content: center;">
-                                                                                    <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                                                                  </div>
-                                                                                </div>
-                                                                    
-                                                                                <div>
-                                                                                  <label style="display: block; text-align: left;">Change</label>
-                                                                                  <div style="display: flex; justify-content: center;">
-                                                                                    <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
-                                                                                  </div>
-                                                                                </div>
-                                                                              </div>
-                                                                            `,
+                                                                                                  <div style="text-align: left;" class="cash-payment-modal">
+                                                                                                    <div style="margin-bottom: 10px;">
+                                                                                                      <label style="display: block; text-align: left;">Cash Tendered</label>
+                                                                                                      <div style="display: flex; justify-content: center;">
+                                                                                                        <input type="number" id="cashTendered" class="form-control" style="width: 100%; background-color: #dddddd" />
+                                                                                                      </div>
+                                                                                                    </div>
+                                                                                        
+                                                                                                    <div style="margin-bottom: 10px;">
+                                                                                                      <label style="display: block; text-align: left;">Total</label>
+                                                                                                      <div style="display: flex; justify-content: center;">
+                                                                                                        <input type="number" id="totalAmount" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                                                                      </div>
+                                                                                                    </div>
+                                                                                        
+                                                                                                    <div>
+                                                                                                      <label style="display: block; text-align: left;">Change</label>
+                                                                                                      <div style="display: flex; justify-content: center;">
+                                                                                                        <input type="number" id="change" class="form-control" readonly style="width: 100%; background-color: #dddddd" />
+                                                                                                      </div>
+                                                                                                    </div>
+                                                                                                  </div>
+                                                                                                `,
           showCancelButton: true,
           confirmButtonText: 'Cancel',
           cancelButtonText: 'Next',
@@ -406,7 +469,14 @@
             const csrf = $('input[name="csrfmiddlewaretoken"]').val()
             const serviceType = $('.service-type-laundry').val()
             const specifications = getCheckedValue()
-            const dateTime = $('.date-time-laundry').val()
+            // Ensure date and time is always current
+            const now = new Date()
+            const year = now.getFullYear()
+            const month = String(now.getMonth() + 1).padStart(2, '0')
+            const day = String(now.getDate()).padStart(2, '0')
+            const hours = String(now.getHours()).padStart(2, '0')
+            const minutes = String(now.getMinutes()).padStart(2, '0')
+            const dateTime = `${year}-${month}-${day}T${hours}:${minutes}`
             const guest = $('.guest-name-laundry').val()
             const guestName = $('#guestName option:selected').text()
             const payment = 'Cash'
@@ -440,39 +510,39 @@
                     title: '',
                     showCloseButton: true,
                     html: `
-                                                                                        <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
-                                                                                          <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
-                                                                                          <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
-                                                                                          <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
-                                                                                          <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
-                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                                          <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
-                                                                                          <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
-                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                                          <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
-                                                                                            <tr>
-                                                                                              <th style="text-align: left;">Service Type</th>
-                                                                                              <th>Qty</th>
-                                                                                              <th style="text-align: right;">Price</th>
-                                                                                            </tr>
-                                                                                            <tr>
-                                                                                              <td>${serviceType}</td>
-                                                                                              <td>${noBags} bags</td>
-                                                                                              <td style="text-align: right;">${totalAmount}</td>
-                                                                                            </tr>
-                                                                                            <tr><td style="text-align: left;">Specifications</td></tr>
-                                                                                            <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
-                                                                                          </table>
-                                                                                          <table style="width: 100%; font-size: 13px; font-weight: bold;">
-                                                                                            <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
-                                                                                            <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
-                                                                                            <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
-                                                                                          </table>
-                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                                          <p style="margin-top: 10px;">Thank you!</p>
-                                                                                          <hr style="border: 1px dashed #333; margin: 10px 0;">
-                                                                                        </div>
-                                                                                      `,
+                                                                                                            <div style="font-family: Arial, sans-serif; text-align: center; font-size: 13px; color: #000;">
+                                                                                                              <img src="{% static 'images/New HMS-B.png'%}" alt="ACES Logo" style="width: 100px; margin-bottom: 10px;">
+                                                                                                              <p style="margin: 4px 0;">ACES Polytechnic College Inc.</p>
+                                                                                                              <p style="margin: 4px 0;">Panabo Circumferential Rd, San Francisco,</p>
+                                                                                                              <p style="margin: 4px 0;">Panabo City, Davao del Norte, Philippines</p>
+                                                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                                              <p style="margin: 4px 0;">Date and Time: ${new Date().toLocaleString()}</p>
+                                                                                                              <p style="margin: 4px 0;">Receipt no. <strong>${referenceNo}</strong></p>
+                                                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                                              <table style="width: 100%; font-size: 12px; margin-bottom: 10px;">
+                                                                                                                <tr>
+                                                                                                                  <th style="text-align: left;">Service Type</th>
+                                                                                                                  <th>Qty</th>
+                                                                                                                  <th style="text-align: right;">Price</th>
+                                                                                                                </tr>
+                                                                                                                <tr>
+                                                                                                                  <td>${serviceType}</td>
+                                                                                                                  <td>${noBags} bags</td>
+                                                                                                                  <td style="text-align: right;">${totalAmount}</td>
+                                                                                                                </tr>
+                                                                                                                <tr><td style="text-align: left;">Specifications</td></tr>
+                                                                                                                <tr><td>${specifications || 'None'}</td><td>x1</td><td style="text-align: right;">0.00</td></tr>
+                                                                                                              </table>
+                                                                                                              <table style="width: 100%; font-size: 13px; font-weight: bold;">
+                                                                                                                <tr><td style="text-align: left;">Total</td><td></td><td style="text-align: right;">${totalAmount}</td></tr>
+                                                                                                                <tr><td style="text-align: left;">Cash Tendered</td><td></td><td style="text-align: right;">${cashTendered}</td></tr>
+                                                                                                                <tr><td style="text-align: left;">Change</td><td></td><td style="text-align: right;">${change}</td></tr>
+                                                                                                              </table>
+                                                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                                              <p style="margin-top: 10px;">Thank you!</p>
+                                                                                                              <hr style="border: 1px dashed #333; margin: 10px 0;">
+                                                                                                            </div>
+                                                                                                          `,
                     showConfirmButton: true,
                     confirmButtonText: 'Print Receipt',
                     confirmButtonColor: '#1a2d1e',

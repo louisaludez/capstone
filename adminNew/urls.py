@@ -23,6 +23,8 @@ urlpatterns = [
     path('reports/speech/export/', admin_speech_reports_export, name='admin_speech_reports_export'),
     path('reports/mcq/', admin_mcq_reports, name='admin_mcq_reports'),
     path('reports/mcq/export/', admin_mcq_reports_export, name='admin_mcq_reports_export'),
+    path('reports/sales/', admin_sales_reports, name='admin_sales_reports'),
+    path('reports/sales/export/', admin_sales_reports_export, name='admin_sales_reports_export'),
     path('training/', admin_training, name='admin_training'),
    
     path('activity-materials/add-activity-mcq/', add_activity_mcq, name='add_activity_mcq'),

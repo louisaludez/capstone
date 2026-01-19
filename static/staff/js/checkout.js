@@ -22,7 +22,7 @@ document
 
     console.log("Checkout button clicked");
     checkoutOverlay.style.display = "flex";
-    
+
     // Initialize statement button state when modal opens
     setTimeout(function() {
       updateStatementButtonState();

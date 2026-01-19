@@ -154,12 +154,17 @@
         <div class="col-12">
           <div class="parent">
             <div class="div1">
+              <a href="{% url 'admin_sales_reports' %}" style="text-decoration: none; color: inherit">
+                <img src="{% static 'images/sales_report.png' %}" alt="sales reports logo" />
+                <span>Sales Reports</span>
+              </a>
+            </div>
+            <div class="div2">
               <a href="{% url 'admin_front_office_reports' %}" style="text-decoration: none; color: inherit">
                 <img src="{% static 'images/frontoffice.png' %}" alt="front office logo" />
                 <span>Front Office</span>
               </a>
             </div>
-
             <div class="div3">
               <a href="{% url 'admin_cafe_reports' %}" style="text-decoration: none; color: inherit">
                 <img src="{% static 'images/cafe.png' %}" alt="cafe logo" />

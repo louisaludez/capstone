@@ -1880,3 +1880,544 @@ def addmt_speech_to_text(request):
         # Render the form for adding a new Speech-to-Text activity
         activities = SpeechActivity.objects.order_by("created_at")
         return render(request, "adminNew/addmt_speech.html", {"activities": activities})
+
+@decorator.admin_required
+def admin_sales_reports(request):
+    """Sales Reports with daily/weekly/monthly filtering"""
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from django.utils import timezone
+    
+    # Get filter type (daily, weekly, monthly, or all)
+    period = request.GET.get('period', 'all')  # daily, weekly, monthly, all
+    search_query = request.GET.get('search', '')
+    
+    # Calculate date range based on period
+    today = timezone.now().date()
+    start_date = None
+    end_date = today
+    
+    if period == 'daily':
+        start_date = today
+        end_date = today
+    elif period == 'weekly':
+        # Start of current week (Monday)
+        start_date = today - timedelta(days=today.weekday())
+        end_date = today
+    elif period == 'monthly':
+        # Start of current month
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    # Initialize revenue totals
+    front_office_revenue = 0.0
+    room_service_revenue = 0.0
+    laundry_revenue = 0.0
+    cafe_revenue = 0.0
+    excess_pax_revenue = 0.0
+    additional_charge_revenue = 0.0
+    total_revenue = 0.0
+    
+    # Calculate revenue based on actual transaction dates, not guest billing totals
+    
+    # Front office revenue - only from bookings in the period
+    # For front office, we need to calculate based on booking dates
+    if start_date:
+        # Get bookings in the period and sum their billing amounts
+        # Note: We'll approximate by getting guests with bookings in period
+        # and using a portion of their billing, but this is complex
+        # For now, let's get all guests with active bookings and sum their billing
+        # but only if they have bookings in the period
+        bookings_in_period = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out'],
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        )
+        guest_ids_in_period = bookings_in_period.values_list('guest_id', flat=True).distinct()
+        front_office_revenue = Guest.objects.filter(
+            id__in=guest_ids_in_period
+        ).aggregate(total=Sum('billing'))['total'] or 0
+        front_office_revenue = float(front_office_revenue) if front_office_revenue else 0.0
+    else:
+        # All time - get all guests with active bookings
+        all_guest_ids = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out']
+        ).values_list('guest_id', flat=True).distinct()
+        front_office_revenue = Guest.objects.filter(
+            id__in=all_guest_ids
+        ).aggregate(total=Sum('billing'))['total'] or 0
+        front_office_revenue = float(front_office_revenue) if front_office_revenue else 0.0
+    
+    # Get all guests with active bookings (for room service, excess pax, additional charges)
+    all_guest_ids = Booking.objects.filter(
+        status__in=['Checked-in', 'Checked-out']
+    ).values_list('guest_id', flat=True).distinct()
+    
+    # Room service revenue - only count if guest has booking in period (if period specified)
+    if start_date:
+        guest_ids_in_period = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out'],
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        ).values_list('guest_id', flat=True).distinct()
+        room_service_revenue = Guest.objects.filter(
+            id__in=guest_ids_in_period
+        ).aggregate(total=Sum('room_service_billing'))['total'] or 0
+    else:
+        room_service_revenue = Guest.objects.filter(
+            id__in=all_guest_ids
+        ).aggregate(total=Sum('room_service_billing'))['total'] or 0
+    room_service_revenue = float(room_service_revenue) if room_service_revenue else 0.0
+    
+    # Laundry revenue from room charges - filter by transaction date
+    # Payment method stored value is 'room' (not 'Charge to room')
+    laundry_room_qs = LaundryTransaction.objects.filter(
+        payment_method='room'
+    )
+    if start_date:
+        # Use date range filtering - convert date to datetime range
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        laundry_room_qs = laundry_room_qs.filter(
+            date_time__gte=start_datetime,
+            date_time__lte=end_datetime
+        )
+    laundry_revenue = laundry_room_qs.aggregate(total_sum=Sum('total_amount'))['total_sum'] or 0
+    laundry_revenue = float(laundry_revenue) if laundry_revenue else 0.0
+    
+    # Cafe revenue from room charges - filter by order date
+    # Payment method stored value is 'room'
+    cafe_room_qs = CafeOrder.objects.filter(
+        payment_method='room'
+    )
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        cafe_room_qs = cafe_room_qs.filter(
+            order_date__gte=start_datetime,
+            order_date__lte=end_datetime
+        )
+    cafe_revenue = cafe_room_qs.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+    cafe_revenue = float(cafe_revenue) if cafe_revenue else 0.0
+    
+    # Add cafe revenue from cash/card payments - filter by order date
+    cafe_qs = CafeOrder.objects.exclude(payment_method='room')
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        cafe_qs = cafe_qs.filter(
+            order_date__gte=start_datetime,
+            order_date__lte=end_datetime
+        )
+    total_cafe = cafe_qs.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+    cafe_revenue += float(total_cafe) if total_cafe else 0.0
+    
+    # Add laundry revenue from cash payments - filter by transaction date
+    laundry_qs = LaundryTransaction.objects.exclude(payment_method='room')
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        laundry_qs = laundry_qs.filter(
+            date_time__gte=start_datetime,
+            date_time__lte=end_datetime
+        )
+    total_laundry = laundry_qs.aggregate(total_sum=Sum('total_amount'))['total_sum'] or 0
+    laundry_revenue += float(total_laundry) if total_laundry else 0.0
+    
+    # Excess pax and additional charges - only count if guest has booking in period (if period specified)
+    if start_date:
+        guest_ids_in_period = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out'],
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        ).values_list('guest_id', flat=True).distinct()
+        excess_pax_revenue = Guest.objects.filter(
+            id__in=guest_ids_in_period
+        ).aggregate(total=Sum('excess_pax_billing'))['total'] or 0
+        additional_charge_revenue = Guest.objects.filter(
+            id__in=guest_ids_in_period
+        ).aggregate(total=Sum('additional_charge_billing'))['total'] or 0
+    else:
+        excess_pax_revenue = Guest.objects.filter(
+            id__in=all_guest_ids
+        ).aggregate(total=Sum('excess_pax_billing'))['total'] or 0
+        additional_charge_revenue = Guest.objects.filter(
+            id__in=all_guest_ids
+        ).aggregate(total=Sum('additional_charge_billing'))['total'] or 0
+    excess_pax_revenue = float(excess_pax_revenue) if excess_pax_revenue else 0.0
+    additional_charge_revenue = float(additional_charge_revenue) if additional_charge_revenue else 0.0
+    
+    # Calculate total revenue
+    total_revenue = (
+        front_office_revenue +
+        room_service_revenue +
+        laundry_revenue +
+        cafe_revenue +
+        excess_pax_revenue +
+        additional_charge_revenue
+    )
+    
+    # Get transaction counts - count all transactions (bookings, cafe orders, laundry) in period
+    booking_count = 0
+    cafe_count = 0
+    laundry_count = 0
+    
+    if start_date:
+        # Count bookings in period
+        booking_count = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out'],
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        ).count()
+        
+        # Count cafe orders in period
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        cafe_count = CafeOrder.objects.filter(
+            order_date__gte=start_datetime,
+            order_date__lte=end_datetime
+        ).count()
+        
+        # Count laundry transactions in period
+        laundry_count = LaundryTransaction.objects.filter(
+            date_time__gte=start_datetime,
+            date_time__lte=end_datetime
+        ).count()
+    else:
+        # All time counts
+        booking_count = Booking.objects.filter(
+            status__in=['Checked-in', 'Checked-out']
+        ).count()
+        cafe_count = CafeOrder.objects.count()
+        laundry_count = LaundryTransaction.objects.count()
+    
+    total_transactions = booking_count + cafe_count + laundry_count
+    
+    # Prepare sales data for display - include bookings, cafe orders, and laundry transactions
+    sales_data = []
+    
+    # Get bookings
+    bookings = Booking.objects.filter(
+        status__in=['Checked-in', 'Checked-out']
+    ).select_related('guest')
+    
+    if start_date:
+        bookings = bookings.filter(
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        )
+    
+    if search_query:
+        bookings = bookings.filter(
+            Q(guest__name__icontains=search_query) |
+            Q(room__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+    
+    # Add bookings to sales_data
+    for booking in bookings:
+        guest = booking.guest
+        try:
+            fo = float(guest.billing or 0)
+            rs = float(guest.room_service_billing or 0)
+            la = float(guest.laundry_billing or 0)
+            ca = float(guest.cafe_billing or 0)
+            ep = float(guest.excess_pax_billing or 0)
+            ad = float(guest.additional_charge_billing or 0)
+            other = ep + ad
+            total = fo + rs + la + ca + ep + ad
+        except (ValueError, TypeError):
+            fo = rs = la = ca = ep = ad = other = total = 0.0
+        
+        sales_data.append({
+            'type': 'booking',
+            'booking': booking,
+            'date': booking.booking_date,
+            'front_office': fo,
+            'room_service': rs,
+            'laundry': la,
+            'cafe': ca,
+            'other': other,
+            'total': total
+        })
+    
+    # Get cafe orders
+    cafe_orders = CafeOrder.objects.select_related('guest')
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        cafe_orders = cafe_orders.filter(
+            order_date__gte=start_datetime,
+            order_date__lte=end_datetime
+        )
+    
+    if search_query:
+        cafe_orders = cafe_orders.filter(
+            Q(customer_name__icontains=search_query) |
+            Q(id__icontains=search_query) |
+            Q(guest__name__icontains=search_query)
+        )
+    
+    # Add cafe orders to sales_data
+    for order in cafe_orders:
+        sales_data.append({
+            'type': 'cafe',
+            'cafe_order': order,
+            'date': order.order_date,
+            'front_office': 0.0,
+            'room_service': 0.0,
+            'laundry': 0.0,
+            'cafe': float(order.total),
+            'other': 0.0,
+            'total': float(order.total)
+        })
+    
+    # Get laundry transactions
+    laundry_trans = LaundryTransaction.objects.select_related('guest')
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        laundry_trans = laundry_trans.filter(
+            date_time__gte=start_datetime,
+            date_time__lte=end_datetime
+        )
+    
+    if search_query:
+        laundry_trans = laundry_trans.filter(
+            Q(guest__name__icontains=search_query) |
+            Q(room_number__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+    
+    # Add laundry transactions to sales_data
+    for trans in laundry_trans:
+        sales_data.append({
+            'type': 'laundry',
+            'laundry_trans': trans,
+            'date': trans.date_time,
+            'front_office': 0.0,
+            'room_service': 0.0,
+            'laundry': float(trans.total_amount),
+            'cafe': 0.0,
+            'other': 0.0,
+            'total': float(trans.total_amount)
+        })
+    
+    # Sort all sales data by date (newest first)
+    sales_data.sort(key=lambda x: x['date'], reverse=True)
+    
+    # Paginate the combined sales_data
+    paginator = Paginator(sales_data, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Create a wrapper class to make sales_data work with pagination template tags
+    class SalesDataPage:
+        def __init__(self, sales_data_list, original_page_obj):
+            self._sales_data = sales_data_list
+            self.number = original_page_obj.number
+            self.paginator = original_page_obj.paginator
+            self.has_previous = original_page_obj.has_previous
+            self.has_next = original_page_obj.has_next
+            self.previous_page_number = original_page_obj.previous_page_number
+            self.next_page_number = original_page_obj.next_page_number
+        
+        def __iter__(self):
+            return iter(self._sales_data)
+        
+        def __len__(self):
+            return len(self._sales_data)
+    
+    sales_page = SalesDataPage(list(page_obj), page_obj)
+    
+    context = {
+        'period': period,
+        'start_date': start_date,
+        'end_date': end_date,
+        'front_office_revenue': front_office_revenue,
+        'room_service_revenue': room_service_revenue,
+        'laundry_revenue': laundry_revenue,
+        'cafe_revenue': cafe_revenue,
+        'excess_pax_revenue': excess_pax_revenue,
+        'additional_charge_revenue': additional_charge_revenue,
+        'total_revenue': total_revenue,
+        'total_transactions': total_transactions,
+        'page_obj': sales_page,
+        'paginator': paginator,
+        'search_query': search_query,
+    }
+    return render(request, "adminNew/sales_reports.html", context)
+
+@require_GET
+@decorator.admin_required
+def admin_sales_reports_export(request):
+    """Export Sales Reports as CSV"""
+    import csv
+    from io import StringIO
+    from django.utils import timezone
+    from django.db.models import Q
+    
+    # Get filter type
+    period = request.GET.get('period', 'all')
+    search_query = request.GET.get('search', '')
+    
+    # Calculate date range
+    today = timezone.now().date()
+    start_date = None
+    end_date = today
+    
+    if period == 'daily':
+        start_date = today
+        end_date = today
+    elif period == 'weekly':
+        start_date = today - timedelta(days=today.weekday())
+        end_date = today
+    elif period == 'monthly':
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    # Prepare CSV
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        'Transaction Type', 'ID', 'Guest Name', 'Room', 'Date', 'Payment Method',
+        'Front Office', 'Room Service', 'Laundry', 'Cafe', 'Excess Pax', 'Additional Charges', 'Total'
+    ])
+    
+    # Export bookings with their guest billing
+    bookings = Booking.objects.filter(
+        status__in=['Checked-in', 'Checked-out']
+    ).select_related('guest')
+    
+    if start_date:
+        bookings = bookings.filter(
+            booking_date__date__gte=start_date,
+            booking_date__date__lte=end_date
+        )
+    
+    if search_query:
+        bookings = bookings.filter(
+            Q(guest__name__icontains=search_query) |
+            Q(room__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+    
+    bookings = bookings.order_by('-booking_date')
+    
+    for booking in bookings:
+        guest = booking.guest
+        try:
+            fo = float(guest.billing or 0)
+            rs = float(guest.room_service_billing or 0)
+            la = float(guest.laundry_billing or 0)
+            ca = float(guest.cafe_billing or 0)
+            ep = float(guest.excess_pax_billing or 0)
+            ad = float(guest.additional_charge_billing or 0)
+            total = fo + rs + la + ca + ep + ad
+        except (ValueError, TypeError):
+            fo = rs = la = ca = ep = ad = total = 0.0
+        
+        writer.writerow([
+            'Booking',
+            f"BK{booking.id:05d}",
+            guest.name if guest else 'N/A',
+            booking.room,
+            booking.booking_date.strftime('%Y-%m-%d %H:%M:%S'),
+            'N/A',
+            f"{fo:.2f}",
+            f"{rs:.2f}",
+            f"{la:.2f}",
+            f"{ca:.2f}",
+            f"{ep:.2f}",
+            f"{ad:.2f}",
+            f"{total:.2f}"
+        ])
+    
+    # Export cafe orders
+    cafe_orders = CafeOrder.objects.all()
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        cafe_orders = cafe_orders.filter(
+            order_date__gte=start_datetime,
+            order_date__lte=end_datetime
+        )
+    
+    if search_query:
+        cafe_orders = cafe_orders.filter(
+            Q(customer_name__icontains=search_query) |
+            Q(id__icontains=search_query) |
+            Q(guest__name__icontains=search_query)
+        )
+    
+    cafe_orders = cafe_orders.order_by('-order_date')
+    
+    for order in cafe_orders:
+        writer.writerow([
+            'Cafe Order',
+            f"CF{order.id:05d}",
+            order.customer_name or (order.guest.name if order.guest else 'Walk-in'),
+            order.guest.booking_set.first().room if order.guest and order.guest.booking_set.exists() else 'N/A',
+            order.order_date.strftime('%Y-%m-%d %H:%M:%S'),
+            order.get_payment_method_display(),
+            '0.00',
+            '0.00',
+            '0.00',
+            f"{float(order.total):.2f}",
+            '0.00',
+            '0.00',
+            f"{float(order.total):.2f}"
+        ])
+    
+    # Export laundry transactions
+    laundry_trans = LaundryTransaction.objects.all()
+    if start_date:
+        from datetime import datetime as dt
+        start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+        end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+        laundry_trans = laundry_trans.filter(
+            date_time__gte=start_datetime,
+            date_time__lte=end_datetime
+        )
+    
+    if search_query:
+        laundry_trans = laundry_trans.filter(
+            Q(guest__name__icontains=search_query) |
+            Q(room_number__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+    
+    laundry_trans = laundry_trans.order_by('-date_time')
+    
+    for trans in laundry_trans:
+        writer.writerow([
+            'Laundry',
+            f"LD{trans.id:05d}",
+            trans.guest.name if trans.guest else 'N/A',
+            trans.room_number,
+            trans.date_time.strftime('%Y-%m-%d %H:%M:%S'),
+            trans.get_payment_method_display(),
+            '0.00',
+            '0.00',
+            f"{float(trans.total_amount):.2f}",
+            '0.00',
+            '0.00',
+            '0.00',
+            f"{float(trans.total_amount):.2f}"
+        ])
+    
+    csv_content = buffer.getvalue()
+    buffer.close()
+    
+    period_label = period.capitalize() if period != 'all' else 'All'
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="sales_report_{period_label}_{today.strftime("%Y%m%d")}.csv"'
+    return response

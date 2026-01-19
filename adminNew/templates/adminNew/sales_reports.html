@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Admin Sales Reports
+{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'admin/css/reports.css' %}" />
+  <style>
+    /* Make text smaller in revenue summary boxes */
+    .boxes .title {
+      font-size: 0.85rem !important;
+      margin-bottom: 0.5rem;
+    }
+    .boxes .number {
+      font-size: 1.1rem !important;
+      font-weight: 600;
+    }
+    @media (max-width: 768px) {
+      .boxes .title {
+        font-size: 0.75rem !important;
+      }
+      .boxes .number {
+        font-size: 0.95rem !important;
+      }
+    }
+    /* Make table text smaller */
+    .table-header {
+      font-size: 0.85rem !important;
+      font-weight: 600;
+    }
+    .table-row {
+      font-size: 0.8rem !important;
+    }
+    .table-row .col {
+      padding: 0.5rem 0.25rem;
+    }
+    @media (max-width: 768px) {
+      .table-header {
+        font-size: 0.75rem !important;
+      }
+      .table-row {
+        font-size: 0.7rem !important;
+      }
+    }
+  </style>
+{% endblock %}
+{% block sidebar %}
+  {% include './includes/sidebar.html' with active_page='reports' %}
+{% endblock %}
+{% block content %}
+  <div class="container px-4 px-md-5 py-4 py-md-5">
+    <!-- Filters -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 reports-header gap-3">
+      <h2 class="mb-0">Sales Reports</h2>
+      <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-end">
+        <a id="download-report" class="btn btn-outline-secondary btn-lg text-black" href="#" role="button" style="width: 200px !important; min-width: 100px; height: 50px !important; font-size: 10px !important;">
+          <i class="bi bi-download text-black"></i> Download Report
+        </a>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-lg text-black dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto; min-width: 100px; height: 50px !important;">
+            <i class="bi bi-calendar text-black"></i> Period
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="periodDropdown">
+            <li><h6 class="dropdown-header">Select Period</h6></li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="period_filter" value="all" class="me-2" {% if not period or period == 'all' %}checked{% endif %}>
+                All Time
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="period_filter" value="daily" class="me-2" {% if period == 'daily' %}checked{% endif %}>
+                Daily
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="period_filter" value="weekly" class="me-2" {% if period == 'weekly' %}checked{% endif %}>
+                Weekly
+              </label>
+            </li>
+            <li>
+              <label class="dropdown-item">
+                <input type="radio" name="period_filter" value="monthly" class="me-2" {% if period == 'monthly' %}checked{% endif %}>
+                Monthly
+              </label>
+            </li>
+          </ul>
+        </div>
+        <div class="d-flex flex-grow-1 flex-md-grow-0">
+          <input type="text" id="search-input" class="form-control search-bar" placeholder="Search by booking ID, guest, or room" value="{{ search_query }}" style="min-width: 200px;" />
+        </div>
+      </div>
+    </div>
+    
+    <!-- Period Info -->
+    <div id="period-info-container">
+      {% if period != 'all' %}
+        <div class="alert alert-info mb-3">
+          <strong>Period:</strong> 
+          {% if period == 'daily' %}
+            Today ({{ end_date|date:"F d, Y" }})
+          {% elif period == 'weekly' %}
+            This Week ({{ start_date|date:"F d, Y" }} - {{ end_date|date:"F d, Y" }})
+          {% elif period == 'monthly' %}
+            This Month ({{ start_date|date:"F Y" }})
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Revenue Summary Boxes -->
+    <div class="row boxes">
+      <div class="col">
+        <p class="title">Total Revenue</p>
+        <span class="number">₱ {{ total_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Front Office</p>
+        <span class="number">₱ {{ front_office_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Room Service</p>
+        <span class="number">₱ {{ room_service_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Laundry</p>
+        <span class="number">₱ {{ laundry_revenue|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="row boxes mt-2">
+      <div class="col">
+        <p class="title">Cafe</p>
+        <span class="number">₱ {{ cafe_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Excess Pax</p>
+        <span class="number">₱ {{ excess_pax_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Additional Charges</p>
+        <span class="number">₱ {{ additional_charge_revenue|floatformat:2 }}</span>
+      </div>
+      <div class="col">
+        <p class="title">Total Transactions</p>
+        <span class="number">{{ total_transactions }}</span>
+      </div>
+    </div>
+    
+    <!-- Table Header -->
+    <div class="row table-header py-2 text-center mx-2 mt-4">
+      <div class="col-1">Type</div>
+      <div class="col-1">ID</div>
+      <div class="col-2">Guest Name</div>
+      <div class="col-1">Room</div>
+      <div class="col-2">Date</div>
+      <div class="col-1">Front Office</div>
+      <div class="col-1">Room Service</div>
+      <div class="col-1">Laundry</div>
+      <div class="col-1">Cafe</div>
+      <div class="col-1">Other</div>
+      <div class="col-1">Total</div>
+    </div>
+    
+    <!-- Table Rows -->
+    <div id="sales-container">
+      {% for item in page_obj %}
+        <div class="row table-row py-2 text-center mx-2 align-items-center">
+          <div class="col-1">
+            {% if item.type == 'booking' %}
+              <span class="badge bg-primary">Booking</span>
+            {% elif item.type == 'cafe' %}
+              <span class="badge bg-success">Cafe</span>
+            {% elif item.type == 'laundry' %}
+              <span class="badge bg-info">Laundry</span>
+            {% endif %}
+          </div>
+          <div class="col-1">
+            {% if item.type == 'booking' %}
+              {{ item.booking.id|stringformat:"05d" }}
+            {% elif item.type == 'cafe' %}
+              CF{{ item.cafe_order.id|stringformat:"05d" }}
+            {% elif item.type == 'laundry' %}
+              LD{{ item.laundry_trans.id|stringformat:"05d" }}
+            {% endif %}
+          </div>
+          <div class="col-2">
+            {% if item.type == 'booking' %}
+              {{ item.booking.guest.name }}
+            {% elif item.type == 'cafe' %}
+              {{ item.cafe_order.customer_name|default:item.cafe_order.guest.name|default:"Walk-in" }}
+            {% elif item.type == 'laundry' %}
+              {{ item.laundry_trans.guest.name }}
+            {% endif %}
+          </div>
+          <div class="col-1">
+            {% if item.type == 'booking' %}
+              {{ item.booking.room }}
+            {% elif item.type == 'cafe' %}
+              {% if item.cafe_order.guest and item.cafe_order.guest.booking_set.first %}
+                {{ item.cafe_order.guest.booking_set.first.room }}
+              {% else %}
+                N/A
+              {% endif %}
+            {% elif item.type == 'laundry' %}
+              {{ item.laundry_trans.room_number }}
+            {% endif %}
+          </div>
+          <div class="col-2">
+            {% if item.type == 'booking' %}
+              {{ item.booking.booking_date|date:"M d, Y H:i" }}
+            {% elif item.type == 'cafe' %}
+              {{ item.cafe_order.order_date|date:"M d, Y H:i" }}
+            {% elif item.type == 'laundry' %}
+              {{ item.laundry_trans.date_time|date:"M d, Y H:i" }}
+            {% endif %}
+          </div>
+          <div class="col-1">₱ {{ item.front_office|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.room_service|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.laundry|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.cafe|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.other|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.total|floatformat:2 }}</div>
+        </div>
+      {% empty %}
+        <div class="row py-4 text-center">
+          <div class="col-12">
+            <p class="text-muted">No sales data found for the selected period.</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    <div id="pagination-container">
+      {% if paginator.num_pages > 1 %}
+        <div class="d-flex justify-content-between mt-4 mx-2">
+          <div>
+            <label for="pages">Pages</label>
+            <select id="pages" class="form-select d-inline-block w-auto">
+              <option selected>{{ page_obj.number }}/{{ paginator.num_pages }}</option>
+            </select>
+          </div>
+          <nav>
+            <ul class="pagination">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link"
+                  href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if period and period != 'all' %}&period={{ period }}{% endif %}">
+                  First
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link"
+                  href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period and period != 'all' %}&period={{ period }}{% endif %}">
+                  Previous
+                </a>
+              </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active">
+                  <span class="page-link">{{ num }}</span>
+                </li>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                  <a class="page-link"
+                    href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period and period != 'all' %}&period={{ period }}{% endif %}">
+                    {{ num }}
+                  </a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link"
+                  href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period and period != 'all' %}&period={{ period }}{% endif %}">
+                  Next
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link"
+                  href="?page={{ paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period and period != 'all' %}&period={{ period }}{% endif %}">
+                  Last
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% else %}
+        <div class="d-flex justify-content-between mt-4 mx-2">
+          <div>
+            <label for="pages">Pages</label>
+            <select id="pages" class="form-select d-inline-block w-auto">
+              <option selected>1/1</option>
+            </select>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const downloadBtn = document.getElementById('download-report')
+      const periodBtn = document.getElementById('periodDropdown')
+      const searchInput = document.getElementById('search-input')
+      const salesContainer = document.getElementById('sales-container')
+      const paginationContainer = document.getElementById('pagination-container')
+      const pageInfo = document.querySelector('#pages option')
+      const periodRadios = document.querySelectorAll('input[name="period_filter"]')
+      
+      let searchTimeout
+      
+      // Download report functionality
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', function (e) {
+          e.preventDefault()
+          const params = new URLSearchParams()
+          const searchQuery = searchInput.value.trim()
+          const selectedPeriod = document.querySelector('input[name="period_filter"]:checked').value
+          
+          if (searchQuery) params.set('search', searchQuery)
+          if (selectedPeriod && selectedPeriod !== 'all') params.set('period', selectedPeriod)
+          
+          const base = new URL('export/', window.location.href).toString()
+          const finalUrl = base + (params.toString() ? ('?' + params.toString()) : '')
+          window.location.href = finalUrl
+        })
+      }
+      
+      // Make download button the same width as Period button
+      function syncDownloadWidth() {
+        if (!downloadBtn || !periodBtn) return
+        downloadBtn.style.width = periodBtn.offsetWidth + 'px'
+      }
+      syncDownloadWidth()
+      window.addEventListener('resize', syncDownloadWidth)
+      
+      searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout)
+        searchTimeout = setTimeout(function () {
+          performSearch()
+        }, 300)
+      })
+      
+      searchInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          performSearch()
+        }
+      })
+      
+      periodRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+          performSearch()
+        })
+      })
+      
+      function performSearch() {
+        const currentPage = new URLSearchParams(window.location.search).get('page') || '1'
+        performSearchWithPage(currentPage)
+      }
+      
+      function performSearchWithPage(page) {
+        const searchQuery = searchInput.value.trim()
+        const targetPage = page || '1'
+        const selectedPeriod = document.querySelector('input[name="period_filter"]:checked').value
+        
+        // Show loading state for all elements
+        salesContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
+        const boxes = document.querySelectorAll('.boxes')
+        boxes.forEach(box => {
+          box.style.opacity = '0.5'
+        })
+        
+        const params = new URLSearchParams()
+        if (searchQuery) params.set('search', searchQuery)
+        if (selectedPeriod && selectedPeriod !== 'all') params.set('period', selectedPeriod)
+        params.set('page', targetPage)
+        
+        fetch(`?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+          }
+        })
+          .then((response) => response.text())
+          .then((html) => {
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(html, 'text/html')
+            const newSalesContainer = doc.getElementById('sales-container')
+            const newPaginationContainer = doc.getElementById('pagination-container')
+            const newPageInfo = doc.querySelector('#pages option')
+            const newPeriodInfo = doc.querySelector('.alert-info')
+            const newBoxes = doc.querySelectorAll('.boxes')
+            
+            // Update sales container
+            if (newSalesContainer) {
+              salesContainer.innerHTML = newSalesContainer.innerHTML
+            }
+            
+            // Update pagination container
+            if (newPaginationContainer && paginationContainer) {
+              paginationContainer.innerHTML = newPaginationContainer.innerHTML
+            }
+            if (newPageInfo && pageInfo) {
+              pageInfo.textContent = newPageInfo.textContent
+            }
+            
+            // Update period info alert - always update the container
+            const periodInfoContainer = document.getElementById('period-info-container')
+            const newPeriodInfoContainer = doc.getElementById('period-info-container')
+            if (periodInfoContainer && newPeriodInfoContainer) {
+              periodInfoContainer.innerHTML = newPeriodInfoContainer.innerHTML
+            }
+            
+            // Update revenue boxes
+            const existingBoxes = document.querySelectorAll('.boxes')
+            if (newBoxes.length > 0 && existingBoxes.length > 0) {
+              // Replace all boxes with new ones
+              newBoxes.forEach((newBox, index) => {
+                if (existingBoxes[index]) {
+                  existingBoxes[index].outerHTML = newBox.outerHTML
+                }
+              })
+              // If there are more new boxes than existing, add them
+              if (newBoxes.length > existingBoxes.length) {
+                const boxesContainer = existingBoxes[0].parentElement
+                for (let i = existingBoxes.length; i < newBoxes.length; i++) {
+                  boxesContainer.appendChild(newBoxes[i].cloneNode(true))
+                }
+              }
+            }
+            
+            // Restore opacity
+            boxes.forEach(box => {
+              box.style.opacity = '1'
+            })
+            
+            const url = new URL(window.location)
+            if (searchQuery) url.searchParams.set('search', searchQuery); else url.searchParams.delete('search')
+            if (selectedPeriod && selectedPeriod !== 'all') url.searchParams.set('period', selectedPeriod); else url.searchParams.delete('period')
+            url.searchParams.set('page', targetPage)
+            window.history.pushState({}, '', url)
+          })
+          .catch((error) => {
+            console.error('Search error:', error)
+            salesContainer.innerHTML = '<div class="text-center py-4"><p class="text-danger">Error loading results. Please try again.</p></div>'
+            boxes.forEach(box => {
+              box.style.opacity = '1'
+            })
+          })
+      }
+      
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.pagination a')) {
+          e.preventDefault()
+          const href = e.target.closest('.pagination a').getAttribute('href')
+          const url = new URL(href, window.location.origin)
+          const page = url.searchParams.get('page')
+          performSearchWithPage(page)
+        }
+      })
+    })
+  </script>
+{% endblock %}
+

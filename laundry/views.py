@@ -193,11 +193,12 @@ def edit_laundry_order(request, order_id):
             data = json.loads(request.body)
             
             # Update order fields
+            # Note: payment_method is not allowed to be changed
             order.service_type = data.get('service_type', order.service_type)
             order.no_of_bags = int(data.get('no_of_bags', order.no_of_bags))
             order.specifications = data.get('specifications', order.specifications)
             order.status = data.get('status', order.status)
-            order.payment_method = data.get('payment_method', order.payment_method)
+            # payment_method remains unchanged - it cannot be modified after order creation
             
             # Recalculate total amount
             BASE_PRICE_PER_BAG = 75.00
@@ -350,7 +351,7 @@ def create_laundry_order(request):
                 service_type=service_type,
                 no_of_bags=no_bags,
                 specifications=specifications,
-                date_time=datetime.strptime(date_time, '%Y-%m-%d'),
+                date_time=datetime.strptime(date_time, '%Y-%m-%dT%H:%M') if 'T' in date_time else datetime.strptime(date_time, '%Y-%m-%d'),
                 payment_method=payment_method,
                 total_amount=total_amount,
             )
