@@ -1,44 +1,44 @@
-// Front office log date selector with green-themed calendar
-    flatpickr('#date-select', {
+// Front office log date selector - will be initialized after refreshRooms is defined
+console.log('🔵 home.js script file loaded')
+
+// Initialize flatpickr for other date inputs (calendar, check-in, check-out)
+$(document).ready(function() {
+  console.log('🔵 Document ready - initializing flatpickr for other inputs')
+  
+  if ($('#calendar').length) {
+    flatpickr('#calendar', {
       dateFormat: 'Y-m-d',
       disableMobile: true,
       monthSelectorType: 'dropdown',
-      locale: { firstDayOfWeek: 1 }, // Monday first
-      defaultDate: new Date(),
-      onChange: function (selectedDates, dateStr) {
-        if (dateStr) {
-          // Refresh rooms when date changes
-          try {
-            refreshRooms(dateStr)
-          } catch (e) {
-            console.warn('refreshRooms not ready yet')
-          }
-        }
-      }
-    })
-    
-    flatpickr('#calendar', {
-      dateFormat: 'Y-m-d',
-      disableMobile: true, // Forces desktop-style calendar on mobile
-      monthSelectorType: 'dropdown',
       locale: { firstDayOfWeek: 1 }
     })
+  }
+  
+  if ($('#check-in').length) {
     flatpickr('#check-in', {
       dateFormat: 'Y-m-d',
       disableMobile: true,
       monthSelectorType: 'dropdown',
       locale: { firstDayOfWeek: 1 }
     })
+  }
+  
+  if ($('#check-out').length) {
     flatpickr('#check-out', {
       dateFormat: 'Y-m-d',
       disableMobile: true,
       monthSelectorType: 'dropdown',
       locale: { firstDayOfWeek: 1 }
     })
-  </script>
-  <script>
-    $(function () {
+  }
+})
+
+// Main date selector logic
+console.log('🔵 Starting jQuery ready function for date-select')
+$(function () {
+      console.log('🔵 jQuery ready function executing')
       const $date = $('#date-select')
+      console.log('🔵 Date selector element:', $date.length > 0 ? 'Found' : 'NOT FOUND', $date)
     
       // Add loading state function
       function showLoading() {
@@ -56,12 +56,21 @@
       }
     
       function refreshRooms(date) {
-        if (!date) return
+        if (!date) {
+          console.warn('refreshRooms called without date')
+          return
+        }
+        
+        console.log('refreshRooms called with date:', date)
     
         // Show loading state
         showLoading()
     
-        $.getJSON('/staff/api/room-status/', { date })
+        // Ensure date is in YYYY-MM-DD format
+        const dateStr = typeof date === 'string' ? date : date.toISOString().slice(0, 10)
+        console.log('Calling API with date:', dateStr)
+        
+        $.getJSON('/staff/api/room-status/', { date: dateStr })
           .done(function (data) {
             console.log('🔍 room‑status:', data)
     
@@ -189,12 +198,62 @@
           })
       }
     
-      // on change
+      // Initialize flatpickr after refreshRooms is defined
+      console.log('Initializing flatpickr for #date-select')
+      const fp = flatpickr('#date-select', {
+        dateFormat: 'Y-m-d',
+        disableMobile: true,
+        monthSelectorType: 'dropdown',
+        locale: { firstDayOfWeek: 1 }, // Monday first
+        defaultDate: new Date(),
+        onChange: function (selectedDates, dateStr, instance) {
+          console.log('🔵 FLATPICKR onChange triggered!')
+          console.log('  - selectedDates:', selectedDates)
+          console.log('  - dateStr:', dateStr)
+          console.log('  - instance:', instance)
+          if (dateStr) {
+            console.log('✅ Calling refreshRooms with date:', dateStr)
+            refreshRooms(dateStr)
+          } else {
+            console.warn('⚠️ dateStr is empty or falsy')
+          }
+        },
+        onReady: function(selectedDates, dateStr, instance) {
+          console.log('✅ Flatpickr initialized and ready')
+          console.log('  - Initial dateStr:', dateStr)
+        },
+        onClose: function(selectedDates, dateStr, instance) {
+          console.log('🔵 FLATPICKR onClose triggered!')
+          console.log('  - selectedDates:', selectedDates)
+          console.log('  - dateStr:', dateStr)
+        }
+      })
+      console.log('Flatpickr instance created:', fp)
+    
+      // on change (backup handler for native input)
       $date.on('change', function () {
-        refreshRooms(this.value)
+        console.log('🔵 NATIVE INPUT change event triggered!')
+        const dateValue = this.value
+        console.log('  - this.value:', dateValue)
+        if (dateValue) {
+          console.log('✅ Calling refreshRooms with date (from native input):', dateValue)
+          refreshRooms(dateValue)
+        } else {
+          console.warn('⚠️ dateValue is empty')
+        }
+      })
+      
+      // Also listen for input events
+      $date.on('input', function () {
+        console.log('🔵 NATIVE INPUT input event triggered!')
+        console.log('  - this.value:', this.value)
       })
     
       // default to today
       const today = new Date().toISOString().slice(0, 10)
-      $date.val(today).trigger('change')
+      $date.val(today)
+      // Trigger refresh after a short delay to ensure everything is ready
+      setTimeout(function() {
+        refreshRooms(today)
+      }, 100)
     })

@@ -146,67 +146,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'base_room': base_room,
             }
 
-            # Get all related roles for the receiver
-            receiver_roles = get_related_roles(receiver_role)
-            
-            # Send to all relevant role rooms
-            sent_to_rooms = set()
-            for role in receiver_roles:
-                role_room = f"role_{simplify_role(role)}".replace(' ', '_')
-                if role_room not in sent_to_rooms:
-                    await self.channel_layer.group_send(role_room, message_data)
-                    sent_to_rooms.add(role_room)
-                    print(f"Sent message to room {role_room}")
-            
-            # Also send to sender's role room if different
-            sender_role_room = f"role_{simplify_role(sender_role)}".replace(' ', '_')
-            if sender_role_room not in sent_to_rooms:
-                await self.channel_layer.group_send(sender_role_room, message_data)
-                sent_to_rooms.add(sender_role_room)
-                print(f"Sent message to sender's room {sender_role_room}")
-
-            # Additionally, send to the conversation base room (symmetric room both UIs join)
-            if base_room not in sent_to_rooms:
-                await self.channel_layer.group_send(base_room, message_data)
-                sent_to_rooms.add(base_room)
-                print(f"Sent message to base room {base_room}")
-
-            print(f"Message sent to rooms: {sent_to_rooms}")
+            # ONLY send to the specific conversation room - no role rooms!
+            # This ensures messages only appear in the correct chatbox
+            await self.channel_layer.group_send(base_room, message_data)
+            print(f"Sent message to conversation room: {base_room}")
         except Exception as e:
             print(f"Error in receive: {str(e)}")
 
     async def chat_message(self, event):
         try:
-            # Get the receiver role and related roles
-            receiver_role = event['receiver_role']
-            receiver_roles = set(get_related_roles(receiver_role))
             sender_id = event['sender_id']
-            sender_role = event.get('sender_role')
-            sender_roles = set(get_related_roles(sender_role)) if sender_role else set()
-            sender_service = event.get('sender_service', '')
             base_room = event.get('base_room', '')
             
-            # Get the user's simplified role for matching
-            user_simplified_role = simplify_role(self.user_role)
-            
-            # Check if user is connected to the base conversation room
-            # If so, they should receive the message (they're part of this conversation)
+            # ULTRA-STRICT: Only deliver message if user is connected to the EXACT conversation room
+            # This ensures messages only appear in the correct chatbox
             is_in_base_room = base_room and base_room in self.rooms
             
-            # Send the message if:
-            # 1. The user is the sender, OR
-            # 2. The user is connected to the base conversation room (they're viewing this conversation), OR
-            # 3. The user's roles overlap with the receiver roles, OR
-            # 4. The user's roles overlap with the sender roles, OR
-            # 5. The user is viewing a conversation where sender_service matches their service context
-            #    (e.g., housekeeping user viewing Room Service -> Admin conversation)
+            # Send the message ONLY if:
+            # 1. The user is the sender (they should see their own messages), OR
+            # 2. The user is connected to the exact base conversation room (they're viewing this specific conversation)
             should_receive = (
                 str(self.user.id) == str(sender_id) or
-                is_in_base_room or
-                bool(self.user_roles.intersection(receiver_roles)) or
-                bool(self.user_roles.intersection(sender_roles)) or
-                (sender_service and user_simplified_role == sender_service) or
-                (sender_service and user_simplified_role in get_related_roles(sender_service))
+                is_in_base_room
             )
             
             if should_receive:
@@ -221,8 +182,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'subject': event['subject'],
                     'timestamp': event['timestamp']
                 }))
-                # delivered
-                pass
+                print(f"Delivered message to user {self.user.id} in room {base_room}")
+            else:
+                print(f"Blocked message from room {base_room} - user {self.user.id} not connected to this room (connected to: {list(self.rooms)})")
         except Exception as e:
             print(f"Error in chat_message: {str(e)}")
 
@@ -235,15 +197,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
             receiver_role_simplified = simplify_role(receiver_role)
             # Simplify sender_service if provided
             sender_service_simplified = simplify_role(sender_service) if sender_service else ''
+            
+            # Compute conversation room (deterministic - same conversation always gets same room)
+            # Use sender_service if available, otherwise use sender_role
+            sender_context = sender_service_simplified if sender_service_simplified else sender_role
+            conv_roles = sorted([sender_context, receiver_role_simplified])
+            conversation_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+            
             message = Message.objects.create(
                 sender_id=sender_id,
                 sender_role=sender_role,
                 receiver_role=receiver_role_simplified,
                 sender_service=sender_service_simplified,
+                conversation_room=conversation_room,
                 subject=subject,
                 body=body
             )
-            print(f"Message saved: sender_role='{sender_role}', receiver_role='{receiver_role_simplified}', sender_service='{sender_service_simplified}', body='{body[:50]}...'")
+            print(f"Message saved: conversation_room='{conversation_room}', sender_service='{sender_service_simplified}', sender_role='{sender_role}', receiver_role='{receiver_role_simplified}', body='{body[:50]}...'")
             return message
         except Exception as e:
             print(f"Error saving message: {str(e)}")

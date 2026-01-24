@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{% static 'staff/css/checkin-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'staff/css/checkout-modal.css' %}" />
   <link rel="stylesheet" href="{% static 'staff/css/personnel.css' %}" />
-   <!-- JS -->
+  <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -110,11 +110,12 @@
   {% include './includes/check-in-modal.html' %}
   {% include './includes/checkout-modal.html' %}
 {% endblock %} {% block extra_js %}
-  <script scr="{% static 'staff/js/home.js'%}"></script>
   <script>
+    console.log('🔵 home.html extra_js block loaded')
     const arrowIconUrl = "{% static 'staff/images/arrow-right.png' %}"
     const logoURLCheckin = "{% static 'staff/images/new HMS-B.png' %}"
   </script>
+  <script src="{% static 'staff/js/home.js' %}?v=2.0"></script>
   <script src="{% static 'staff/js/walkin.js' %}?v=1.4" defer></script>
   <script src="{% static 'staff/js/checkin.js' %}?v=1.2" defer></script>
   <script src="{% static 'staff/js/checkout.js' %}?v=1.0"></script>

@@ -6,6 +6,7 @@ class Message(models.Model):
     sender_role = models.CharField(max_length=30, blank=True)
     receiver_role = models.CharField(max_length=30, blank=True)
     sender_service = models.CharField(max_length=30, blank=True, help_text="Service/app context where message was sent from (e.g., 'Room Service', 'Cafe')")
+    conversation_room = models.CharField(max_length=100, blank=True, db_index=True, help_text="Room identifier for this conversation (e.g., 'chat_Admin_Cafe')")
     subject = models.CharField(max_length=255, blank=True)
     body = models.TextField()
     is_read = models.BooleanField(default=False)

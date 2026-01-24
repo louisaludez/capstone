@@ -8,9 +8,13 @@ $(function () {
     pageLength: 10,
     lengthChange: true,
     info: true,
-    searching: false, // disable default search
+    searching: false, // disable default search box (but API still works)
     order: [], // disable initial sort
-    columnDefs: [{ orderable: false, targets: [4] }], // Actions column (now column 4, not 5)
+    columnDefs: [
+      { orderable: false, targets: [4] }, // Actions column (now column 4, not 5)
+      { searchable: true, targets: [0, 1, 2, 3] }, // Make ID, Username, Role, Date searchable
+      { searchable: false, targets: [4] } // Don't search in Actions column
+    ],
     language: {
       paginate: {
         previous: '&laquo;',
@@ -20,10 +24,14 @@ $(function () {
   });
 
   console.log("DataTable initialized:", table); // Debug log
+  console.log("Initial row count:", table.rows().count()); // Debug log
+
+  // Store table reference globally for debugging
+  window.usersTable = table;
 
   // Custom search input with real-time search
   $("#customSearch").on("input", function () {
-    const searchValue = this.value.toLowerCase();
+    const searchValue = this.value.trim();
     console.log("Search input triggered, value:", searchValue); // Debug log
 
     // Add visual feedback - show loading state
@@ -36,48 +44,79 @@ $(function () {
     window.searchTimeout = setTimeout(function () {
       console.log("Executing search for:", searchValue); // Debug log
 
-      // Method 1: Try DataTables search
+      // Use DataTables search API
       try {
-        table.search(searchValue).draw();
-        console.log("DataTables search executed");
+        // Get the table instance
+        const tableInstance = $("#usersTable").DataTable();
+        
+        if (!tableInstance) {
+          console.error("DataTable instance not found!");
+          $("#customSearch").removeClass('searching');
+          return;
+        }
+
+        // Clear any existing search first
+        tableInstance.search('');
+        
+        // Apply new search if there's a value
+        if (searchValue) {
+          tableInstance.search(searchValue).draw();
+        } else {
+          tableInstance.search('').draw();
+        }
+        
+        console.log("DataTables search executed successfully");
+        
+        // Force a redraw to ensure search is applied
+        tableInstance.draw(false);
+        
+        // Debug: Check actual filtered rows BEFORE getting page info
+        const filteredRows = tableInstance.rows({ search: 'applied' }).count();
+        const totalRows = tableInstance.rows().count();
+        console.log(`Filtered rows: ${filteredRows}, Total rows: ${totalRows}`);
+        
+        // Show search results count - use filtered count
+        const info = tableInstance.page.info();
+        console.log(`Page info - recordsDisplay: ${info.recordsDisplay}, recordsTotal: ${info.recordsTotal}, recordsFiltered: ${info.recordsFiltered || 'N/A'}`);
+        
+        // Additional debug: check if search actually filtered
+        if (searchValue && filteredRows === totalRows) {
+          console.warn("WARNING: Search did not filter any rows! Search value:", searchValue);
+          // Try manual filtering as fallback
+          tableInstance.rows().every(function() {
+            const rowData = this.data();
+            const rowText = rowData.join(' ').toLowerCase();
+            if (!rowText.includes(searchValue.toLowerCase())) {
+              $(this.node()).hide();
+            } else {
+              $(this.node()).show();
+            }
+          });
+        }
       } catch (error) {
-        console.log("DataTables search failed, trying manual search:", error);
-
-        // Method 2: Manual search as fallback
-        const rows = table.rows().nodes();
-        let visibleCount = 0;
-
-        $(rows).each(function () {
-          const rowText = $(this).text().toLowerCase();
-          if (rowText.includes(searchValue)) {
-            $(this).show();
-            visibleCount++;
-          } else {
-            $(this).hide();
-          }
-        });
-
-        console.log(`Manual search found ${visibleCount} matching rows`);
+        console.error("DataTables search error:", error);
+        console.error("Error stack:", error.stack);
       }
 
       // Remove loading state
       $("#customSearch").removeClass('searching');
+    }, 150); // 150ms delay for smooth typing experience
+  });
 
-      // Show search results count
-      try {
-        const info = table.page.info();
-        console.log(`Found ${info.recordsDisplay} of ${info.recordsTotal} users`);
-      } catch (error) {
-        console.log("Could not get table info:", error);
+  // Clear search when input is cleared
+  $("#customSearch").on("keyup", function (e) {
+    if (e.key === "Escape") {
+      $(this).val("");
+      const tableInstance = $("#usersTable").DataTable();
+      if (tableInstance) {
+        tableInstance.search("").draw();
       }
-    }, 100); // 100ms delay for smooth typing experience
+      $(this).removeClass('searching');
+    }
   });
 
   // Check if search input exists
   console.log("Search input element:", $("#customSearch").length); // Debug log
-  $("#customSearchBtn").on("click", function () {
-    table.search($("#customSearch").val()).draw();
-  });
 
   // Initialize toast
   const toast = new bootstrap.Toast(

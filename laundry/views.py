@@ -62,10 +62,41 @@ def staff_laundry_messages(request):
     simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
     room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
 
-    messages_qs = Message.objects.filter(
-        (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles)) |
-        (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    ).order_by('created_at')
+    # ULTRA-SIMPLE: ONLY filter by conversation_room - nothing else!
+    # This ensures each chatbox ONLY shows messages for that specific conversation
+    try:
+        # Check if conversation_room field exists
+        Message._meta.get_field('conversation_room')
+        field_exists = True
+    except:
+        field_exists = False
+    
+    if field_exists:
+        # ONLY show messages with the exact conversation_room - no fallback, no exceptions!
+        messages_qs = Message.objects.filter(conversation_room=room_name).order_by('created_at')
+    else:
+        # If field doesn't exist (migration not run), compute room on-the-fly for each message
+        all_messages = Message.objects.all()
+        matching_messages = []
+        
+        for msg in all_messages:
+            # Compute room for this message the same way it's computed when saving
+            sender_context = simplify_role(msg.sender_service) if msg.sender_service else simplify_role(msg.sender_role)
+            receiver_context = simplify_role(msg.receiver_role)
+            conv_roles = sorted([sender_context, receiver_context])
+            msg_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+            
+            if msg_room == room_name:
+                matching_messages.append(msg.id)
+        
+        messages_qs = Message.objects.filter(id__in=matching_messages).order_by('created_at')
+    
+    # Debug logging
+    print(f"\n[LAUNDRY MESSENGER] ========================================")
+    print(f"[LAUNDRY MESSENGER] Viewing chat with: {receiver_role}")
+    print(f"[LAUNDRY MESSENGER] Conversation room: {room_name}")
+    print(f"[LAUNDRY MESSENGER] Found {messages_qs.count()} messages in this room")
+    print(f"[LAUNDRY MESSENGER] ========================================\n")
 
     for message in messages_qs:
         try:
@@ -86,6 +117,7 @@ def staff_laundry_messages(request):
         "receiver_username": receiver_username,
         "messages": messages_qs,
         "current_user_id": request.user.id,
+        "current_service": current_service,
     })
 
 

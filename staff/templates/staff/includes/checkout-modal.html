@@ -19,7 +19,13 @@
                   
                   
                   
+                  
+                  
+                  
                   true
+
+
+
 
 
 
@@ -31,7 +37,13 @@
                   
                   
                   
+                  
+                  
+                  
                   false
+
+
+
 
 
 
@@ -184,6 +196,26 @@
               billingWrapper.style.opacity = ''
             }
           }
+      
+          // Set room charges and total balance to 0 if payment method is card (already paid)
+          if (!isCash && method && method.value === 'card') {
+            const totalBalanceInput = document.querySelector('.guest-total-balance-checkout')
+            const roomChargesInput = document.querySelector('.guest-billing-checkout')
+            const additionalChargesInput = document.querySelector('.guest-additional-charge-checkout')
+      
+            if (totalBalanceInput) {
+              totalBalanceInput.value = '0'
+              console.log('[Checkout] Payment method is card - setting total balance to 0 (already paid)')
+            }
+            if (roomChargesInput) {
+              roomChargesInput.value = '0'
+              console.log('[Checkout] Payment method is card - setting room charges to 0 (already paid)')
+            }
+            if (additionalChargesInput) {
+              additionalChargesInput.value = '0'
+              console.log('[Checkout] Payment method is card - setting additional charges to 0 (already paid)')
+            }
+          }
         }
       
         if (method) {
@@ -324,15 +356,29 @@
           // Billing summary
           // Only set room charges and additional charges if not walk-in (should be empty/hidden for walk-in)
           if (isWalkin !== 'true' && isWalkin !== true && bookingSource !== 'walkin') {
-            setInputValue('.guest-billing-checkout', ds.roomCharges || '')
-            setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
+            // If payment method is card, set room charges and additional charges to 0 (already paid)
+            if (paymentMethod === 'card') {
+              setInputValue('.guest-billing-checkout', '0')
+              setInputValue('.guest-additional-charge-checkout', '0')
+              console.log('[Checkout] Payment method is card - setting room charges and additional charges to 0 (already paid)')
+            } else {
+              setInputValue('.guest-billing-checkout', ds.roomCharges || '')
+              setInputValue('.guest-additional-charge-checkout', ds.additionalCharges || '')
+            }
           } else {
             setInputValue('.guest-billing-checkout', '')
             setInputValue('.guest-additional-charge-checkout', '')
           }
           setInputValue('.guest-laundry-billing-checkout', ds.laundry || '')
           setInputValue('.guest-cafe-billing-checkout', ds.cafe || '')
-          setInputValue('.guest-total-balance-checkout', ds.totalBalance || '')
+      
+          // Set total balance: 0 if payment method is card (already paid), otherwise use the value from dataset
+          if (paymentMethod === 'card') {
+            setInputValue('.guest-total-balance-checkout', '0')
+            console.log('[Checkout] Payment method is card - setting total balance to 0 (already paid)')
+          } else {
+            setInputValue('.guest-total-balance-checkout', ds.totalBalance || '')
+          }
         }
       
         async function fetchAndFillPayment() {
@@ -409,8 +455,13 @@
                 if (billingInput) billingInput.value = ''
               }
       
-              // Always update total balance regardless of payment method
-              setInputValue('.guest-total-balance-checkout', payment.total_balance != null ? payment.total_balance : '')
+              // Update total balance: 0 if payment method is card (already paid), otherwise use payment total_balance
+              if (paymentMethod === 'card') {
+                setInputValue('.guest-total-balance-checkout', '0')
+                console.log('[Checkout] Payment method is card - setting total balance to 0 (already paid)')
+              } else {
+                setInputValue('.guest-total-balance-checkout', payment.total_balance != null ? payment.total_balance : '')
+              }
             } else {
               console.warn('[Checkout] No payment found for latest booking. Keeping values from selection.')
             }

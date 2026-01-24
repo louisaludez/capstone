@@ -55,11 +55,20 @@ def calculate_speech_accuracy(transcription_text, activity):
         # Convert similarity (0-1) to percentage (0-100)
         accuracy_score = similarity * 100
         
-        # Apply some leniency for minor differences
-        if accuracy_score >= 80:
-            accuracy_score = min(95, accuracy_score + 5)  # Bonus for high accuracy
+        # Check for exact match (after normalization)
+        if user_text == ref_text:
+            # Perfect match - return 100%
+            accuracy_score = 100.0
+        # Apply some leniency for minor differences (but don't cap perfect scores)
+        elif accuracy_score >= 95:
+            # Very high accuracy - allow up to 100%
+            accuracy_score = min(100, accuracy_score)
+        elif accuracy_score >= 80:
+            # High accuracy - small bonus
+            accuracy_score = min(99, accuracy_score + 2)
         elif accuracy_score >= 60:
-            accuracy_score = max(50, accuracy_score - 5)  # Slight penalty for medium accuracy
+            # Medium accuracy - slight penalty
+            accuracy_score = max(50, accuracy_score - 5)
         
     else:
         # No reference text - use basic text analysis
@@ -85,9 +94,9 @@ def calculate_speech_accuracy(transcription_text, activity):
         if word_count >= 10:
             base_score += 10
         
-        # Add some randomness to make it more realistic (but less than before)
+        # Add some randomness to make it more realistic (but don't cap at 95%)
         random_factor = random.uniform(-5, 5)
-        accuracy_score = max(30, min(95, base_score + random_factor))
+        accuracy_score = max(30, min(100, base_score + random_factor))
     
     return round(accuracy_score, 1)
 

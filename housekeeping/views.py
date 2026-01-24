@@ -327,68 +327,43 @@ def messenger(request):
     simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
     room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
 
-    def get_related_roles(role):
-        role_mappings = {
-            'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel', 'personnel', 'staff', 'manager'],
-            'Concierge': ['staff_concierge', 'manager_concierge', 'Concierge'],
-            'Laundry': ['staff_laundry', 'manager_laundry', 'Laundry'],
-            'Cafe': ['staff_cafe', 'manager_cafe', 'Cafe'],
-            'Room Service': ['staff_room_service', 'manager_room_service', 'Room Service'],
-            'Admin': ['admin', 'Admin']
-        }
-        for general, specifics in role_mappings.items():
-            if role in specifics:
-                return specifics
-        return role_mappings.get(role, [role])
-
-    user_roles = get_related_roles(current_service)
-    receiver_roles = get_related_roles(receiver_role)
-
-    # Also get simplified roles for matching (messages are saved with simplified roles)
-    simplified_user_role = simplify_role(current_service)
-    simplified_receiver_role = simplify_role(receiver_role)
+    # ULTRA-SIMPLE: ONLY filter by conversation_room - nothing else!
+    # This ensures each chatbox ONLY shows messages for that specific conversation
+    try:
+        # Check if conversation_room field exists
+        Message._meta.get_field('conversation_room')
+        field_exists = True
+    except:
+        field_exists = False
     
-    # Get the user's actual simplified role (for matching messages they sent)
-    simplified_user_actual_role = simplify_role(user_actual_role) if user_actual_role else None
-    user_actual_roles = get_related_roles(user_actual_role) if user_actual_role else []
+    if field_exists:
+        # ONLY show messages with the exact conversation_room - no fallback, no exceptions!
+        messages_qs = Message.objects.filter(conversation_room=room_name).order_by('created_at')
+    else:
+        # If field doesn't exist (migration not run), compute room on-the-fly for each message
+        all_messages = Message.objects.all()
+        matching_messages = []
+        
+        for msg in all_messages:
+            # Compute room for this message the same way it's computed when saving
+            sender_context = simplify_role(msg.sender_service) if msg.sender_service else simplify_role(msg.sender_role)
+            receiver_context = simplify_role(msg.receiver_role)
+            conv_roles = sorted([sender_context, receiver_context])
+            msg_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+            
+            if msg_room == room_name:
+                matching_messages.append(msg.id)
+        
+        messages_qs = Message.objects.filter(id__in=matching_messages).order_by('created_at')
     
-    # Build query conditions
-    # Show messages in the conversation between current_service and receiver_role
-    # Match on sender_service to find messages sent from this service/app context
-    query_conditions = models.Q()
-    
-    # Primary match: Messages sent from this service context (e.g., Room Service -> Admin)
-    query_conditions |= (models.Q(sender_service=simplified_user_role) & models.Q(receiver_role=simplified_receiver_role))
-    query_conditions |= (models.Q(sender_service=simplified_user_role) & models.Q(receiver_role__in=receiver_roles))
-    
-    # Also match messages where receiver sent to this service (Admin -> Room Service)
-    query_conditions |= (models.Q(sender_role=simplified_receiver_role) & models.Q(receiver_role=simplified_user_role))
-    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role=simplified_user_role))
-    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    
-    # Match on expanded role lists (for backward compatibility with old messages without sender_service)
-    query_conditions |= (models.Q(sender_role=simplified_user_role) & models.Q(receiver_role=simplified_receiver_role))
-    query_conditions |= (models.Q(sender_role=simplified_receiver_role) & models.Q(receiver_role=simplified_user_role))
-    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
-    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    
-    messages_qs = Message.objects.filter(query_conditions).order_by('created_at')
-
-    print(f"[messenger] Querying messages:")
-    print(f"  user_roles={user_roles}")
-    print(f"  receiver_roles={receiver_roles}")
-    print(f"  simplified_user_role='{simplified_user_role}'")
-    print(f"  simplified_receiver_role='{simplified_receiver_role}'")
-    print(f"  user_actual_role='{user_actual_role}'")
-    print(f"  simplified_user_actual_role='{simplified_user_actual_role}'")
-    print(f"  user_actual_roles={user_actual_roles}")
-    print(f"  Found {messages_qs.count()} messages")
-    
-    # Debug: Print first few messages to see what's in the database
-    all_messages = Message.objects.all().order_by('-created_at')[:5]
-    print(f"[messenger] Recent messages in DB:")
-    for m in all_messages:
-        print(f"  ID={m.id}, sender_role='{m.sender_role}', receiver_role='{m.receiver_role}', body='{m.body[:30]}...'")
+    # Debug logging
+    print(f"\n[HOUSEKEEPING MESSENGER] ========================================")
+    print(f"[HOUSEKEEPING MESSENGER] Viewing chat with: {receiver_role}")
+    print(f"[HOUSEKEEPING MESSENGER] Current service: {current_service}")
+    print(f"[HOUSEKEEPING MESSENGER] Conversation room: {room_name}")
+    print(f"[HOUSEKEEPING MESSENGER] Field exists: {field_exists}")
+    print(f"[HOUSEKEEPING MESSENGER] Found {messages_qs.count()} messages in this room")
+    print(f"[HOUSEKEEPING MESSENGER] ========================================\n")
 
     # Convert queryset to list to ensure it's evaluated and messages are available
     messages_list = list(messages_qs)

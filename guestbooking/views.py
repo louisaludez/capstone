@@ -185,6 +185,8 @@ def save_reservation(request):
                 return JsonResponse({'error': 'Room not found'}, status=400)
             
             # Create or get guest
+            # For card payments, billing should be 0 since it's already paid
+            # billing field represents UNPAID room charges
             guest, created = Guest.objects.get_or_create(
                 email=guest_data.get('email'),
                 defaults={
@@ -192,10 +194,15 @@ def save_reservation(request):
                     'address': guest_data.get('country', ''),
                     'email': guest_data.get('email'),
                     'mobile': guest_data.get('phone') or None,
-                    'billing': number_of_days * room.price_per_night,
+                    'billing': '0',  # Card payment = already paid, no outstanding balance
                     'date_of_birth': timezone.now().date(),  # Default date
                 }
             )
+            
+            # For existing guests booking with card, reset billing to 0 (already paid)
+            if not created:
+                guest.billing = '0'
+                guest.save(update_fields=['billing'])
 
           
             # Create booking
@@ -212,6 +219,7 @@ def save_reservation(request):
             )
             
             # Create payment
+            # For card payments, total_balance should be 0 since it's already paid
             payment = Payment.objects.create(
                 booking=booking,
                 method='card',
@@ -219,7 +227,7 @@ def save_reservation(request):
                 exp_date=payment_data.get('expiryDate', ''),
                 cvc_code=payment_data.get('cvc', ''),
                 billing_address=payment_data.get('billingAddress', ''),
-                total_balance=room.price_per_night * Decimal(number_of_days)
+                total_balance=Decimal('0')  # Card payment = no outstanding balance
             )
             
             # Update room status

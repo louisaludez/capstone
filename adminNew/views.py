@@ -352,43 +352,48 @@ def admin_messenger(request):
     simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
     room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
 
-    # Role groups
-    def get_related_roles(role):
-        role_mappings = {
-            'Personnel': ['staff_personnel', 'manager_personnel', 'Personnel', 'personnel', 'staff', 'manager'],
-            'Concierge': ['staff_concierge', 'manager_concierge', 'Concierge'],
-            'Laundry': ['staff_laundry', 'manager_laundry', 'Laundry'],
-            'Cafe': ['staff_cafe', 'manager_cafe', 'Cafe'],
-            'Room Service': ['staff_room_service', 'manager_room_service', 'Room Service'],
-            'Admin': ['admin', 'Admin']
-        }
-        for general, specifics in role_mappings.items():
-            if role in specifics:
-                return specifics
-        return role_mappings.get(role, [role])
-
-    user_roles = get_related_roles(current_service)
-    receiver_roles = get_related_roles(receiver_role)
-    simplified_receiver_role = simplify_role(receiver_role)
-
-    # Build query conditions
-    # Show messages in the conversation between Admin and receiver_role
-    # Match on sender_service to find messages sent from the selected service
-    query_conditions = models.Q()
+    # ULTRA-SIMPLE: ONLY filter by conversation_room - nothing else!
+    # This ensures each chatbox ONLY shows messages for that specific conversation
+    try:
+        # Check if conversation_room field exists
+        Message._meta.get_field('conversation_room')
+        field_exists = True
+    except:
+        field_exists = False
     
-    # Primary match: Messages sent from the selected service to Admin (e.g., Room Service -> Admin)
-    query_conditions |= (models.Q(sender_service=simplified_receiver_role) & models.Q(receiver_role=simplify_role(current_service)))
-    query_conditions |= (models.Q(sender_service=simplified_receiver_role) & models.Q(receiver_role__in=user_roles))
+    if field_exists:
+        # ONLY show messages with the exact conversation_room - no fallback, no exceptions!
+        messages_qs = Message.objects.filter(conversation_room=room_name).order_by('created_at')
+    else:
+        # If field doesn't exist (migration not run), compute room on-the-fly for each message
+        simplified_receiver_role = simplify_role(receiver_role)
+        all_messages = Message.objects.all()
+        matching_messages = []
+        
+        for msg in all_messages:
+            # Compute room for this message the same way it's computed when saving
+            sender_context = simplify_role(msg.sender_service) if msg.sender_service else simplify_role(msg.sender_role)
+            receiver_context = simplify_role(msg.receiver_role)
+            conv_roles = sorted([sender_context, receiver_context])
+            msg_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+            
+            if msg_room == room_name:
+                matching_messages.append(msg.id)
+        
+        messages_qs = Message.objects.filter(id__in=matching_messages).order_by('created_at')
     
-    # Also match messages where Admin sent to the service (Admin -> Room Service)
-    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role=simplified_receiver_role))
-    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
+    # Debug logging
+    print(f"\n[ADMIN MESSENGER] ========================================")
+    print(f"[ADMIN MESSENGER] Viewing chat with: {receiver_role}")
+    print(f"[ADMIN MESSENGER] Current service: {current_service}")
+    print(f"[ADMIN MESSENGER] Conversation room: {room_name}")
+    print(f"[ADMIN MESSENGER] Field exists: {field_exists}")
+    print(f"[ADMIN MESSENGER] Found {messages_qs.count()} messages in this room")
     
-    # Match on expanded role lists (for backward compatibility with old messages without sender_service)
-    query_conditions |= (models.Q(sender_role__in=user_roles) & models.Q(receiver_role__in=receiver_roles))
-    query_conditions |= (models.Q(sender_role__in=receiver_roles) & models.Q(receiver_role__in=user_roles))
-    
-    messages_qs = Message.objects.filter(query_conditions).order_by('created_at')
+    # Show sample messages
+    for msg in messages_qs[:5]:
+        print(f"  - ID={msg.id}, conversation_room='{getattr(msg, 'conversation_room', 'N/A')}', sender_service='{msg.sender_service}', sender_role='{msg.sender_role}', receiver_role='{msg.receiver_role}'")
+    print(f"[ADMIN MESSENGER] ========================================\n")
     
     # Convert queryset to list to ensure it's evaluated
     messages_list = list(messages_qs)

@@ -116,9 +116,19 @@ def home(request):
         """Determine room status class matching the template display"""
         room_code = str(room_number)
         
+        # Room field might be stored in different formats, so we need to check multiple formats
+        room_alt_values = [
+            room_code,
+            f"R{room_code}",
+            f"Room {room_code}",
+            f"Room {room_code} : Standard",
+            f"Room {room_code} : Family",
+            f"Room {room_code} : Deluxe",
+        ]
+        
         # Check for active booking today
         has_booking_today = Booking.objects.filter(
-            room=room_code,
+            room__in=room_alt_values,
             status='Checked-in',
             check_in_date__lte=today,
             check_out_date__gte=today,
@@ -126,7 +136,7 @@ def home(request):
         
         # Check for pending booking today
         has_pending_booking = Booking.objects.filter(
-            room=room_code,
+            room__in=room_alt_values,
             status='Pending',
             check_in_date__lte=today,
             check_out_date__gte=today,
@@ -857,8 +867,17 @@ def room_status(request):
         room_code = str(room_number)
         
         # Check for active booking on target date
+        # Room field might be stored in different formats, so we need to check multiple formats
+        room_alt_values = [
+            room_code,
+            f"R{room_code}",
+            f"Room {room_code}",
+            f"Room {room_code} : Standard",
+            f"Room {room_code} : Family",
+            f"Room {room_code} : Deluxe",
+        ]
         has_booking = Booking.objects.filter(
-            room=room_code,
+            room__in=room_alt_values,
             status='Checked-in',
             check_in_date__lte=target_date,
             check_out_date__gte=target_date,
@@ -866,7 +885,7 @@ def room_status(request):
         
         # Check for pending booking on target date
         has_pending_booking = Booking.objects.filter(
-            room=room_code,
+            room__in=room_alt_values,
             status='Pending',
             check_in_date__lte=target_date,
             check_out_date__gte=target_date,
@@ -924,31 +943,53 @@ def room_status(request):
         }
         return status_mapping.get(status_class, 'vacant')
     
-    # Count rooms by actual displayed status (based on CSS classes)
-    status_counts = {
-        'vacant': 0,
-        'occupied': 0,
-        'maintenance': 0,
-        'housekeeping': 0,
-        'reserved': 0,
-    }
+    # Count rooms by actual displayed status
+    # First, count occupied and reserved from the actual booking data
+    occupied_count = len(occupied_rooms)
+    reserved_count = len(reserved_rooms)
     
-    # Count each room's actual displayed status
+    # Count maintenance and housekeeping from housekeeping records
+    maintenance_count = 0
+    housekeeping_count = 0
+    
+    # Get housekeeping status for all rooms to count maintenance and housekeeping
+    from housekeeping.models import Housekeeping
     for i in range(1, 13):  # Rooms 1-12
-        status_class = get_room_status_class_api(str(i), d)
-        if status_class in status_counts:
-            status_counts[status_class] += 1
-        else:
-            status_counts['vacant'] += 1
-
+        room_code = str(i)
+        # Get the most recent housekeeping record for this room
+        record = Housekeeping.objects.filter(room_number=room_code).order_by('-created_at').first()
+        if not record:
+            # Try to find by extracting number from room_number
+            all_records = Housekeeping.objects.filter(room_number__icontains=room_code).order_by('-created_at')
+            for rec in all_records:
+                rec_num = re.search(r'\d+', str(rec.room_number))
+                if rec_num and rec_num.group(0) == room_code:
+                    record = rec
+                    break
+        
+        if record and record.status:
+            status_lower = record.status.strip().lower().replace('_', ' ').replace('-', ' ')
+            # Only count if room is not already occupied or reserved
+            if room_code not in occupied_rooms and room_code not in reserved_rooms:
+                if 'maintenance' in status_lower or 'under maintenance' in status_lower:
+                    maintenance_count += 1
+                elif 'progress' in status_lower or 'in progress' in status_lower or 'pending' in status_lower:
+                    housekeeping_count += 1
+    
+    # Calculate vacant: total rooms minus all other statuses
+    vacant_count = total_rooms - occupied_count - reserved_count - maintenance_count - housekeeping_count
+    if vacant_count < 0:
+        vacant_count = 0
+    
     room_status_counts = {
-        'available': status_counts['vacant'],
-        'occupied': status_counts['occupied'],
-        'maintenance': status_counts['maintenance'],
-        'cleaning': status_counts['housekeeping'],
-        'reserved': status_counts['reserved'],
+        'available': vacant_count,
+        'occupied': occupied_count,
+        'maintenance': maintenance_count,
+        'cleaning': housekeeping_count,
+        'reserved': reserved_count,
     }
     print(f"[DEBUG] Room status counts: {room_status_counts}")
+    print(f"[DEBUG] Breakdown: occupied={occupied_count}, reserved={reserved_count}, maintenance={maintenance_count}, housekeeping={housekeeping_count}, vacant={vacant_count}, total={total_rooms}")
 
     # Count rooms by type from the Room model
     room_type_counts = {
@@ -1644,3 +1685,77 @@ def statement_of_account_pdf(request, guest_id):
             content_type='text/plain',
             status=500
         )
+
+@decorator.role_required('staff', 'SUPER_ADMIN')
+def message(request):
+    """Front Office/Personnel messenger view"""
+    receiver_role = request.GET.get('receiver_role', 'Admin')
+    # Base on app service, not user role
+    current_service = 'Personnel'
+
+    # Build a deterministic room name based on simplified roles (order-insensitive)
+    def simplify_role(role):
+        mapping = {
+            'staff_personnel': 'Personnel', 'manager_personnel': 'Personnel', 'personnel': 'Personnel', 'staff': 'Personnel', 'manager': 'Personnel',
+            'staff_concierge': 'Concierge', 'manager_concierge': 'Concierge',
+            'staff_laundry': 'Laundry', 'manager_laundry': 'Laundry',
+            'staff_cafe': 'Cafe', 'manager_cafe': 'Cafe',
+            'staff_room_service': 'Room Service', 'manager_room_service': 'Room Service',
+            'admin': 'Admin', 'Admin': 'Admin'
+        }
+        return mapping.get(role, role)
+
+    simplified = sorted([simplify_role(current_service), simplify_role(receiver_role)])
+    room_name = f"chat_{'_'.join([s.replace(' ', '_') for s in simplified])}"
+
+    # ULTRA-SIMPLE: ONLY filter by conversation_room - nothing else!
+    # This ensures each chatbox ONLY shows messages for that specific conversation
+    try:
+        # Check if conversation_room field exists
+        Message._meta.get_field('conversation_room')
+        field_exists = True
+    except:
+        field_exists = False
+    
+    if field_exists:
+        # ONLY show messages with the exact conversation_room - no fallback, no exceptions!
+        messages_qs = Message.objects.filter(conversation_room=room_name).order_by('created_at')
+    else:
+        # If field doesn't exist (migration not run), compute room on-the-fly for each message
+        all_messages = Message.objects.all()
+        matching_messages = []
+        
+        for msg in all_messages:
+            # Compute room for this message the same way it's computed when saving
+            sender_context = simplify_role(msg.sender_service) if msg.sender_service else simplify_role(msg.sender_role)
+            receiver_context = simplify_role(msg.receiver_role)
+            conv_roles = sorted([sender_context, receiver_context])
+            msg_room = f"chat_{'_'.join([r.replace(' ', '_') for r in conv_roles])}"
+            
+            if msg_room == room_name:
+                matching_messages.append(msg.id)
+        
+        messages_qs = Message.objects.filter(id__in=matching_messages).order_by('created_at')
+    
+    # Debug logging
+    print(f"\n[PERSONNEL MESSENGER] ========================================")
+    print(f"[PERSONNEL MESSENGER] Viewing chat with: {receiver_role}")
+    print(f"[PERSONNEL MESSENGER] Conversation room: {room_name}")
+    print(f"[PERSONNEL MESSENGER] Found {messages_qs.count()} messages in this room")
+    print(f"[PERSONNEL MESSENGER] ========================================\n")
+
+    # Attach sender usernames for display consistency
+    for msg in messages_qs:
+        try:
+            sender = CustomUser.objects.get(id=msg.sender_id)
+            msg.sender_username = sender.username
+        except CustomUser.DoesNotExist:
+            msg.sender_username = "Unknown User"
+
+    return render(request, 'staff/messages.html', {
+        'room_name': room_name,
+        'receiver_role': receiver_role,
+        'messages': messages_qs,
+        'current_user_id': request.user.id,
+        'current_service': current_service,
+    })
