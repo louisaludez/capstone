@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize%}
 {% block title %}
   Admin Front Office Reports
 {% endblock %}
@@ -114,15 +115,15 @@
       </div>
       <div class="col">
         <p class="title">Room Charges</p>
-        <span class="number">₱ {{ room_charges }}</span>
+        <span class="number">₱ {{ room_charges|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Cash Payments</p>
-        <span class="number">₱ {{ cash_payments }}</span>
+        <span class="number">₱ {{ cash_payments|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Revenue</p>
-        <span class="number">₱ {{ total_revenue }}</span>
+        <span class="number">₱ {{ total_revenue|floatformat:2|intcomma }}</span>
       </div>
     </div>
     <!-- Table Header -->

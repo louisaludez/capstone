@@ -1,4 +1,5 @@
 {% load custom_filters %}
+{% load humanize %}
 {% for order in orders %}
   <div class="row row-border text-center align-items-center mx-2">
     <div class="col-1">
@@ -14,17 +15,17 @@
       {% endif %}
     </div>
     <div class="col-1">{{ order.items.all|sum_quantities }}</div>
-    <div class="col-1">₱{{ order.total }}</div>
+    <div class="col-1">₱{{ order.total|floatformat:2|intcomma }}</div>
     <div class="col-1">
       {% if order.cash_tendered %}
-        ₱{{ order.cash_tendered }}
+        ₱{{ order.cash_tendered|floatformat:2|intcomma }}
       {% else %}
         —
       {% endif %}
     </div>
     <div class="col-1">
       {% if order.change %}
-        ₱{{ order.change }}
+        ₱{{ order.change|floatformat:2|intcomma }}
       {% else %}
         —
       {% endif %}

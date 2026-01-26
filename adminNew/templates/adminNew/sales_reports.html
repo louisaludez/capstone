@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% block title %}
   Admin Sales Reports
 {% endblock %}
@@ -12,15 +13,22 @@
       margin-bottom: 0.5rem;
     }
     .boxes .number {
-      font-size: 1.1rem !important;
+      font-size: clamp(0.5rem, 1vw, 0.5rem);
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      display: block;
+    }
+    .boxes .col {
+      min-width: 0;
+      overflow: hidden;
     }
     @media (max-width: 768px) {
       .boxes .title {
         font-size: 0.75rem !important;
       }
       .boxes .number {
-        font-size: 0.95rem !important;
+        font-size: clamp(0.6rem, 2vw, 0.95rem);
       }
     }
     /* Make table text smaller */
@@ -33,13 +41,20 @@
     }
     .table-row .col {
       padding: 0.5rem 0.25rem;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .table-row .col {
+      font-size: clamp(0.65rem, 1.5vw, 0.8rem);
+      white-space: nowrap;
+      overflow: hidden;
     }
     @media (max-width: 768px) {
       .table-header {
         font-size: 0.75rem !important;
       }
-      .table-row {
-        font-size: 0.7rem !important;
+      .table-row .col {
+        font-size: clamp(0.55rem, 1.2vw, 0.7rem);
       }
     }
   </style>
@@ -114,37 +129,37 @@
     <div class="row boxes">
       <div class="col">
         <p class="title">Total Revenue</p>
-        <span class="number">₱ {{ total_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ total_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Front Office</p>
-        <span class="number">₱ {{ front_office_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ front_office_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Room Service</p>
-        <span class="number">₱ {{ room_service_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ room_service_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Laundry</p>
-        <span class="number">₱ {{ laundry_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ laundry_revenue|floatformat:2|intcomma }}</span>
       </div>
     </div>
     <div class="row boxes mt-2">
       <div class="col">
         <p class="title">Cafe</p>
-        <span class="number">₱ {{ cafe_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ cafe_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Excess Pax</p>
-        <span class="number">₱ {{ excess_pax_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ excess_pax_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Additional Charges</p>
-        <span class="number">₱ {{ additional_charge_revenue|floatformat:2 }}</span>
+        <span class="number">₱ {{ additional_charge_revenue|floatformat:2|intcomma }}</span>
       </div>
       <div class="col">
         <p class="title">Total Transactions</p>
-        <span class="number">{{ total_transactions }}</span>
+        <span class="number">{{ total_transactions|intcomma }}</span>
       </div>
     </div>
     
@@ -216,12 +231,12 @@
               {{ item.laundry_trans.date_time|date:"M d, Y H:i" }}
             {% endif %}
           </div>
-          <div class="col-1">₱ {{ item.front_office|floatformat:2 }}</div>
-          <div class="col-1">₱ {{ item.room_service|floatformat:2 }}</div>
-          <div class="col-1">₱ {{ item.laundry|floatformat:2 }}</div>
-          <div class="col-1">₱ {{ item.cafe|floatformat:2 }}</div>
-          <div class="col-1">₱ {{ item.other|floatformat:2 }}</div>
-          <div class="col-1">₱ {{ item.total|floatformat:2 }}</div>
+          <div class="col-1">₱ {{ item.front_office|floatformat:2|intcomma }}</div>
+          <div class="col-1">₱ {{ item.room_service|floatformat:2|intcomma }}</div>
+          <div class="col-1">₱ {{ item.laundry|floatformat:2|intcomma }}</div>
+          <div class="col-1">₱ {{ item.cafe|floatformat:2|intcomma }}</div>
+          <div class="col-1">₱ {{ item.other|floatformat:2|intcomma }}</div>
+          <div class="col-1">₱ {{ item.total|floatformat:2|intcomma }}</div>
         </div>
       {% empty %}
         <div class="row py-4 text-center">
@@ -316,6 +331,93 @@
       const periodRadios = document.querySelectorAll('input[name="period_filter"]')
       
       let searchTimeout
+      
+      // Responsive font sizing for money text
+      function adjustMoneyFontSize() {
+        // Adjust revenue box numbers
+        const revenueNumbers = document.querySelectorAll('.boxes .number')
+        revenueNumbers.forEach(el => {
+          const parent = el.closest('.col')
+          if (parent && el.textContent.trim() && parent.offsetWidth > 0) {
+            // Get the computed font size (from CSS)
+            const computedStyle = window.getComputedStyle(el)
+            let fontSize = parseFloat(computedStyle.fontSize)
+            const maxWidth = parent.offsetWidth - 20 // Account for padding
+            
+            // Temporarily remove overflow to measure accurately
+            const originalOverflow = el.style.overflow
+            el.style.overflow = 'visible'
+            el.style.setProperty('font-size', fontSize + 'px', 'important')
+            
+            // Check if text overflows and reduce font size
+            let iterations = 0
+            while (el.scrollWidth > maxWidth && fontSize > 8 && iterations < 50) {
+              fontSize -= 1
+              el.style.setProperty('font-size', fontSize + 'px', 'important')
+              iterations++
+            }
+            
+            // Restore overflow
+            el.style.overflow = originalOverflow || 'hidden'
+          }
+        })
+        
+        // Adjust table cell numbers
+        const tableCells = document.querySelectorAll('.table-row .col')
+        tableCells.forEach(cell => {
+          const cellText = cell.textContent.trim()
+          // Only adjust cells that contain money (start with ₱)
+          if (cellText.startsWith('₱') && cell.offsetWidth > 0) {
+            // Get the computed font size (from CSS)
+            const computedStyle = window.getComputedStyle(cell)
+            let fontSize = parseFloat(computedStyle.fontSize)
+            const maxWidth = cell.offsetWidth - 10 // Account for padding
+            
+            // Temporarily remove overflow to measure accurately
+            const originalOverflow = cell.style.overflow
+            cell.style.overflow = 'visible'
+            cell.style.setProperty('font-size', fontSize + 'px', 'important')
+            
+            // Check if text overflows and reduce font size
+            let iterations = 0
+            while (cell.scrollWidth > maxWidth && fontSize > 6 && iterations < 50) {
+              fontSize -= 0.5
+              cell.style.setProperty('font-size', fontSize + 'px', 'important')
+              iterations++
+            }
+            
+            // Restore overflow
+            cell.style.overflow = originalOverflow || 'hidden'
+          }
+        })
+      }
+      
+      // Run on load and resize
+      function runAdjustment() {
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(function() {
+          setTimeout(adjustMoneyFontSize, 50)
+        })
+      }
+      
+      runAdjustment()
+      window.addEventListener('resize', function() {
+        runAdjustment()
+      })
+      
+      // Also run after any dynamic content updates
+      const observer = new MutationObserver(function(mutations) {
+        runAdjustment()
+      })
+      
+      // Observe changes to the sales container and boxes
+      const boxesContainer = document.querySelector('.boxes')
+      if (boxesContainer) {
+        observer.observe(boxesContainer, { childList: true, subtree: true })
+      }
+      if (salesContainer) {
+        observer.observe(salesContainer, { childList: true, subtree: true })
+      }
       
       // Download report functionality
       if (downloadBtn) {
@@ -442,6 +544,11 @@
             // Restore opacity
             boxes.forEach(box => {
               box.style.opacity = '1'
+            })
+            
+            // Adjust font sizes after content update
+            requestAnimationFrame(function() {
+              setTimeout(adjustMoneyFontSize, 100)
             })
             
             const url = new URL(window.location)

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% load static %}
 {% block title %}
   Admin
@@ -103,7 +104,7 @@
               <div class="kpi-sep">|</div>
               <div class="d-flex flex-column align-items-end">
                 <small class="kpi-label-overall">Overall</small>
-                <span class="kpi-value-big">₱ {{ total_revenue }}</span>
+                <span class="kpi-value-big">₱ {{ total_revenue|floatformat:2|intcomma }}</span>
               </div>
             </div>
           </div>
@@ -223,8 +224,13 @@
           const guestSep = document.getElementById('guestSep')
           if (guestSep) guestSep.style.display = 'inline-block'
     
-          // Update revenue
-          document.getElementById('monthlyRevenueValue').textContent = `₱ ${data.revenue}`
+          // Update revenue with thousands separator
+          const revenueValue = parseFloat(data.revenue || 0)
+          const formattedRevenue = revenueValue.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+          document.getElementById('monthlyRevenueValue').textContent = `₱ ${formattedRevenue}`
           document.getElementById('monthlyRevenue').style.display = 'block'
         })
         .catch((error) => {

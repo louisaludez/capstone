@@ -2,6 +2,7 @@ from urllib import request
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 from globals import decorator
 from django.contrib import messages
 from datetime import datetime, date, time as dt_time
@@ -1258,11 +1259,18 @@ def room_availability(request):
 
     return JsonResponse({'blocked': blocked})
 
+@xframe_options_exempt
 @decorator.role_required('staff', 'SUPER_ADMIN')
 def statement_of_account(request, guest_id):
     """Generate and display statement of account for a guest"""
+    # Check if it's an AJAX request and handle errors appropriately
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    print(f"[STATEMENT] View called with guest_id={guest_id}, is_ajax={is_ajax}, user={request.user}, role={getattr(request.user, 'role', None)}")
+    
     try:
         guest = get_object_or_404(Guest, id=guest_id)
+        print(f"[STATEMENT] Guest found: {guest.name}")
         
         # Get the most recent booking
         booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
@@ -1328,8 +1336,10 @@ def statement_of_account(request, guest_id):
             })
         
         # Add laundry transactions
+        print(f"[STATEMENT HTML] Processing {len(laundry_transactions)} laundry transactions")
         for lt in laundry_transactions:
-            if lt.payment_method == 'room':  # Only show charges to room
+            print(f"[STATEMENT HTML] Laundry transaction: payment_method={lt.payment_method}, amount={lt.total_amount}")
+            if lt.payment_method == 'room':  # Charge to room
                 transactions.append({
                     'date': lt.date_time,
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1337,14 +1347,40 @@ def statement_of_account(request, guest_id):
                     'amount': float(lt.total_amount),
                     'category': 'Laundry'
                 })
+            elif lt.payment_method == 'cash':  # Cash payment
+                transactions.append({
+                    'date': lt.date_time,
+                    'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
+                    'type': 'Payment',
+                    'amount': float(lt.total_amount),
+                    'category': 'Laundry'
+                })
         
         # Add cafe orders
+        print(f"[STATEMENT HTML] Processing {len(cafe_orders)} cafe orders")
         for co in cafe_orders:
-            if co.payment_method == 'room':  # Only show charges to room
+            print(f"[STATEMENT HTML] Cafe order: payment_method={co.payment_method}, amount={co.total}")
+            if co.payment_method == 'room':  # Charge to room
                 transactions.append({
                     'date': co.order_date,
                     'description': f'Cafe Order #{co.id}',
                     'type': 'Charge',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+            elif co.payment_method == 'cash':  # Cash payment
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Payment - Order #{co.id}',
+                    'type': 'Payment',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+            elif co.payment_method == 'card':  # Card payment
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Payment - Order #{co.id}',
+                    'type': 'Payment',
                     'amount': float(co.total),
                     'category': 'Cafe'
                 })
@@ -1392,6 +1428,10 @@ def statement_of_account(request, guest_id):
         # Sort transactions by date (newest first)
         transactions.sort(key=lambda x: x['date'], reverse=True)
         
+        print(f"[STATEMENT HTML] Total transactions: {len(transactions)}")
+        for i, txn in enumerate(transactions):
+            print(f"[STATEMENT] Transaction {i+1}: type={txn['type']}, category={txn['category']}, amount={txn['amount']}, desc={txn['description']}")
+        
         context = {
             'guest': guest,
             'booking': booking,
@@ -1409,10 +1449,37 @@ def statement_of_account(request, guest_id):
             'statement_number': f"SOA-{guest.id:05d}-{timezone.now().strftime('%Y%m%d')}"
         }
         
-        return render(request, 'staff/statement_of_account.html', context)
+        response = render(request, 'staff/statement_of_account.html', context)
+        # The @xframe_options_exempt decorator should prevent middleware from adding X-Frame-Options
+        # But we'll also explicitly ensure it's removed as a fallback
+        # Set the xframe_options_exempt attribute to ensure middleware respects it
+        response.xframe_options_exempt = True
+        return response
         
+    except Guest.DoesNotExist:
+        error_msg = f'Guest with ID {guest_id} not found'
+        print(f"Error generating statement of account: {error_msg}")
+        if is_ajax:
+            from django.http import JsonResponse
+            return JsonResponse({
+                'error': True,
+                'message': error_msg
+            }, status=404)
+        messages.error(request, error_msg)
+        return redirect('HomeStaff')
     except Exception as e:
         print(f"Error generating statement of account: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # If it's an AJAX request, return JSON error instead of redirecting
+        if is_ajax:
+            from django.http import JsonResponse
+            return JsonResponse({
+                'error': True,
+                'message': f'Error generating statement: {str(e)}'
+            }, status=500)
+        
         messages.error(request, f'Error generating statement: {str(e)}')
         return redirect('HomeStaff')
 
@@ -1494,7 +1561,7 @@ def statement_of_account_pdf(request, guest_id):
         
         # Add laundry transactions
         for lt in laundry_transactions:
-            if lt.payment_method == 'room':  # Only show charges to room
+            if lt.payment_method == 'room':  # Charge to room
                 transactions.append({
                     'date': lt.date_time,
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1502,14 +1569,38 @@ def statement_of_account_pdf(request, guest_id):
                     'amount': float(lt.total_amount),
                     'category': 'Laundry'
                 })
+            elif lt.payment_method == 'cash':  # Cash payment
+                transactions.append({
+                    'date': lt.date_time,
+                    'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
+                    'type': 'Payment',
+                    'amount': float(lt.total_amount),
+                    'category': 'Laundry'
+                })
         
         # Add cafe orders
         for co in cafe_orders:
-            if co.payment_method == 'room':  # Only show charges to room
+            if co.payment_method == 'room':  # Charge to room
                 transactions.append({
                     'date': co.order_date,
                     'description': f'Cafe Order #{co.id}',
                     'type': 'Charge',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+            elif co.payment_method == 'cash':  # Cash payment
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Payment - Order #{co.id}',
+                    'type': 'Payment',
+                    'amount': float(co.total),
+                    'category': 'Cafe'
+                })
+            elif co.payment_method == 'card':  # Card payment
+                transactions.append({
+                    'date': co.order_date,
+                    'description': f'Cafe Payment - Order #{co.id}',
+                    'type': 'Payment',
                     'amount': float(co.total),
                     'category': 'Cafe'
                 })

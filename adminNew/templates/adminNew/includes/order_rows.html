@@ -1,6 +1,6 @@
 {% comment %}This include renders a generic table. It supports different order models by detecting fields. Supported models: Booking (FO), CafeOrder (Cafe), LaundryTransaction (Laundry), Housekeeping.{% endcomment %}
 {% load custom_filters %}
-
+{% load humanize %}
 {% for order in orders %}
   <div class="row row-border text-center align-items- mx-2">
     <div class="col-1">{{ order.room }}</div>
@@ -55,14 +55,14 @@
     </div>
     <div class="col-1">
       {% if order.guest and order.guest.billing %}
-        ₱{{ order.guest.billing }}
+        ₱{{ order.guest.billing|floatformat:2|intcomma }}
       {% else %}
         —
       {% endif %}
     </div>
     <div class="col-1">
       {% if order.guest %}
-        ₱{{ order.guest|total_other_charges }}
+        ₱{{ order.guest|total_other_charges|floatformat:2|intcomma }}
       {% else %}
         —
       {% endif %}

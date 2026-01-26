@@ -22,7 +22,9 @@
                   
                   
                   
+                  
                   true
+
 
 
 
@@ -40,7 +42,9 @@
                   
                   
                   
+                  
                   false
+
 
 
 
@@ -163,6 +167,301 @@
         </div>
       </div>
     </div>
+
+    <!-- Statement Modal -->
+    <div class="statement-modal-overlay" id="statement-modal-overlay" style="display: none;">
+      <div class="statement-modal">
+        <div class="statement-modal-header">
+          <h3>Statement of Account</h3>
+          <button class="statement-modal-close" id="statement-modal-close">&times;</button>
+        </div>
+        <div class="statement-modal-body" id="statement-modal-body">
+          <div class="statement-loading" id="statement-loading">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading statement...</p>
+          </div>
+          <div class="statement-content" id="statement-content" style="display: none;"></div>
+        </div>
+        <div class="statement-modal-footer" id="statement-modal-footer" style="display: none;">
+          <button class="statement-download-btn" id="statement-download-btn"><i class="bi bi-download"></i> Download PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .statement-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        padding: 20px;
+      }
+      
+      .statement-modal {
+        background: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideDown 0.3s ease-out;
+      }
+      
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .statement-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        flex-shrink: 0;
+      }
+      
+      .statement-modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .statement-modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #666;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+      }
+      
+      .statement-modal-close:hover {
+        color: #000;
+      }
+      
+      .statement-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+      }
+      
+      .statement-content {
+        width: 100%;
+        background: #f5f5f5;
+      }
+      
+      .statement-content .statement-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 20px;
+        box-shadow: none;
+        background: white;
+      }
+      
+      /* Ensure PDF styling is applied when displayed in modal */
+      .statement-content body,
+      .statement-content .statement-container {
+        font-family: 'Arial', 'Helvetica', sans-serif !important;
+        font-size: 12px !important;
+      }
+      
+      .statement-content .statement-header h1 {
+        font-size: 24px !important;
+      }
+      
+      .statement-content .statement-info {
+        width: 100% !important;
+        margin-bottom: 30px !important;
+        display: table !important;
+        table-layout: fixed !important;
+      }
+      
+      .statement-content .info-section {
+        display: table-cell !important;
+        width: 50% !important;
+        vertical-align: top !important;
+        font-size: 11px !important;
+        padding-right: 20px !important;
+      }
+      
+      .statement-content .info-section:last-child {
+        padding-right: 0 !important;
+        padding-left: 20px !important;
+      }
+      
+      .statement-content .info-section:first-child {
+        padding-right: 20px !important;
+        padding-left: 0 !important;
+      }
+      
+      .statement-content .billing-summary {
+        padding: 15px !important;
+      }
+      
+      .statement-content .billing-summary h3 {
+        font-size: 16px !important;
+        margin-bottom: 10px !important;
+      }
+      
+      .statement-content .billing-row {
+        display: table !important;
+        width: 100% !important;
+        padding: 8px 0 !important;
+      }
+      
+      .statement-content .billing-label,
+      .statement-content .billing-amount {
+        display: table-cell !important;
+      }
+      
+      .statement-content .billing-label {
+        width: 70% !important;
+      }
+      
+      .statement-content .billing-amount {
+        width: 30% !important;
+        text-align: right !important;
+      }
+      
+      .statement-content .billing-row.total {
+        font-size: 14px !important;
+        padding-top: 10px !important;
+      }
+      
+      .statement-content .transactions-table {
+        font-size: 10px !important;
+      }
+      
+      .statement-content .transactions-table th,
+      .statement-content .transactions-table td {
+        padding: 8px !important;
+        font-size: 10px !important;
+      }
+      
+      .statement-content .category-badge {
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        background: #95a5a6 !important;
+        color: white !important;
+      }
+      
+      .statement-content .outstanding-balance {
+        overflow: hidden !important;
+      }
+      
+      .statement-content .outstanding-balance h3 {
+        background: #856404 !important;
+        color: white !important;
+        margin: 0 !important;
+        padding: 10px 15px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+      }
+      
+      .statement-content .outstanding-balance.zero h3 {
+        background: #155724 !important;
+        color: white !important;
+      }
+      
+      .statement-content .outstanding-balance .balance-amount {
+        font-size: 24px !important;
+        padding: 15px !important;
+        text-align: center !important;
+      }
+      
+      .statement-content .footer-note {
+        font-size: 10px !important;
+        padding-top: 15px !important;
+      }
+      
+      .statement-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        color: #666;
+      }
+      
+      .statement-loading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3em;
+        margin-bottom: 1rem;
+      }
+      
+      .statement-content {
+        width: 100%;
+      }
+      
+      .statement-content .statement-container {
+        max-width: 100%;
+      }
+      
+      .statement-modal-footer {
+        padding: 20px;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: flex-end;
+        flex-shrink: 0;
+      }
+      
+      .statement-download-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #28a745;
+        color: white;
+      }
+      
+      .statement-download-btn:hover {
+        background-color: #218838;
+      }
+      
+      .statement-download-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      
+      .statement-download-btn i {
+        font-size: 1.1rem;
+      }
+    </style>
+
     <script>
       // Toggle billing/card visibility on checkout based on payment method
       document.addEventListener('DOMContentLoaded', function () {

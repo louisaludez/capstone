@@ -2318,6 +2318,9 @@ def admin_sales_reports_export(request):
     
     for booking in bookings:
         guest = booking.guest
+        if not guest:
+            # Skip bookings without guests (shouldn't happen, but be safe)
+            continue
         try:
             fo = float(guest.billing or 0)
             rs = float(guest.room_service_billing or 0)
@@ -2346,7 +2349,7 @@ def admin_sales_reports_export(request):
         ])
     
     # Export cafe orders
-    cafe_orders = CafeOrder.objects.all()
+    cafe_orders = CafeOrder.objects.select_related('guest')
     if start_date:
         from datetime import datetime as dt
         start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
@@ -2366,11 +2369,29 @@ def admin_sales_reports_export(request):
     cafe_orders = cafe_orders.order_by('-order_date')
     
     for order in cafe_orders:
+        # Safely get guest name
+        guest_name = order.customer_name or 'Walk-in'
+        try:
+            if order.guest_id:
+                guest_name = order.guest.name if order.guest else 'Walk-in'
+        except Exception:
+            guest_name = 'Walk-in'
+        
+        # Safely get room number
+        room_number = 'N/A'
+        try:
+            if order.guest_id and order.guest:
+                first_booking = order.guest.booking_set.first()
+                if first_booking:
+                    room_number = first_booking.room
+        except Exception:
+            room_number = 'N/A'
+        
         writer.writerow([
             'Cafe Order',
             f"CF{order.id:05d}",
-            order.customer_name or (order.guest.name if order.guest else 'Walk-in'),
-            order.guest.booking_set.first().room if order.guest and order.guest.booking_set.exists() else 'N/A',
+            guest_name,
+            room_number,
             order.order_date.strftime('%Y-%m-%d %H:%M:%S'),
             order.get_payment_method_display(),
             '0.00',
@@ -2383,7 +2404,7 @@ def admin_sales_reports_export(request):
         ])
     
     # Export laundry transactions
-    laundry_trans = LaundryTransaction.objects.all()
+    laundry_trans = LaundryTransaction.objects.select_related('guest')
     if start_date:
         from datetime import datetime as dt
         start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
@@ -2403,11 +2424,19 @@ def admin_sales_reports_export(request):
     laundry_trans = laundry_trans.order_by('-date_time')
     
     for trans in laundry_trans:
+        # Safely get guest name
+        guest_name = 'N/A'
+        try:
+            if trans.guest_id:
+                guest_name = trans.guest.name if trans.guest else 'N/A'
+        except Exception:
+            guest_name = 'N/A'
+        
         writer.writerow([
             'Laundry',
             f"LD{trans.id:05d}",
-            trans.guest.name if trans.guest else 'N/A',
-            trans.room_number,
+            guest_name,
+            trans.room_number or 'N/A',
             trans.date_time.strftime('%Y-%m-%d %H:%M:%S'),
             trans.get_payment_method_display(),
             '0.00',

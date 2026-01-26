@@ -1,6 +1,6 @@
+{% load humanize %}
 {% for tx in orders %}
   <div class="row row-border text-center align-items-center mx-2">
-    
     <div class="col-2">#{{ tx.id }}</div>
     <div class="col-2">
       {% if tx.guest %}
@@ -11,7 +11,7 @@
     </div>
     <div class="col-2">{{ tx.service_type|default:'—' }}</div>
     <div class="col-2">{{ tx.date_time|date:'H:i d/m/Y' }}</div>
-    <div class="col-1">₱{{ tx.total_amount }}</div>
+    <div class="col-1">₱{{ tx.total_amount|floatformat:2|intcomma }}</div>
     <div class="col-1">{{ tx.status|title }}</div>
     <div class="col-1">
       {% if tx.payment_method == 'room' %}

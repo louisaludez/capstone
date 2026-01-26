@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize%}
 {% block title %}
   Admin Front Office Reports
 {% endblock %}
@@ -111,7 +112,7 @@
       <div class="col">
         <p class="title">Total Revenue</p>
 
-        <span class="number">₱ {{ total_revenue }}</span>
+        <span class="number">₱ {{ total_revenue|floatformat:2|intcomma }}</span>
       </div>
     </div>
     <!-- Table Header -->

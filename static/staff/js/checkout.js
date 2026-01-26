@@ -266,7 +266,7 @@ $(".checkout-submit-btn").on("click", function () {
   });
 });
 
-// Handle Statement of Account button click - use event delegation
+// Handle Statement of Account button click - open modal with statement preview
 $(document).on("click", "#generate-statement-btn", function (e) {
   e.preventDefault();
   e.stopPropagation();
@@ -292,6 +292,415 @@ $(document).on("click", "#generate-statement-btn", function (e) {
     return false;
   }
 
+  // Store guest ID for use in download button
+  $("#statement-modal-overlay").data("guest-id", guestId);
+  
+  // Show loading state
+  $("#statement-loading").show();
+  $("#statement-content").hide();
+  $("#statement-modal-footer").hide();
+  
+  // Open the statement modal
+  $("#statement-modal-overlay").fadeIn(200);
+  
+  // Fetch and display the statement HTML via AJAX
+  const statementUrl = `/staff/statement-of-account/${guestId}/`;
+  
+  // Show loading
+  $("#statement-loading").show();
+  $("#statement-content").hide();
+  $("#statement-modal-footer").hide();
+  
+  // Fetch the statement HTML
+  fetch(statementUrl, {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    redirect: 'follow', // Follow redirects
+    credentials: 'include' // Include cookies for authentication
+  })
+    .then(response => {
+      console.log('Response status:', response.status);
+      console.log('Response URL:', response.url);
+      console.log('Requested URL:', statementUrl);
+      console.log('Response type:', response.type);
+      
+      // Check if we were redirected
+      const finalUrl = response.url;
+      if (finalUrl && !finalUrl.includes('statement-of-account') && finalUrl !== statementUrl) {
+        console.error('REDIRECT DETECTED! Expected statement page but got:', finalUrl);
+        // Check if it's a JSON error response
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Error loading statement');
+          });
+        }
+        throw new Error(`The page was redirected to: ${finalUrl}. This might be due to authentication or permission issues. Please ensure you are logged in with the correct permissions.`);
+      }
+      
+      if (!response.ok) {
+        // Check if it's a JSON error response
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(data => {
+            throw new Error(data.message || `Server error: ${response.status}`);
+          });
+        }
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      
+      // Check content type
+      const contentType = response.headers.get('content-type');
+      console.log('Content-Type:', contentType);
+      
+      return response.text();
+    })
+    .then(html => {
+      console.log('Fetched HTML length:', html.length);
+      console.log('HTML contains "STATEMENT OF ACCOUNT":', html.includes('STATEMENT OF ACCOUNT'));
+      console.log('HTML contains "statement-container":', html.includes('statement-container'));
+      console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+      
+      // Check if we got redirected (home page would have different content)
+      if ((html.includes('Staff') || html.includes('sidebar')) && !html.includes('STATEMENT OF ACCOUNT') && !html.includes('statement-container')) {
+        console.error('Received home page or wrong page instead of statement.');
+        console.error('Full HTML (first 2000 chars):', html.substring(0, 2000));
+        throw new Error('Received home page instead of statement. The view may have redirected. Please check the console for details.');
+      }
+      
+      // Check if HTML contains the statement content
+      if (!html.includes('STATEMENT OF ACCOUNT') && !html.includes('statement-container')) {
+        console.error('HTML does not contain statement content.');
+        console.error('Full HTML (first 2000 chars):', html.substring(0, 2000));
+        throw new Error('The response does not contain statement content. Please check the console for details.');
+      }
+      
+      // Parse the HTML and extract the statement content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Since the template is standalone, the statement-container should be directly in the body
+      let statementContainer = null;
+      
+      // Method 1: Direct querySelector
+      statementContainer = doc.querySelector('.statement-container');
+      console.log('Found statement-container via querySelector:', !!statementContainer);
+      
+      // Method 2: Try body.querySelector
+      if (!statementContainer && doc.body) {
+        statementContainer = doc.body.querySelector('.statement-container');
+        console.log('Found statement-container in body:', !!statementContainer);
+      }
+      
+      // Method 3: Try documentElement.querySelector
+      if (!statementContainer) {
+        statementContainer = doc.documentElement.querySelector('.statement-container');
+        console.log('Found statement-container in documentElement:', !!statementContainer);
+      }
+      
+      // Method 4: If still not found, try to find by text content
+      if (!statementContainer) {
+        const allDivs = doc.querySelectorAll('div');
+        console.log('Total divs found:', allDivs.length);
+        for (let div of allDivs) {
+          if (div.textContent && div.textContent.includes('STATEMENT OF ACCOUNT')) {
+            console.log('Found div with "STATEMENT OF ACCOUNT" text');
+            // Check if this div or its parent has statement-container class
+            let current = div;
+            while (current && current !== doc.body) {
+              if (current.classList && current.classList.contains('statement-container')) {
+                statementContainer = current;
+                console.log('Found statement-container by text search');
+                break;
+              }
+              current = current.parentElement;
+            }
+            // If not found in parent, check if this div itself has the class
+            if (!statementContainer && div.classList && div.classList.contains('statement-container')) {
+              statementContainer = div;
+              console.log('Found statement-container on the div itself');
+            }
+            if (statementContainer) break;
+          }
+        }
+      }
+      
+      // Last resort: extract by regex from HTML string
+      if (!statementContainer && html.includes('statement-container')) {
+        // More robust regex that handles nested divs
+        const startPattern = /<div[^>]*class\s*=\s*["'][^"']*statement-container[^"']*["'][^>]*>/i;
+        const startMatch = html.match(startPattern);
+        if (startMatch) {
+          const startIndex = startMatch.index;
+          let depth = 1;
+          let endIndex = startIndex + startMatch[0].length;
+          
+          // Find matching closing div by counting depth
+          while (endIndex < html.length && depth > 0) {
+            const nextDiv = html.indexOf('<div', endIndex);
+            const nextCloseDiv = html.indexOf('</div>', endIndex);
+            
+            if (nextCloseDiv === -1) break;
+            
+            if (nextDiv !== -1 && nextDiv < nextCloseDiv) {
+              // Check if it's self-closing
+              const divEnd = html.indexOf('>', nextDiv);
+              if (divEnd !== -1 && html[divEnd - 1] !== '/') {
+                depth++;
+                endIndex = divEnd + 1;
+              } else {
+                endIndex = divEnd + 1;
+              }
+            } else {
+              depth--;
+              if (depth === 0) {
+                endIndex = nextCloseDiv + 6;
+                break;
+              }
+              endIndex = nextCloseDiv + 6;
+            }
+          }
+          
+          if (endIndex > startIndex) {
+            const containerHtml = html.substring(startIndex, endIndex);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = containerHtml;
+            statementContainer = tempDiv.firstElementChild;
+            console.log('Found statement-container via regex extraction');
+          }
+        }
+      }
+      
+      if (statementContainer) {
+        console.log('Successfully found statement-container, inserting into modal');
+        // Insert the statement content
+        const contentDiv = document.getElementById('statement-content');
+        contentDiv.innerHTML = '';
+        
+        if (statementContainer.cloneNode) {
+          contentDiv.appendChild(statementContainer.cloneNode(true));
+        } else {
+          contentDiv.innerHTML = statementContainer.innerHTML || statementContainer;
+        }
+        
+        // Hide loading, show content and footer
+        $("#statement-loading").hide();
+        $("#statement-content").show();
+        $("#statement-modal-footer").show();
+      } else if (html.includes('STATEMENT OF ACCOUNT')) {
+        console.log('Found "STATEMENT OF ACCOUNT" text but not container, trying extraction');
+        // If we found the text but not the container, try to extract everything between the statement header and end
+        const statementStart = html.indexOf('STATEMENT OF ACCOUNT');
+        if (statementStart > -1) {
+          // Look backwards for the opening div
+          const beforeText = html.substring(Math.max(0, statementStart - 1000), statementStart);
+          const divStart = beforeText.lastIndexOf('<div');
+          if (divStart > -1) {
+            const fullStart = Math.max(0, statementStart - 1000) + divStart;
+            // Find a reasonable end point (look for closing body or script tags)
+            const afterText = html.substring(statementStart);
+            const endMarkers = ['</div></div></div>', '</body>', '<script', '</html>'];
+            let endIndex = html.length;
+            for (let marker of endMarkers) {
+              const markerIndex = html.indexOf(marker, statementStart);
+              if (markerIndex > -1 && markerIndex < endIndex) {
+                endIndex = markerIndex;
+              }
+            }
+            
+            if (endIndex > fullStart) {
+              const extractedHTML = html.substring(fullStart, endIndex);
+              const contentDiv = document.getElementById('statement-content');
+              contentDiv.innerHTML = extractedHTML;
+              $("#statement-loading").hide();
+              $("#statement-content").show();
+              $("#statement-modal-footer").show();
+              return;
+            }
+          }
+        }
+      } else {
+        console.warn('Could not find statement-container, trying fallback extraction');
+        // Fallback: Since the template is standalone, try to extract the entire body or statement-container div
+        if (doc.body) {
+          const contentDiv = document.getElementById('statement-content');
+          
+          // Try to find statement-container in body HTML string
+          const bodyHTML = doc.body.innerHTML;
+          if (bodyHTML.includes('statement-container')) {
+            // Find the statement-container div in the HTML string
+            const containerStart = bodyHTML.indexOf('statement-container');
+            if (containerStart > -1) {
+              // Look backwards for the opening <div> tag
+              const beforeContainer = bodyHTML.substring(Math.max(0, containerStart - 300), containerStart);
+              const divStart = beforeContainer.lastIndexOf('<div');
+              if (divStart > -1) {
+                const fullStart = Math.max(0, containerStart - 300) + divStart;
+                // Find the matching closing </div> by counting depth
+                let depth = 1;
+                let endIndex = fullStart + bodyHTML.substring(fullStart).indexOf('>') + 1;
+                
+                while (endIndex < bodyHTML.length && depth > 0) {
+                  const nextDiv = bodyHTML.indexOf('<div', endIndex);
+                  const nextCloseDiv = bodyHTML.indexOf('</div>', endIndex);
+                  
+                  if (nextCloseDiv === -1) break;
+                  
+                  if (nextDiv !== -1 && nextDiv < nextCloseDiv) {
+                    const divEnd = bodyHTML.indexOf('>', nextDiv);
+                    if (divEnd !== -1 && bodyHTML[divEnd - 1] !== '/') {
+                      depth++;
+                      endIndex = divEnd + 1;
+                    } else {
+                      endIndex = divEnd + 1;
+                    }
+                  } else {
+                    depth--;
+                    if (depth === 0) {
+                      endIndex = nextCloseDiv + 6;
+                      break;
+                    }
+                    endIndex = nextCloseDiv + 6;
+                  }
+                }
+                
+                if (endIndex > fullStart) {
+                  const containerHTML = bodyHTML.substring(fullStart, endIndex);
+                  const tempDiv = document.createElement('div');
+                  tempDiv.innerHTML = containerHTML;
+                  const found = tempDiv.querySelector('.statement-container') || tempDiv.firstElementChild;
+                  if (found) {
+                    contentDiv.innerHTML = '';
+                    contentDiv.appendChild(found.cloneNode(true));
+                    $("#statement-loading").hide();
+                    $("#statement-content").show();
+                    $("#statement-modal-footer").show();
+                    console.log('Successfully extracted statement-container via fallback');
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          
+          // Last resort: Since it's a standalone template, show the entire body content
+          // But first, try to extract just the statement-container div from the raw HTML
+          if (html.includes('<div class="statement-container"')) {
+            const startIdx = html.indexOf('<div class="statement-container"');
+            let depth = 1;
+            let endIdx = html.indexOf('>', startIdx) + 1;
+            
+            while (endIdx < html.length && depth > 0) {
+              const nextDiv = html.indexOf('<div', endIdx);
+              const nextClose = html.indexOf('</div>', endIdx);
+              if (nextClose === -1) break;
+              
+              if (nextDiv !== -1 && nextDiv < nextClose) {
+                const divEnd = html.indexOf('>', nextDiv);
+                if (html[divEnd - 1] !== '/') depth++;
+                endIdx = divEnd + 1;
+              } else {
+                depth--;
+                if (depth === 0) {
+                  endIdx = nextClose + 6;
+                  break;
+                }
+                endIdx = nextClose + 6;
+              }
+            }
+            
+            if (endIdx > startIdx) {
+              const extracted = html.substring(startIdx, endIdx);
+              contentDiv.innerHTML = extracted;
+              $("#statement-loading").hide();
+              $("#statement-content").show();
+              $("#statement-modal-footer").show();
+              console.log('Successfully extracted statement-container from raw HTML');
+              return;
+            }
+          }
+          
+          // Final fallback: show body content (for standalone template, this should work)
+          console.log('Using final fallback: showing entire body content');
+          contentDiv.innerHTML = bodyHTML;
+          $("#statement-loading").hide();
+          $("#statement-content").show();
+          $("#statement-modal-footer").show();
+        } else {
+          console.error('No body found in parsed document');
+          throw new Error('Could not extract statement content from response. Please check the console for details.');
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading statement:', error);
+      console.error('Error stack:', error.stack);
+      
+      let errorMessage = error.message || "Failed to load the statement. Please try again.";
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('redirected')) {
+        errorMessage = "You don't have permission to view this statement, or there was an error. Please check:\n" +
+          "1. You are logged in with the correct account\n" +
+          "2. The guest ID is valid\n" +
+          "3. Check the server console for detailed error messages";
+      }
+      
+      $("#statement-loading").html(`
+        <div style="text-align: center; padding: 40px; color: #dc3545;">
+          <i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+          <p style="font-size: 1.1rem; margin: 0; font-weight: 600;">Failed to load statement</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem; color: #666; white-space: pre-line;">${errorMessage}</p>
+          <p style="font-size: 0.8rem; margin-top: 1rem; color: #999;">Please check the browser console and server logs for more details.</p>
+        </div>
+      `);
+      
+      Swal.fire({
+        icon: "error",
+        title: "Error Loading Statement",
+        text: errorMessage,
+        footer: "Check the browser console (F12) for more details"
+      });
+    });
+  
+  return false;
+});
+
+// Close statement modal
+$(document).on("click", "#statement-modal-close, .statement-modal-overlay", function (e) {
+  // Only close if clicking the overlay itself or the close button
+  if (e.target === this || $(e.target).is("#statement-modal-close")) {
+    $("#statement-modal-overlay").fadeOut(200);
+  }
+});
+
+// Prevent modal from closing when clicking inside the modal
+$(document).on("click", ".statement-modal", function (e) {
+  e.stopPropagation();
+});
+
+// Handle Download PDF button
+$(document).on("click", "#statement-download-btn", function (e) {
+  e.preventDefault();
+  const guestId = $("#statement-modal-overlay").data("guest-id");
+  
+  if (!guestId) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Guest ID not found. Please try again.",
+    });
+    return false;
+  }
+
+  // Disable button during download
+  const downloadBtn = $(this);
+  const originalHtml = downloadBtn.html();
+  downloadBtn.prop("disabled", true);
+  downloadBtn.html('<i class="bi bi-hourglass-split"></i> Downloading...');
+  
   // Download PDF statement
   const statementUrl = `/staff/statement-of-account/${guestId}/pdf/`;
   console.log("Downloading PDF statement:", statementUrl);
@@ -348,6 +757,15 @@ $(document).on("click", "#generate-statement-btn", function (e) {
       }, 100);
       
       console.log("PDF download initiated");
+      
+      // Show success message
+      Swal.fire({
+        icon: "success",
+        title: "Download Started",
+        text: "The statement PDF is being downloaded.",
+        timer: 2000,
+        showConfirmButton: false
+      });
     })
     .catch(error => {
       console.error('Error downloading PDF:', error);
@@ -356,6 +774,11 @@ $(document).on("click", "#generate-statement-btn", function (e) {
         title: "Download Failed",
         text: error.message || "Failed to download PDF. Please try again.",
       });
+    })
+    .finally(() => {
+      // Re-enable button
+      downloadBtn.prop("disabled", false);
+      downloadBtn.html(originalHtml);
     });
   
   return false;
