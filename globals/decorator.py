@@ -44,6 +44,16 @@ def admin_required(view_func):
         is_admin = user_role == 'admin'
         is_super_admin = getattr(request.user, 'is_superuser', False) or (user_role and str(user_role).upper() == 'SUPER_ADMIN')
         
+        # Debug logging
+        print(f"=== ADMIN ACCESS CHECK ===")
+        print(f"User: {request.user.username}")
+        print(f"User Role: {user_role}")
+        print(f"User Role Type: {type(user_role)}")
+        print(f"Is Admin: {is_admin}")
+        print(f"Is Super Admin: {is_super_admin}")
+        print(f"Is Superuser: {getattr(request.user, 'is_superuser', False)}")
+        print(f"========================")
+        
         if is_admin or is_super_admin:
             return view_func(request, *args, **kwargs)
         

@@ -244,6 +244,13 @@ def add_user(request):
                 password=make_password(password),
                 role=role
             )
+            
+            # Debug logging
+            print(f"=== USER CREATED ===")
+            print(f"Username: {user.username}")
+            print(f"Role: {user.role}")
+            print(f"Role Type: {type(user.role)}")
+            print(f"====================")
 
             return JsonResponse({'status': 'success', 'message': 'User created successfully'})
         except Exception as e:

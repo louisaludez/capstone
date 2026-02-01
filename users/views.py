@@ -30,6 +30,14 @@ def login(request):
             
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            # Debug logging
+            print(f"=== USER LOGIN ===")
+            print(f"Username: {user.username}")
+            print(f"Role: {user.role}")
+            print(f"Role Type: {type(user.role)}")
+            print(f"Is Superuser: {user.is_superuser}")
+            print(f"==================")
+            
             auth_login(request, user)
             messages.success(request, f"Welcome back, {user.username}!")
             

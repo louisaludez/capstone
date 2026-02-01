@@ -1325,10 +1325,24 @@ def statement_of_account(request, guest_id):
         # Prepare transaction history
         transactions = []
         
+        # Helper function to normalize dates to timezone-aware datetime for consistent sorting
+        def normalize_date(dt):
+            """Convert to timezone-aware datetime so naive/aware comparison doesn't fail."""
+            if dt is None:
+                return timezone.now()
+            if isinstance(dt, datetime):
+                if timezone.is_naive(dt):
+                    return timezone.make_aware(dt)
+                return dt
+            if isinstance(dt, date) and not isinstance(dt, datetime):
+                naive_dt = datetime.combine(dt, dt_time.min)
+                return timezone.make_aware(naive_dt)
+            return timezone.now()
+        
         # Add room charges if exists
         if room_charges > 0 and booking:
             transactions.append({
-                'date': booking.check_in_date,
+                'date': normalize_date(booking.check_in_date),
                 'description': f'Room Charges - {booking.room}',
                 'type': 'Charge',
                 'amount': room_charges,
@@ -1341,7 +1355,7 @@ def statement_of_account(request, guest_id):
             print(f"[STATEMENT HTML] Laundry transaction: payment_method={lt.payment_method}, amount={lt.total_amount}")
             if lt.payment_method == 'room':  # Charge to room
                 transactions.append({
-                    'date': lt.date_time,
+                    'date': normalize_date(lt.date_time),
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
                     'type': 'Charge',
                     'amount': float(lt.total_amount),
@@ -1349,7 +1363,7 @@ def statement_of_account(request, guest_id):
                 })
             elif lt.payment_method == 'cash':  # Cash payment
                 transactions.append({
-                    'date': lt.date_time,
+                    'date': normalize_date(lt.date_time),
                     'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
                     'type': 'Payment',
                     'amount': float(lt.total_amount),
@@ -1362,7 +1376,7 @@ def statement_of_account(request, guest_id):
             print(f"[STATEMENT HTML] Cafe order: payment_method={co.payment_method}, amount={co.total}")
             if co.payment_method == 'room':  # Charge to room
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Order #{co.id}',
                     'type': 'Charge',
                     'amount': float(co.total),
@@ -1370,7 +1384,7 @@ def statement_of_account(request, guest_id):
                 })
             elif co.payment_method == 'cash':  # Cash payment
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Payment - Order #{co.id}',
                     'type': 'Payment',
                     'amount': float(co.total),
@@ -1378,7 +1392,7 @@ def statement_of_account(request, guest_id):
                 })
             elif co.payment_method == 'card':  # Card payment
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Payment - Order #{co.id}',
                     'type': 'Payment',
                     'amount': float(co.total),
@@ -1388,7 +1402,7 @@ def statement_of_account(request, guest_id):
         # Add room service if exists
         if room_service > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Room Service',
                 'type': 'Charge',
                 'amount': room_service,
@@ -1398,7 +1412,7 @@ def statement_of_account(request, guest_id):
         # Add excess pax if exists
         if excess_pax > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Excess Pax Charges',
                 'type': 'Charge',
                 'amount': excess_pax,
@@ -1408,7 +1422,7 @@ def statement_of_account(request, guest_id):
         # Add additional charges if exists
         if additional_charges > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Additional Charges',
                 'type': 'Charge',
                 'amount': additional_charges,
@@ -1418,15 +1432,24 @@ def statement_of_account(request, guest_id):
         # Add payments to transactions
         for payment in payments:
             transactions.append({
-                'date': payment['date'],
+                'date': normalize_date(payment['date']),
                 'description': payment['description'],
                 'type': 'Payment',
                 'amount': float(payment['amount']),
                 'category': 'Payment'
             })
         
-        # Sort transactions by date (newest first)
-        transactions.sort(key=lambda x: x['date'], reverse=True)
+        # Sort by timestamp to avoid comparing naive vs aware datetimes
+        def _txn_sort_key(t):
+            d = t.get('date')
+            if d is None:
+                return 0.0
+            if isinstance(d, datetime) and timezone.is_naive(d):
+                d = timezone.make_aware(d)
+            elif isinstance(d, date) and not isinstance(d, datetime):
+                d = timezone.make_aware(datetime.combine(d, dt_time.min))
+            return d.timestamp() if hasattr(d, 'timestamp') else 0.0
+        transactions.sort(key=_txn_sort_key, reverse=True)
         
         print(f"[STATEMENT HTML] Total transactions: {len(transactions)}")
         for i, txn in enumerate(transactions):
@@ -1549,10 +1572,24 @@ def statement_of_account_pdf(request, guest_id):
         # Prepare transaction history
         transactions = []
         
+        # Helper function to normalize dates to timezone-aware datetime for consistent sorting
+        def normalize_date(dt):
+            """Convert to timezone-aware datetime so naive/aware comparison doesn't fail."""
+            if dt is None:
+                return timezone.now()
+            if isinstance(dt, datetime):
+                if timezone.is_naive(dt):
+                    return timezone.make_aware(dt)
+                return dt
+            if isinstance(dt, date) and not isinstance(dt, datetime):
+                naive_dt = datetime.combine(dt, dt_time.min)
+                return timezone.make_aware(naive_dt)
+            return timezone.now()
+        
         # Add room charges if exists
         if room_charges > 0 and booking:
             transactions.append({
-                'date': booking.check_in_date,
+                'date': normalize_date(booking.check_in_date),
                 'description': f'Room Charges - {booking.room}',
                 'type': 'Charge',
                 'amount': room_charges,
@@ -1563,7 +1600,7 @@ def statement_of_account_pdf(request, guest_id):
         for lt in laundry_transactions:
             if lt.payment_method == 'room':  # Charge to room
                 transactions.append({
-                    'date': lt.date_time,
+                    'date': normalize_date(lt.date_time),
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
                     'type': 'Charge',
                     'amount': float(lt.total_amount),
@@ -1571,7 +1608,7 @@ def statement_of_account_pdf(request, guest_id):
                 })
             elif lt.payment_method == 'cash':  # Cash payment
                 transactions.append({
-                    'date': lt.date_time,
+                    'date': normalize_date(lt.date_time),
                     'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
                     'type': 'Payment',
                     'amount': float(lt.total_amount),
@@ -1582,7 +1619,7 @@ def statement_of_account_pdf(request, guest_id):
         for co in cafe_orders:
             if co.payment_method == 'room':  # Charge to room
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Order #{co.id}',
                     'type': 'Charge',
                     'amount': float(co.total),
@@ -1590,7 +1627,7 @@ def statement_of_account_pdf(request, guest_id):
                 })
             elif co.payment_method == 'cash':  # Cash payment
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Payment - Order #{co.id}',
                     'type': 'Payment',
                     'amount': float(co.total),
@@ -1598,7 +1635,7 @@ def statement_of_account_pdf(request, guest_id):
                 })
             elif co.payment_method == 'card':  # Card payment
                 transactions.append({
-                    'date': co.order_date,
+                    'date': normalize_date(co.order_date),
                     'description': f'Cafe Payment - Order #{co.id}',
                     'type': 'Payment',
                     'amount': float(co.total),
@@ -1608,7 +1645,7 @@ def statement_of_account_pdf(request, guest_id):
         # Add room service if exists
         if room_service > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Room Service',
                 'type': 'Charge',
                 'amount': room_service,
@@ -1618,7 +1655,7 @@ def statement_of_account_pdf(request, guest_id):
         # Add excess pax if exists
         if excess_pax > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Excess Pax Charges',
                 'type': 'Charge',
                 'amount': excess_pax,
@@ -1628,7 +1665,7 @@ def statement_of_account_pdf(request, guest_id):
         # Add additional charges if exists
         if additional_charges > 0:
             transactions.append({
-                'date': booking.check_in_date if booking else guest.created_at.date(),
+                'date': normalize_date(booking.check_in_date if booking else guest.created_at.date()),
                 'description': 'Additional Charges',
                 'type': 'Charge',
                 'amount': additional_charges,
@@ -1638,41 +1675,24 @@ def statement_of_account_pdf(request, guest_id):
         # Add payments to transactions
         for payment in payments:
             transactions.append({
-                'date': payment['date'],
+                'date': normalize_date(payment['date']),
                 'description': payment['description'],
                 'type': 'Payment',
                 'amount': float(payment['amount']),
                 'category': 'Payment'
             })
         
-        # Sort transactions by date (newest first)
-        # Normalize all dates to timezone-aware datetime for consistent comparison
-        from datetime import datetime as dt
-        for transaction in transactions:
-            trans_date = transaction['date']
-            if isinstance(trans_date, date) and not isinstance(trans_date, dt):
-                # Convert date to timezone-aware datetime
-                naive_dt = dt.combine(trans_date, dt_time.min)
-                transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
-            elif isinstance(trans_date, dt):
-                # Ensure datetime is timezone-aware
-                if timezone.is_naive(trans_date):
-                    transaction['date'] = timezone.make_aware(trans_date)
-                # If already aware, keep as is
-            else:
-                # Try to convert other types
-                try:
-                    if hasattr(trans_date, 'date'):
-                        naive_dt = dt.combine(trans_date.date(), dt_time.min)
-                        transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
-                    else:
-                        naive_dt = dt.combine(trans_date, dt_time.min)
-                        transaction['date'] = timezone.make_aware(naive_dt) if timezone.is_naive(naive_dt) else naive_dt
-                except:
-                    # Fallback: use current timezone-aware datetime
-                    transaction['date'] = timezone.now()
-        
-        transactions.sort(key=lambda x: x['date'], reverse=True)
+        # Sort by timestamp to avoid comparing naive vs aware datetimes
+        def _txn_sort_key(t):
+            d = t.get('date')
+            if d is None:
+                return 0.0
+            if isinstance(d, datetime) and timezone.is_naive(d):
+                d = timezone.make_aware(d)
+            elif isinstance(d, date) and not isinstance(d, datetime):
+                d = timezone.make_aware(datetime.combine(d, dt_time.min))
+            return d.timestamp() if hasattr(d, 'timestamp') else 0.0
+        transactions.sort(key=_txn_sort_key, reverse=True)
         
         context = {
             'guest': guest,
