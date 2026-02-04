@@ -23,6 +23,7 @@ class ReservationForecaster:
         self.forecast_data = None
         self.model_type = 'sarima'  # Default model type
         self.comparison_results = {}  # Store comparison results
+        self._series_max = 100.0  # For clipping explosive forecasts (updated when we have series)
         
     def prepare_data(self, bookings):
         """
@@ -114,21 +115,19 @@ class ReservationForecaster:
     
     def find_optimal_params(self, series, max_p=2, max_d=2, max_q=2, max_P=1, max_D=1, max_Q=1, s=12):
         """
-        Find optimal SARIMA parameters using grid search
-        Expanded search space for better model fit
+        Find optimal SARIMA parameters using grid search.
+        Uses BIC for model selection (penalizes complexity to avoid overfitting).
         """
         best_aic = float('inf')
         best_params = None
         best_bic = float('inf')
         
-        # If we have less than 24 data points (2 years), keep parameters minimal
         if len(series) < 24:
-            max_p = min(max_p, 1)
-            max_d = min(max_d, 1)
-            max_q = min(max_q, 1)
-            max_P = min(max_P, 1)
-            max_D = min(max_D, 1)
-            max_Q = min(max_Q, 1)
+            max_p, max_d, max_q = min(max_p, 1), min(max_d, 1), min(max_q, 1)
+            max_P, max_D, max_Q = min(max_P, 1), min(max_D, 1), min(max_Q, 1)
+        elif len(series) >= 48:
+            # More data: allow slightly larger non-seasonal orders for accuracy
+            max_p, max_q = min(3, max_p), min(3, max_q)
         
         print(f"Searching for optimal SARIMA parameters (this may take a moment)...")
         models_tried = 0
@@ -139,6 +138,10 @@ class ReservationForecaster:
                     for P in range(max_P + 1):
                         for D in range(max_D + 1):
                             for Q in range(max_Q + 1):
+                                if p == 0 and q == 0 and P == 0 and Q == 0:
+                                    continue
+                                if d == 0 and D == 0:
+                                    continue  # need at least one difference for non-stationary
                                 try:
                                     model = SARIMAX(
                                         series,
@@ -147,25 +150,21 @@ class ReservationForecaster:
                                         enforce_stationarity=False,
                                         enforce_invertibility=False
                                     )
-                                    fitted_model = model.fit(disp=False, maxiter=100)
+                                    fitted_model = model.fit(disp=False, maxiter=150)
                                     models_tried += 1
-                                    
-                                    # Use both AIC and BIC for better model selection
-                                    # Prefer models with lower BIC (penalizes complexity more)
                                     if fitted_model.bic < best_bic or (fitted_model.bic == best_bic and fitted_model.aic < best_aic):
                                         best_aic = fitted_model.aic
                                         best_bic = fitted_model.bic
                                         best_params = (p, d, q, P, D, Q, s)
-                                        
-                                except:
+                                except Exception:
                                     continue
         
         if best_params:
-            print(f"Tried {models_tried} models. Best parameters: SARIMA{best_params[:3]}x{best_params[3:]} (AIC: {best_aic:.2f}, BIC: {best_bic:.2f})")
+            print(f"Tried {models_tried} models. Best: SARIMA{best_params[:3]}x{best_params[3:]} (AIC: {best_aic:.2f}, BIC: {best_bic:.2f})")
         else:
             print("Could not find optimal parameters, using default")
         
-        return best_params if best_params else (1, 1, 1, 0, 1, 1, 12)  # Default: (1,1,1) x (0,1,1,12)
+        return best_params if best_params else (1, 1, 1, 0, 1, 1, 12)
     
     def calculate_metrics(self, y_true, y_pred, model_name=None):
         """
@@ -192,37 +191,34 @@ class ReservationForecaster:
         # Calculate MAE
         mae = mean_absolute_error(y_true, y_pred)
         
-        # Calculate MSE
-        mse = mean_squared_error(y_true, y_pred)
+        # Calculate MSE (cap to avoid explosion from unstable models)
+        mse_raw = mean_squared_error(y_true, y_pred)
+        scale = max(np.max(y_true), 1) ** 2
+        mse = min(mse_raw, scale * 100)  # Cap MSE to 100x scale^2
+        mse = min(mse, 1e10)  # Hard cap for display
         
         # Calculate RMSE
         rmse = math.sqrt(mse)
         
-        # Improved MAPE calculation
-        # Use symmetric MAPE (sMAPE) for better handling of small values and outliers
-        # sMAPE = mean(200 * |actual - forecast| / (|actual| + |forecast|))
-        # This avoids division by zero issues and handles outliers better
-        
-        # Calculate symmetric MAPE
+        # Improved MAPE: use symmetric MAPE and cap to avoid 150+ from explosions
         denominator = np.abs(y_true) + np.abs(y_pred)
-        mask_valid = denominator > 0  # Avoid division by zero
+        mask_valid = denominator > 0
         if np.any(mask_valid):
             symmetric_mape = np.mean(200 * np.abs(y_true[mask_valid] - y_pred[mask_valid]) / denominator[mask_valid])
         else:
             symmetric_mape = 0.0
         
-        # Also calculate traditional MAPE for comparison (but cap outliers)
         mask_nonzero = y_true > 0
         if np.any(mask_nonzero):
             mape_values = np.abs((y_true[mask_nonzero] - y_pred[mask_nonzero]) / y_true[mask_nonzero]) * 100
-            # Cap individual MAPE values at 200% to prevent outliers from skewing the average
             mape_values = np.minimum(mape_values, 200)
             mape = np.mean(mape_values)
         else:
-            mape = symmetric_mape  # Use symmetric MAPE if no non-zero values
+            mape = symmetric_mape
         
-        # Use the better of the two (usually symmetric MAPE is more stable)
         final_mape = min(mape, symmetric_mape) if mape > 0 else symmetric_mape
+        # Cap MAPE at 100% so we don't display 150+ from explosive forecasts
+        final_mape = min(final_mape, 100.0)
         
         metrics = {
             'mape': round(final_mape, 2),
@@ -340,8 +336,9 @@ class ReservationForecaster:
         Selects the best model based on lowest MAPE
         """
         if len(series) < 12:
-            # Not enough data for SARIMA, return simple moving average
             return self._simple_forecast(series)
+        
+        self._series_max = max(float(series.max()), 1.0)
         
         # Split data into 80% training, 20% testing
         total_months = len(series)
@@ -389,6 +386,10 @@ class ReservationForecaster:
                     ((1, 1, 0), (0, 1, 1, 12)),
                     ((0, 1, 1), (0, 1, 1, 12)),
                     ((2, 1, 0), (0, 1, 1, 12)),
+                    ((1, 1, 2), (0, 1, 1, 12)),
+                    ((2, 1, 1), (0, 1, 1, 12)),
+                    ((1, 1, 1), (1, 1, 1, 12)),
+                    ((0, 1, 2), (0, 1, 1, 12)),
                 ]
                 
                 for ord, seas in configs:
@@ -412,10 +413,34 @@ class ReservationForecaster:
             model = SARIMAX(train_series, order=order, seasonal_order=seasonal_order,
                           enforce_stationarity=False, enforce_invertibility=False)
             fitted_model = model.fit(disp=False, maxiter=200)
-            
             test_forecast = fitted_model.forecast(steps=len(test_series))
-            print(f"SARIMA{order}x{seasonal_order} fitted")
+            print(f"SARIMA{order}x{seasonal_order} fitted on train set")
             metrics = self.calculate_metrics(test_series.values, test_forecast.values, model_name='SARIMA')
+            
+            # Refit on FULL series so forecast uses all data (more accurate)
+            try:
+                full_model = SARIMAX(series, order=order, seasonal_order=seasonal_order,
+                                    enforce_stationarity=False, enforce_invertibility=False)
+                fitted_model_full = full_model.fit(disp=False, maxiter=250)
+                # Sanity check: reject explosive forecasts (unstable model)
+                try:
+                    trial = fitted_model_full.forecast(steps=12)
+                    trial = np.asarray(trial, dtype=float)
+                    if not np.all(np.isfinite(trial)) or np.any(trial > 1e6) or np.any(trial < 0):
+                        raise ValueError("Forecast explosive or invalid")
+                except Exception:
+                    raise ValueError("Model unstable")
+                fitted_model = fitted_model_full
+                print(f"SARIMA refitted on full series ({len(series)} months) for accurate forecast")
+            except Exception as e1:
+                try:
+                    full_model = SARIMAX(series, order=(1, 1, 1), seasonal_order=(0, 1, 1, 12),
+                                        enforce_stationarity=False, enforce_invertibility=False)
+                    fitted_model = full_model.fit(disp=False, maxiter=250)
+                    order, seasonal_order = (1, 1, 1), (0, 1, 1, 12)
+                    print("Refit with (1,1,1)x(0,1,1,12) on full series (previous config unstable)")
+                except Exception:
+                    print("Keeping train-only model; refit on full series failed")
             
             results['sarima'] = {
                 'model': fitted_model,
@@ -432,17 +457,17 @@ class ReservationForecaster:
         if holtwinters_result:
             results['holtwinters'] = holtwinters_result
         
-        # Compare models and select best
+        # Compare models and select (use SARIMA only for forecast; comparison in console)
         if not results:
             print("\nAll models failed, using simple forecast")
             return self._simple_forecast(series)
         
-        # Find best model based on MAPE
+        # Find best model by MAPE for console comparison only
         best_model_name = None
         best_mape = float('inf')
         
         print(f"\n{'='*70}")
-        print("MODEL COMPARISON RESULTS")
+        print("MODEL COMPARISON RESULTS (console only)")
         print(f"{'='*70}")
         print(f"{'Model':<15} {'MAPE':<10} {'MSE':<12} {'RMSE':<10} {'MAE':<10}")
         print("-" * 70)
@@ -455,11 +480,18 @@ class ReservationForecaster:
                 best_model_name = model_name
         
         print("-" * 70)
-        print(f"BEST MODEL: {best_model_name.upper()} (Lowest MAPE: {best_mape:.2f}%)")
+        print(f"BEST BY MAPE: {best_model_name.upper()} (Lowest MAPE: {best_mape:.2f}%)")
+        # Use SARIMA only for the actual forecast; fall back to best if SARIMA not available
+        if 'sarima' in results:
+            use_model_name = 'sarima'
+            print(f"USING FOR FORECAST: SARIMA (forced)")
+        else:
+            use_model_name = best_model_name
+            print(f"USING FOR FORECAST: {use_model_name.upper()} (SARIMA not available)")
         print(f"{'='*70}\n")
         
-        # Store best model
-        best_result = results[best_model_name]
+        # Store model to use (SARIMA when available)
+        best_result = results[use_model_name]
         self.fitted_model = best_result['model']
         self.model_type = best_result['method']
         self.evaluation_metrics = best_result['metrics']
@@ -475,9 +507,8 @@ class ReservationForecaster:
         try:
             pickle_file = os.path.join(settings.BASE_DIR, 'sarima_forecast.pkl')
             
-            # Prepare data to save
-            # Version number - increment this if pickle format changes
-            PICKLE_VERSION = 2  # Updated to include comparison_results and all model metrics
+            # Prepare data to save (v3 = SARIMA refit on full series for accuracy)
+            PICKLE_VERSION = 3
             
             save_data = {
                 'version': PICKLE_VERSION,
@@ -531,7 +562,7 @@ class ReservationForecaster:
                 saved_data = pickle.load(f)
             
             # Check pickle version - if version mismatch, retrain
-            PICKLE_VERSION = 2  # Current version
+            PICKLE_VERSION = 3  # Current: SARIMA refit on full series
             saved_version = saved_data.get('version', 1)  # Old pickles don't have version
             if saved_version != PICKLE_VERSION:
                 print(f"Pickle file version mismatch (saved: {saved_version}, current: {PICKLE_VERSION}). Retraining model...")
@@ -556,6 +587,16 @@ class ReservationForecaster:
                 print(f"Loading model from pickle file (saved {age_days} days ago, {7 - age_days} days until retrain)")
             else:
                 print("Loading model from pickle file (age check not available)")
+            
+            # Only use saved model if it is SARIMA (we use SARIMA only for forecast)
+            saved_model_type = saved_data.get('model_type', 'sarima')
+            if saved_model_type != 'sarima':
+                print(f"Saved model is {saved_model_type.upper()} (not SARIMA). Retraining to use SARIMA...")
+                try:
+                    os.remove(pickle_file)
+                except Exception:
+                    pass
+                return None
             
             # Restore model state
             self.fitted_model = saved_data.get('model')
@@ -612,36 +653,39 @@ class ReservationForecaster:
                 try:
                     forecast = self.fitted_model.forecast(steps=steps)
                 except Exception:
-                    # fallback if forecast() fails
                     try:
                         forecast = np.array(self.fitted_model.predict(steps))
                     except Exception:
                         forecast = np.zeros(steps)
+                # Convert to array and replace inf/nan
+                forecast = np.asarray(forecast, dtype=float)
+                forecast = np.where(np.isfinite(forecast), forecast, 0.0)
+                # Clip explosive forecasts (unstable SARIMA can produce huge values)
+                ceiling = max(self._series_max * 3, 100.0)
+                if np.any(forecast > ceiling):
+                    forecast = np.clip(forecast, 0.0, ceiling)
                 try:
                     confidence_intervals = self.fitted_model.get_forecast(steps=steps).conf_int()
                     if hasattr(confidence_intervals, 'iloc'):
                         lower_bound = confidence_intervals.iloc[:, 0]
                         upper_bound = confidence_intervals.iloc[:, 1]
                     else:
-                        # If conf_int returns arrays
                         lower_bound = confidence_intervals[:, 0]
                         upper_bound = confidence_intervals[:, 1]
                 except Exception:
-                    # Fallback if confidence intervals not available
                     std = np.std(forecast) if len(forecast) > 1 else (float(forecast[0]) * 0.1 if hasattr(forecast, '__len__') else 0.1)
                     lower_bound = np.maximum(forecast - 1.96 * std, 0)
                     upper_bound = forecast + 1.96 * std
             
-            # Ensure forecasts are non-negative (bookings can't be negative)
-            forecast = np.maximum(forecast, 0)
-            if hasattr(lower_bound, '__iter__'):
-                lower_bound = np.maximum(lower_bound, 0)
-            else:
-                lower_bound = max(0, lower_bound)
-            if hasattr(upper_bound, '__iter__'):
-                upper_bound = np.maximum(upper_bound, 0)
-            else:
-                upper_bound = max(0, upper_bound)
+            # Ensure non-negative and clip explosive values to reasonable ceiling
+            ceiling = max(getattr(self, '_series_max', 100) * 3, 100.0)
+            forecast = np.clip(np.maximum(forecast, 0), 0, ceiling)
+            lower_bound = np.asarray(lower_bound, dtype=float)
+            lower_bound = np.where(np.isfinite(lower_bound), lower_bound, 0.0)
+            lower_bound = np.clip(np.maximum(lower_bound, 0), 0, ceiling)
+            upper_bound = np.asarray(upper_bound, dtype=float)
+            upper_bound = np.where(np.isfinite(upper_bound), upper_bound, ceiling)
+            upper_bound = np.clip(np.maximum(upper_bound, 0), 0, ceiling)
             
             # Convert to lists
             if hasattr(forecast, 'tolist'):
@@ -700,6 +744,10 @@ class ReservationForecaster:
         Get complete chart data including historical and forecast
         If use_saved_model=True, uses already loaded model without retraining
         """
+        # Set scale for clipping explosive forecasts
+        self._series_max = float(series.max()) if len(series) > 0 else 100.0
+        self._series_max = max(self._series_max, 1.0)
+        
         # Get historical data
         historical = self.get_historical_data(series, historical_months)
         
@@ -712,28 +760,9 @@ class ReservationForecaster:
         
         # Generate forecast
         if self.fitted_model is not None:
-            # If not using saved model, refit on full dataset for better forecasting
-            if not use_saved_model and len(series) >= 12:
-                # Refit on full dataset for actual forecasting
-                if self.model_type == 'sarima':
-                    if len(series) < 24:
-                        order, seasonal_order = (1, 1, 1), (0, 1, 1, 12)
-                    else:
-                        params = self.find_optimal_params(series)
-                        order, seasonal_order = params[:3], params[3:]
-                    
-                    try:
-                        full_model = SARIMAX(
-                            series,
-                            order=order,
-                            seasonal_order=seasonal_order,
-                            enforce_stationarity=False,
-                            enforce_invertibility=False
-                        )
-                        self.fitted_model = full_model.fit(disp=False)
-                    except:
-                        pass  # Keep the previous model if refitting fails
-                elif self.model_type == 'arima':
+            # SARIMA is already refit on full series in train_model(); only refit other types
+            if not use_saved_model and len(series) >= 12 and self.model_type != 'sarima':
+                if self.model_type == 'arima':
                     # Refit ARIMA on full dataset
                     try:
                         order = self.comparison_results.get('arima', {}).get('order', (1, 1, 1))

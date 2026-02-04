@@ -1,6 +1,11 @@
 
 $(function () {
   console.log("Accounts.js loaded"); // Debug log
+  // Debug: log Add User button state on load
+  var addUserBtn = document.getElementById("addUserBtn");
+  if (addUserBtn) {
+    console.log("[Add User] On load - data-is-super-admin attr:", addUserBtn.getAttribute("data-is-super-admin"));
+  }
 
   // Initialize DataTable without its built-in search box
   var table = $("#usersTable").DataTable({
@@ -48,7 +53,7 @@ $(function () {
       try {
         // Get the table instance
         const tableInstance = $("#usersTable").DataTable();
-        
+
         if (!tableInstance) {
           console.error("DataTable instance not found!");
           $("#customSearch").removeClass('searching');
@@ -57,33 +62,33 @@ $(function () {
 
         // Clear any existing search first
         tableInstance.search('');
-        
+
         // Apply new search if there's a value
         if (searchValue) {
           tableInstance.search(searchValue).draw();
         } else {
           tableInstance.search('').draw();
         }
-        
+
         console.log("DataTables search executed successfully");
-        
+
         // Force a redraw to ensure search is applied
         tableInstance.draw(false);
-        
+
         // Debug: Check actual filtered rows BEFORE getting page info
         const filteredRows = tableInstance.rows({ search: 'applied' }).count();
         const totalRows = tableInstance.rows().count();
         console.log(`Filtered rows: ${filteredRows}, Total rows: ${totalRows}`);
-        
+
         // Show search results count - use filtered count
         const info = tableInstance.page.info();
         console.log(`Page info - recordsDisplay: ${info.recordsDisplay}, recordsTotal: ${info.recordsTotal}, recordsFiltered: ${info.recordsFiltered || 'N/A'}`);
-        
+
         // Additional debug: check if search actually filtered
         if (searchValue && filteredRows === totalRows) {
           console.warn("WARNING: Search did not filter any rows! Search value:", searchValue);
           // Try manual filtering as fallback
-          tableInstance.rows().every(function() {
+          tableInstance.rows().every(function () {
             const rowData = this.data();
             const rowText = rowData.join(' ').toLowerCase();
             if (!rowText.includes(searchValue.toLowerCase())) {
@@ -405,19 +410,54 @@ $(function () {
     });
   });
 
-  // Handle Add User Form Submit
-  $("#addUserForm").on("submit", function (e) {
+  // Add User button: Super Admin -> choice modal; Admin -> staff modal directly
+  $("#addUserBtn").on("click", function () {
+    const rawAttr = $(this).attr("data-is-super-admin");
+    const dataVal = $(this).data("is-super-admin");
+    // Trim: template may output newlines/spaces around "true"
+    const isSuperAdmin = (String(rawAttr || "").trim() === "true") || (String(dataVal || "").trim() === "true");
+    console.log("[Add User] Button clicked");
+    console.log("[Add User] data-is-super-admin (attr):", JSON.stringify(rawAttr), "type:", typeof rawAttr);
+    console.log("[Add User] data-is-super-admin (.data()):", JSON.stringify(dataVal), "type:", typeof dataVal);
+    console.log("[Add User] isSuperAdmin:", isSuperAdmin);
+    if (isSuperAdmin) {
+      console.log("[Add User] Showing choice modal (Add Admin or Add Staff)");
+      const choiceModal = new bootstrap.Modal(document.getElementById("addUserChoiceModal"));
+      choiceModal.show();
+    } else {
+      console.log("[Add User] Showing Add Staff modal only");
+      const staffModal = new bootstrap.Modal(document.getElementById("addStaffModal"));
+      staffModal.show();
+    }
+  });
+
+  // Choice modal: Add Admin -> show Add Admin modal
+  $("#choiceAddAdminBtn").on("click", function () {
+    bootstrap.Modal.getInstance(document.getElementById("addUserChoiceModal")).hide();
+    setTimeout(function () {
+      const adminModal = new bootstrap.Modal(document.getElementById("addAdminModal"));
+      adminModal.show();
+    }, 300);
+  });
+
+  // Choice modal: Add Staff -> show Add Staff modal
+  $("#choiceAddStaffBtn").on("click", function () {
+    bootstrap.Modal.getInstance(document.getElementById("addUserChoiceModal")).hide();
+    setTimeout(function () {
+      const staffModal = new bootstrap.Modal(document.getElementById("addStaffModal"));
+      staffModal.show();
+    }, 300);
+  });
+
+  // Handle Add Admin Form Submit
+  $("#addAdminForm").on("submit", function (e) {
     e.preventDefault();
-
-    // Check if passwords match
-    const password = $("#password").val();
-    const confirmPassword = $("#confirmPassword").val();
-
+    const password = $("#admin_password").val();
+    const confirmPassword = $("#admin_confirmPassword").val();
     if (password !== confirmPassword) {
       showNotification("Error", "Passwords do not match.", false);
       return;
     }
-
     $.ajax({
       url: $(this).attr("action"),
       type: "POST",
@@ -425,22 +465,52 @@ $(function () {
       success: function (response) {
         if (response.status === "success") {
           showNotification("Success", response.message, true);
-          $("#addUserModal").modal("hide");
-          $("#addUserForm")[0].reset();
-          // Refresh the page after a short delay
-          setTimeout(() => {
-            location.reload();
-          }, 1500);
+          var adminModalEl = document.getElementById("addAdminModal");
+          if (adminModalEl) {
+            var inst = bootstrap.Modal.getInstance(adminModalEl);
+            if (inst) inst.hide();
+          }
+          document.getElementById("addAdminForm").reset();
+          setTimeout(() => location.reload(), 1500);
         } else {
           showNotification("Error", response.message, false);
         }
       },
-      error: function (xhr, errmsg, err) {
-        showNotification(
-          "Error",
-          "An error occurred while adding the user. Please try again.",
-          false
-        );
+      error: function () {
+        showNotification("Error", "An error occurred while adding the admin. Please try again.", false);
+      },
+    });
+  });
+
+  // Handle Add Staff Form Submit
+  $("#addStaffForm").on("submit", function (e) {
+    e.preventDefault();
+    const password = $("#staff_password").val();
+    const confirmPassword = $("#staff_confirmPassword").val();
+    if (password !== confirmPassword) {
+      showNotification("Error", "Passwords do not match.", false);
+      return;
+    }
+    $.ajax({
+      url: $(this).attr("action"),
+      type: "POST",
+      data: $(this).serialize(),
+      success: function (response) {
+        if (response.status === "success") {
+          showNotification("Success", response.message, true);
+          var staffModalEl = document.getElementById("addStaffModal");
+          if (staffModalEl) {
+            var inst = bootstrap.Modal.getInstance(staffModalEl);
+            if (inst) inst.hide();
+          }
+          document.getElementById("addStaffForm").reset();
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showNotification("Error", response.message, false);
+        }
+      },
+      error: function () {
+        showNotification("Error", "An error occurred while adding the staff. Please try again.", false);
       },
     });
   });

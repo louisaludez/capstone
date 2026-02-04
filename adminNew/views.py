@@ -112,14 +112,48 @@ def admin_home(request):
         "growth_percentage": f"{growth_percentage:.1f}",
     })
 
+def _sanitize_forecast_for_json(obj):
+    """Convert numpy types to native Python and cap huge metric values for JSON."""
+    import numpy as np
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            out[k] = _sanitize_forecast_for_json(v)
+        if 'metrics' in out:
+            m = out['metrics']
+            for key in list(m.keys()):
+                v = m[key]
+                try:
+                    if isinstance(v, (np.integer, np.int64, np.int32)):
+                        m[key] = int(v)
+                    elif isinstance(v, (np.floating, np.float64, np.float32)):
+                        x = float(v)
+                        m[key] = round(min(x, 1e10), 2) if np.isfinite(x) else 0
+                    elif isinstance(v, (int, float)):
+                        x = float(v)
+                        m[key] = round(min(x, 1e10), 2) if abs(x) != float('inf') and x == x else 0
+                except (TypeError, ValueError):
+                    m[key] = 0
+        return out
+    if isinstance(obj, list):
+        return [_sanitize_forecast_for_json(x) for x in obj]
+    if isinstance(obj, (np.integer, np.int64, np.int32)):
+        return int(obj)
+    if isinstance(obj, (np.floating, np.float64, np.float32)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return [float(x) if isinstance(x, (np.floating, np.float64, np.float32)) else int(x) for x in obj.tolist()]
+    return obj
+
+
 @require_GET
 @decorator.admin_required
 def admin_home_forecast_json(request):
     from .sarima_forecast import get_reservation_forecast
-    import json
     # Check if force_retrain parameter is provided
     force_retrain = request.GET.get('force_retrain', 'false').lower() == 'true'
     data = get_reservation_forecast(force_retrain=force_retrain) or {}
+    data = _sanitize_forecast_for_json(data)
     return JsonResponse(data, safe=False)
 
 @require_GET
@@ -227,6 +261,12 @@ def add_user(request):
             # Restrict roles to only 'staff' or 'admin'
             if role not in ['staff', 'admin']:
                 return JsonResponse({'status': 'error', 'message': 'Invalid role. Allowed roles are Staff or Admin.'})
+
+            # Only Super Admin can create admin users; Admin can only create staff
+            user_role = getattr(request.user, 'role', None)
+            is_super_admin = getattr(request.user, 'is_superuser', False) or (user_role and str(user_role).upper() == 'SUPER_ADMIN')
+            if role == 'admin' and not is_super_admin:
+                return JsonResponse({'status': 'error', 'message': 'Only Super Admin can create admin users.'})
 
             if CustomUser.objects.filter(username=username).exists():
                 return JsonResponse({'status': 'error', 'message': 'Username already exists'})
