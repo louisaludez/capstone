@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 
 def role_required(*required_roles):
     """Restrict access to users whose `request.user.role` matches one of required_roles.
+    When SUPER_ADMIN is required, Django is_superuser is also allowed.
 
     Usage:
         @role_required('staff')
@@ -17,7 +18,13 @@ def role_required(*required_roles):
         @login_required
         def _wrapped_view(request, *args, **kwargs):
             user_role = getattr(request.user, 'role', None)
+            role_upper = str(user_role).upper() if user_role else ''
+            # Allow if role matches, or if SUPER_ADMIN required and user is Django superuser
             if user_role is not None and user_role in required_roles:
+                return view_func(request, *args, **kwargs)
+            if 'SUPER_ADMIN' in required_roles and getattr(request.user, 'is_superuser', False):
+                return view_func(request, *args, **kwargs)
+            if role_upper == 'SUPER_ADMIN' and 'SUPER_ADMIN' in required_roles:
                 return view_func(request, *args, **kwargs)
             raise PermissionDenied
         return _wrapped_view

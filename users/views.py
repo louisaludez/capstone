@@ -30,16 +30,8 @@ def login(request):
             
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            # Debug logging
-            print(f"=== USER LOGIN ===")
-            print(f"Username: {user.username}")
-            print(f"Role: {user.role}")
-            print(f"Role Type: {type(user.role)}")
-            print(f"Is Superuser: {user.is_superuser}")
-            print(f"==================")
-            
             auth_login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
+           
             
             # Check if there's a 'next' parameter for redirect after login
             next_url = request.GET.get('next')
@@ -57,38 +49,16 @@ def login(request):
             if next_url:
                 return redirect(next_url)
             
-            # Redirect based on role
-            if getattr(user, 'role', '').upper() == 'SUPER_ADMIN':
+            # Redirect based on role (system has 3 roles: SUPER_ADMIN, admin, staff)
+            user_role = getattr(user, 'role', None)
+            role_upper = str(user_role).upper() if user_role else ''
+            is_super_admin = getattr(user, 'is_superuser', False) or role_upper == 'SUPER_ADMIN'
+            
+            if is_super_admin:
                 return redirect('super_admin_portal')
-            if user.role == 'admin':
-                return redirect('admin_home')  
-            elif user.role == 'personnel':
-                return redirect('HomeStaff')
-            elif user.role == 'staff':
-                return redirect('HomeStaff')
-            elif user.role == 'supervisor_laundry':
-                return redirect('supervisor_laundry_home')          
-            elif user.role == 'staff_laundry':
-                return redirect('staff_laundry_home')
-            elif user.role == 'supervisor_concierge':
-                return redirect('concierge:dashboard')
-            elif user.role == 'supervisor_cafe':
-                return redirect('supervisor_cafe_home')
-            elif user.role == 'supervisor_room_service':
-                return redirect('supervisor_home_service_home')
-            elif user.role == 'supervisor_fnb':
-                return redirect('supervisor_fnb_home')
-            elif user.role == 'staff_concierge':
-                return redirect('concierge:dashboard')
-            elif user.role == 'staff_cafe':
-                return redirect('staff_cafe_home')
-            elif user.role == 'staff_restaurant':
-                return redirect('staff_restaurant_home')
-            elif user.role == 'staff_room_service':
-                return redirect('room_service:dashboardrm')
-            elif user.role == 'staff_fnb':
-                return redirect('staff_fnb_home')
-            # Fallback redirect if role doesn't match any case
+            if user_role == 'admin':
+                return redirect('admin_home')
+            # staff or any other role → staff home
             return redirect('HomeStaff')
         else:
             messages.error(request, "Invalid username or password. Please try again.")
@@ -98,13 +68,16 @@ def login(request):
 
 def logout_view(request):
     auth_logout(request)
-    messages.info(request, "You have been successfully logged out.")
+   
     return redirect('login')
 
 
 @decorator.role_required('SUPER_ADMIN')
 def super_admin_portal(request):
-    # Only SUPER_ADMIN can access this portal selection page
-    if not hasattr(request.user, 'role') or str(request.user.role).upper() != 'SUPER_ADMIN':
+    # SUPER_ADMIN or Django is_superuser can access this portal
+    user_role = getattr(request.user, 'role', None)
+    role_upper = str(user_role).upper() if user_role else ''
+    is_super_admin = getattr(request.user, 'is_superuser', False) or role_upper == 'SUPER_ADMIN'
+    if not is_super_admin:
         return redirect('login')
     return render(request, 'users/super_admin_portal.html')
