@@ -31,32 +31,32 @@ document
 
     // Update room dropdown to disable rooms under maintenance or in housekeeping
     updateWalkinRoomDropdownAvailability();
-    
+
     // Ensure flatpickr instances are working on date fields
-    setTimeout(function() {
+    setTimeout(function () {
       const checkinInput = document.getElementById("checkin");
       const checkoutInput = document.getElementById("checkout");
-      
+
       if (checkinInput && !checkinInput.disabled) {
         // Reinitialize if needed
         if (!window.wiCheckinPicker || !checkinInput._flatpickr) {
           try {
             if (window.wiCheckinPicker) window.wiCheckinPicker.destroy();
-          } catch(e) {}
+          } catch (e) { }
           window.wiCheckinPicker = flatpickr("#checkin", { dateFormat: "Y-m-d", allowInput: true, minDate: "today" });
         }
       }
-      
+
       if (checkoutInput && !checkoutInput.disabled) {
         // Reinitialize if needed
         if (!window.wiCheckoutPicker || !checkoutInput._flatpickr) {
           try {
             if (window.wiCheckoutPicker) window.wiCheckoutPicker.destroy();
-          } catch(e) {}
+          } catch (e) { }
           window.wiCheckoutPicker = flatpickr("#checkout", { dateFormat: "Y-m-d", allowInput: true, minDate: "today" });
         }
       }
-      
+
       // Update book button state when modal opens
       if (window.updateWalkinBookButtonState) {
         window.updateWalkinBookButtonState();
@@ -324,16 +324,17 @@ function printReceipt(data, receiptNumber) {
   const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-  // Calculate days stayed
+  // Calculate days stayed (same-day check-in/check-out = 1 day)
   const checkIn = new Date(data.check_in);
   const checkOut = new Date(data.check_out);
-  const daysStayed = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+  let daysStayed = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+  if (daysStayed < 1) daysStayed = 1;
 
-  // Room type to price mapping (must match the form calculation)
+  // Room type to price mapping (must match walk-in-modal.html)
   const roomPrices = {
-    'Standard': 1500,
-    'Family': 2500,
-    'Deluxe': 4500
+    'Standard': 3500,
+    'Family': 4700,
+    'Deluxe': 8900
   };
 
   // Calculate add-on totals first (ensure values are parsed as numbers)
@@ -351,7 +352,7 @@ function printReceipt(data, receiptNumber) {
   // Extract room type from room selection
   const roomSelect = document.querySelector(".walkin-room");
   let roomType = 'Deluxe'; // Default
-  let roomPrice = 4500; // Default
+  let roomPrice = 8900; // Default (Deluxe)
 
   if (roomSelect && roomSelect.options[roomSelect.selectedIndex]) {
     const roomText = roomSelect.options[roomSelect.selectedIndex].text;
@@ -768,22 +769,23 @@ $(".walkin-book-btn").on("click", function (event) {
           const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
           const receiptNumber = response.receipt_number || response.reference_number || "00001";
 
-          // Calculate days stayed
+          // Calculate days stayed (same-day check-in/check-out = 1 day)
           const checkIn = new Date(data.check_in);
           const checkOut = new Date(data.check_out);
-          const daysStayed = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+          let daysStayed = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+          if (daysStayed < 1) daysStayed = 1;
 
-          // Room type to price mapping
+          // Room type to price mapping (must match walk-in-modal.html)
           const roomPrices = {
-            'Standard': 1500,
-            'Family': 2500,
-            'Deluxe': 4500
+            'Standard': 3500,
+            'Family': 4700,
+            'Deluxe': 8900
           };
 
           // Extract room type from room selection
           const roomSelect = document.querySelector(".walkin-room");
           let roomType = 'Deluxe';
-          let roomPrice = 4500;
+          let roomPrice = 8900;
 
           if (roomSelect && roomSelect.options[roomSelect.selectedIndex]) {
             const roomText = roomSelect.options[roomSelect.selectedIndex].text;
@@ -895,11 +897,11 @@ $(".walkin-book-btn").on("click", function (event) {
     },
     error: function (xhr, status, error) {
       console.log("Walk-in booking error:", xhr, status, error);
-      
+
       // Parse error response from backend
       let errorMessage = "Failed to book room. Please try again.";
       let errorDetails = [];
-      
+
       try {
         if (xhr.responseJSON) {
           // If backend returns JSON with error details
@@ -907,8 +909,8 @@ $(".walkin-book-btn").on("click", function (event) {
             errorMessage = xhr.responseJSON.message;
           }
           if (xhr.responseJSON.errors) {
-            errorDetails = Array.isArray(xhr.responseJSON.errors) 
-              ? xhr.responseJSON.errors 
+            errorDetails = Array.isArray(xhr.responseJSON.errors)
+              ? xhr.responseJSON.errors
               : Object.values(xhr.responseJSON.errors).flat();
           }
           if (xhr.responseJSON.error) {
@@ -921,21 +923,21 @@ $(".walkin-book-btn").on("click", function (event) {
             errorMessage = response.message;
           }
           if (response.errors) {
-            errorDetails = Array.isArray(response.errors) 
-              ? response.errors 
+            errorDetails = Array.isArray(response.errors)
+              ? response.errors
               : Object.values(response.errors).flat();
           }
         }
       } catch (e) {
         console.log("Error parsing response:", e);
       }
-      
+
       // Show error modal with details
       let errorHtml = `
         <div style="text-align: left; padding: 10px;">
           <p style="margin-bottom: 10px; font-weight: bold; color: #dc3545;">${errorMessage}</p>
       `;
-      
+
       if (errorDetails.length > 0) {
         errorHtml += `
           <p style="margin-bottom: 10px; font-weight: 600;">Please fix the following issues:</p>
@@ -948,9 +950,9 @@ $(".walkin-book-btn").on("click", function (event) {
           <p style="color: #666; font-size: 14px;">Please check all required fields and try again.</p>
         `;
       }
-      
+
       errorHtml += `</div>`;
-      
+
       Swal.fire({
         icon: "error",
         title: "Booking Failed",
@@ -960,7 +962,7 @@ $(".walkin-book-btn").on("click", function (event) {
         width: 500,
         padding: "2em"
       });
-      
+
       // Re-show the modal so user can fix errors
       walkinOverlay.style.display = "flex";
 

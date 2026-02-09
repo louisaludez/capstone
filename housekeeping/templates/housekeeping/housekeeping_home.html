@@ -257,6 +257,7 @@
               
               
               
+              
             
             
             
@@ -292,7 +293,9 @@
 
 
 
+
             {% else %}
+              
               
               
               
@@ -334,6 +337,7 @@
 
 
 
+
             {% endif %}">R{{ room.number }}</div>
         {% endfor %}
         <div class="div13">
@@ -351,15 +355,16 @@
           <span>Pending Requests</span>
         </div>
       </div>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
       <div id="room-popover" class="room-popover hidden">
         <div class="popover-arrow"></div>
         <div class="popover-content">
           <h4 class="select-request">Select Requests</h4>
-
-          <label><input type="radio" name="req" value="Clean room" />Clean room.</label><br />
-          <label><input type="radio" name="req" value="Refill toiletries" />Refill toiletries.</label><br />
-          <label><input type="radio" name="req" value="Refill convenience items" />Refill convenience items.</label><br />
-          <label class=""><input type="radio" name="req" value="Change linens" />Change linens. <span>(Bathrobes, Towels, Bedsheets, Pillowcases)</span></label>
+          <p class="text-muted small mb-2">You may select multiple options.</p>
+          <label class="d-block"><input type="checkbox" name="request_types" value="Clean room" />Clean room.</label>
+          <label class="d-block"><input type="checkbox" name="request_types" value="Refill toiletries" />Refill toiletries.</label>
+          <label class="d-block"><input type="checkbox" name="request_types" value="Refill convenience items" />Refill convenience items.</label>
+          <label class="d-block"><input type="checkbox" name="request_types" value="Change linens" />Change linens. <span class="text-muted">(Bathrobes, Towels, Bedsheets, Pillowcases)</span></label>
           <div class="status-buttons">
             <div class="status-buttons-title">Update Status</div>
             <div class="status-buttons-grid">

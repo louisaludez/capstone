@@ -296,17 +296,18 @@
         return
       }
   
-      // Calculate number of nights
+      // Calculate number of nights (same-day check-in/check-out = 1 day)
       const checkinDate = new Date(checkinField.value)
       const checkoutDate = new Date(checkoutField.value)
   
-      if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate <= checkinDate) {
+      if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime()) || checkoutDate < checkinDate) {
         balanceField.value = ''
         return
       }
   
       const timeDiff = checkoutDate.getTime() - checkinDate.getTime()
-      const nights = Math.ceil(timeDiff / (1000 * 3600 * 24))
+      let nights = Math.ceil(timeDiff / (1000 * 3600 * 24))
+      if (nights < 1) nights = 1
   
       // Calculate add-on costs - use addonsData from walkin.js if available, otherwise read from DOM
       const addonsData = window.addonsData || { bed: 0, pillow: 0, towel: 0 }
@@ -525,13 +526,13 @@
         }
       }
   
-      // Check date validity and order (only if both dates are filled)
+      // Check date validity and order (check-out must be on or after check-in; same-day is valid = 1 day)
       if (checkinField && checkoutField && checkinField.value && checkoutField.value) {
         const checkin = new Date(checkinField.value)
         const checkout = new Date(checkoutField.value)
         if (isNaN(checkin.getTime()) || isNaN(checkout.getTime())) {
           hasErrors = true
-        } else if (checkout <= checkin) {
+        } else if (checkout < checkin) {
           hasErrors = true
         }
       }
@@ -776,173 +777,192 @@
     }
   
     // Make validation function globally accessible for walkin.js
+    // Re-query fields from the walk-in modal each time so we always validate the visible form
     window.validateWalkinForm = function () {
       let isValid = true
       const errors = []
+      const el = document.querySelector('.walkin-overlay')
+      const q = (sel) => (el ? el.querySelector(sel) : document.querySelector(sel))
+      const nameFieldV = q('.walkin-name')
+      const emailFieldV = q('.walkin-email')
+      const mobileFieldV = q('.walkin-mobile')
+      const dobFieldV = q('.walkin-birth')
+      const roomSelectV = q('.walkin-room')
+      const checkinFieldV = q('.walkin-check-in')
+      const checkoutFieldV = q('.walkin-check-out')
+      const adultsFieldV = q('.walkin-no-of-adults')
+      const childrenFieldV = q('.walkin-no-of-children')
+      const methodV = q('.walkin-payment-method')
+      const cardNumberFieldV = q('.walkin-card-number')
+      const expDateFieldV = q('.walkin-card-exp-date')
+      const cvcFieldV = q('.walkin-card-cvc')
   
-      // Clear all previous errors - only reset borders, no text messages
-      document.querySelectorAll('.walkin-field input, .walkin-field select').forEach((field) => {
+      // Clear all previous errors - only reset borders, no text messages (within modal)
+      const inputsToClear = el ? el.querySelectorAll('.walkin-field input, .walkin-field select') : document.querySelectorAll('.walkin-field input, .walkin-field select')
+      inputsToClear.forEach((field) => {
         field.style.borderColor = ''
         field.style.borderWidth = ''
       })
   
       // Validate Name
-      if (!nameField || !nameField.value.trim()) {
+      if (!nameFieldV || !nameFieldV.value.trim()) {
         isValid = false
-        if (nameField) showError(nameField, '')
+        if (nameFieldV) showError(nameFieldV, '')
         errors.push('Name is required')
       }
   
       // Validate Email
-      if (!emailField || !emailField.value.trim()) {
+      if (!emailFieldV || !emailFieldV.value.trim()) {
         isValid = false
-        if (emailField) showError(emailField, '')
+        if (emailFieldV) showError(emailFieldV, '')
         errors.push('Email is required')
-      } else if (emailField && !validateEmail(emailField.value)) {
+      } else if (emailFieldV && !validateEmail(emailFieldV.value)) {
         isValid = false
-        showError(emailField, '')
+        showError(emailFieldV, '')
         errors.push('Invalid email format')
       }
   
       // Validate Mobile
-      if (!mobileField || !mobileField.value.trim()) {
+      if (!mobileFieldV || !mobileFieldV.value.trim()) {
         isValid = false
-        if (mobileField) showError(mobileField, '')
+        if (mobileFieldV) showError(mobileFieldV, '')
         errors.push('Mobile number is required')
-      } else if (mobileField && !validateMobile(mobileField.value)) {
+      } else if (mobileFieldV && !validateMobile(mobileFieldV.value)) {
         isValid = false
-        showError(mobileField, '')
+        showError(mobileFieldV, '')
         errors.push('Invalid mobile number format')
       }
   
       // Validate Date of Birth (optional but must be valid if provided)
-      if (dobField && dobField.value && !validateDateOfBirth(dobField.value)) {
+      if (dobFieldV && dobFieldV.value && !validateDateOfBirth(dobFieldV.value)) {
         isValid = false
-        showError(dobField, '')
+        showError(dobFieldV, '')
         errors.push('Invalid date of birth')
       }
   
       // Validate Room
-      if (!roomSelect || !roomSelect.value || roomSelect.value === '') {
+      if (!roomSelectV || !roomSelectV.value || roomSelectV.value === '') {
         isValid = false
-        if (roomSelect) {
-          roomSelect.style.borderColor = '#dc3545'
-          roomSelect.style.borderWidth = '2px'
+        if (roomSelectV) {
+          roomSelectV.style.borderColor = '#dc3545'
+          roomSelectV.style.borderWidth = '2px'
         }
         errors.push('Please select a room')
       } else {
-        roomSelect.style.borderColor = ''
-        roomSelect.style.borderWidth = ''
+        if (roomSelectV) {
+          roomSelectV.style.borderColor = ''
+          roomSelectV.style.borderWidth = ''
+        }
       }
   
       // Validate Check-in Date
-      if (!checkinField || !checkinField.value) {
+      if (!checkinFieldV || !checkinFieldV.value) {
         isValid = false
-        if (checkinField) showError(checkinField, '')
+        if (checkinFieldV) showError(checkinFieldV, '')
         errors.push('Check-in date is required')
       }
   
       // Validate Check-out Date
-      if (!checkoutField || !checkoutField.value) {
+      if (!checkoutFieldV || !checkoutFieldV.value) {
         isValid = false
-        if (checkoutField) showError(checkoutField, '')
+        if (checkoutFieldV) showError(checkoutFieldV, '')
         errors.push('Check-out date is required')
       }
   
-      // Validate dates are valid and check-out is after check-in
-      if (checkinField && checkoutField && checkinField.value && checkoutField.value) {
-        const checkin = new Date(checkinField.value)
-        const checkout = new Date(checkoutField.value)
+      // Validate dates are valid and check-out is on or after check-in
+      if (checkinFieldV && checkoutFieldV && checkinFieldV.value && checkoutFieldV.value) {
+        const checkin = new Date(checkinFieldV.value)
+        const checkout = new Date(checkoutFieldV.value)
   
         if (isNaN(checkin.getTime())) {
           isValid = false
-          showError(checkinField, '')
+          showError(checkinFieldV, '')
           errors.push('Invalid check-in date')
         } else {
-          clearError(checkinField)
+          clearError(checkinFieldV)
         }
   
         if (isNaN(checkout.getTime())) {
           isValid = false
-          showError(checkoutField, '')
+          showError(checkoutFieldV, '')
           errors.push('Invalid check-out date')
         } else {
-          clearError(checkoutField)
+          clearError(checkoutFieldV)
         }
   
-        if (!isNaN(checkin.getTime()) && !isNaN(checkout.getTime()) && checkout <= checkin) {
+        if (!isNaN(checkin.getTime()) && !isNaN(checkout.getTime()) && checkout < checkin) {
           isValid = false
-          showError(checkoutField, '')
-          errors.push('Check-out date must be after check-in date')
+          showError(checkoutFieldV, '')
+          errors.push('Check-out date must be on or after check-in date')
         } else if (!isNaN(checkin.getTime()) && !isNaN(checkout.getTime())) {
-          clearError(checkoutField)
+          clearError(checkoutFieldV)
         }
       }
   
       // Validate Adults
-      if (!adultsField || !adultsField.value) {
+      if (!adultsFieldV || !adultsFieldV.value) {
         isValid = false
-        if (adultsField) showError(adultsField, '')
+        if (adultsFieldV) showError(adultsFieldV, '')
         errors.push('Number of adults is required')
-      } else if (adultsField) {
-        const adults = parseInt(adultsField.value, 10)
+      } else if (adultsFieldV) {
+        const adults = parseInt(adultsFieldV.value, 10)
         if (isNaN(adults) || adults < 1) {
           isValid = false
-          showError(adultsField, '')
+          showError(adultsFieldV, '')
           errors.push('At least 1 adult is required')
         } else {
-          clearError(adultsField)
+          clearError(adultsFieldV)
         }
       }
   
       // Validate Children (optional but must be valid if provided)
-      if (childrenField && childrenField.value) {
-        const children = parseInt(childrenField.value, 10)
+      if (childrenFieldV && childrenFieldV.value) {
+        const children = parseInt(childrenFieldV.value, 10)
         if (isNaN(children) || children < 0) {
           isValid = false
-          showError(childrenField, '')
+          showError(childrenFieldV, '')
           errors.push('Invalid number of children')
         } else {
-          clearError(childrenField)
+          clearError(childrenFieldV)
         }
       }
   
       // Validate Card fields if payment method is card
-      if (method && method.value === 'card') {
-        if (!cardNumberField || !cardNumberField.value.trim()) {
+      if (methodV && methodV.value === 'card') {
+        if (!cardNumberFieldV || !cardNumberFieldV.value.trim()) {
           isValid = false
-          if (cardNumberField) showError(cardNumberField, '')
+          if (cardNumberFieldV) showError(cardNumberFieldV, '')
           errors.push('Card number is required')
-        } else if (cardNumberField && !validateCardNumber(cardNumberField.value)) {
+        } else if (cardNumberFieldV && !validateCardNumber(cardNumberFieldV.value)) {
           isValid = false
-          showError(cardNumberField, '')
+          showError(cardNumberFieldV, '')
           errors.push('Invalid card number')
-        } else if (cardNumberField) {
-          clearError(cardNumberField)
+        } else if (cardNumberFieldV) {
+          clearError(cardNumberFieldV)
         }
   
-        if (!expDateField || !expDateField.value.trim()) {
+        if (!expDateFieldV || !expDateFieldV.value.trim()) {
           isValid = false
-          if (expDateField) showError(expDateField, '')
+          if (expDateFieldV) showError(expDateFieldV, '')
           errors.push('Expiration date is required')
-        } else if (expDateField && !validateExpDate(expDateField.value)) {
+        } else if (expDateFieldV && !validateExpDate(expDateFieldV.value)) {
           isValid = false
-          showError(expDateField, '')
+          showError(expDateFieldV, '')
           errors.push('Invalid expiration date')
-        } else if (expDateField) {
-          clearError(expDateField)
+        } else if (expDateFieldV) {
+          clearError(expDateFieldV)
         }
   
-        if (!cvcField || !cvcField.value.trim()) {
+        if (!cvcFieldV || !cvcFieldV.value.trim()) {
           isValid = false
-          if (cvcField) showError(cvcField, '')
+          if (cvcFieldV) showError(cvcFieldV, '')
           errors.push('CVC is required')
-        } else if (cvcField && !validateCVC(cvcField.value)) {
+        } else if (cvcFieldV && !validateCVC(cvcFieldV.value)) {
           isValid = false
-          showError(cvcField, '')
+          showError(cvcFieldV, '')
           errors.push('Invalid CVC')
-        } else if (cvcField) {
-          clearError(cvcField)
+        } else if (cvcFieldV) {
+          clearError(cvcFieldV)
         }
       }
   

@@ -102,12 +102,17 @@ def update_status(request):
     if request.method == 'POST':
         room_number = request.POST.get('room_no')
         status = request.POST.get('status')
-        request_type = request.POST.get('request_type')
+        # Support multiple request types (checkboxes) or single (legacy)
+        request_types = request.POST.getlist('request_types')
+        if not request_types and request.POST.get('request_type'):
+            request_types = [request.POST.get('request_type')]
+        if not request_types:
+            request_types = ['Room Status Update']
 
         print(f"POST data received:")
         print(f"  - Room Number: {room_number}")
         print(f"  - Status: {status}")
-        print(f"  - Request Type: {request_type}")
+        print(f"  - Request Types: {request_types}")
         print(f"  - All POST data: {dict(request.POST)}")
 
         # Check if status is "Under Maintenance" (case-insensitive)
@@ -150,52 +155,54 @@ def update_status(request):
         print(f"Guest name: {guest_name}")
 
         try:
-            print("Attempting to update/create housekeeping record...")
+            print("Attempting to update/create housekeeping record(s)...")
             # Check if status is "No requests"
             is_no_requests = status and ('no requests' in status.lower() or 'no request' in status.lower())
             
-            # For "Under Maintenance" and "No requests", use room_number and status as unique key
-            # For other statuses, use room_number and request_type as unique key
+            # For "Under Maintenance" and "No requests", one record per room (single status)
             if is_under_maintenance or is_no_requests:
-                # Use room_number and status as the key for maintenance/no requests status
-                # This allows one maintenance or no-requests record per room
-                # Delete any existing records for this room with different statuses first
                 Housekeeping.objects.filter(room_number=room_number).exclude(status=status).delete()
-                
+                request_type_display = request_types[0] if request_types else 'Room Status Update'
                 hk, created = Housekeeping.objects.update_or_create(
                     room_number=room_number,
                     status=status,
                     defaults={
-                        'request_type': request_type or 'Room Status Update',
+                        'request_type': request_type_display,
                         'guest_name': guest_name
                     }
                 )
+                message = f'Room {room_number} status updated to {status}.'
             else:
-                # For other statuses, use room_number and request_type as unique keys
-                # But first, delete any "No requests" or "Under Maintenance" records for this room
+                # For other statuses: create/update one record per selected request type
                 Housekeeping.objects.filter(
                     room_number=room_number
                 ).filter(
-                    Q(status__icontains='no requests') | 
-                    Q(status__icontains='no request') | 
-                    Q(status__icontains='maintenance') | 
+                    Q(status__icontains='no requests') |
+                    Q(status__icontains='no request') |
+                    Q(status__icontains='maintenance') |
                     Q(status__icontains='under maintenance')
                 ).delete()
-                
-            hk, created = Housekeeping.objects.update_or_create(
-                room_number=room_number,
-                request_type=request_type,
-                defaults={
-                    'status': status,
-                    'guest_name': guest_name
-                }
-            )
-            if created:
-                print(f"✓ New Housekeeping record created: {hk}")
-                message = f'New housekeeping record created for room {room_number}, service {request_type}, status {status}'
-            else:
-                print(f"✓ Housekeeping record updated: {hk}")
-                message = f'Housekeeping record for room {room_number}, service {request_type} updated to {status}'
+
+                created_count = 0
+                updated_count = 0
+                for request_type in request_types:
+                    hk, created = Housekeeping.objects.update_or_create(
+                        room_number=room_number,
+                        request_type=request_type,
+                        defaults={
+                            'status': status,
+                            'guest_name': guest_name
+                        }
+                    )
+                    if created:
+                        created_count += 1
+                    else:
+                        updated_count += 1
+
+                if created_count + updated_count == 1:
+                    message = f'Room {room_number}, {request_types[0]}: {status}'
+                else:
+                    message = f'Room {room_number}: {created_count + updated_count} request(s) set to {status}.'
 
             response_data = {
                 'message': message,

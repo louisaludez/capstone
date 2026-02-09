@@ -359,11 +359,16 @@ def create_laundry_order(request):
             date_time = data.get('date_time')
             payment_method = data.get('payment_method', 'cash')  # 'room' or 'cash'
 
-            # 💰 Pricing
+            # 💰 Pricing: base per bag + 25 PHP per specification
             BASE_PRICE_PER_BAG = 75.00
-            total_amount = BASE_PRICE_PER_BAG * no_bags
+            PRICE_PER_SPECIFICATION = 25.00
+            spec_count = 0
+            if specifications:
+                parts = [p.strip() for p in str(specifications).split(',') if p.strip()]
+                spec_count = len(parts)
+            total_amount = BASE_PRICE_PER_BAG * no_bags + PRICE_PER_SPECIFICATION * spec_count
 
-            print("📊 [DEBUG] Calculated total:", total_amount)
+            print("📊 [DEBUG] Calculated total:", total_amount, "(bags:", no_bags, ", specs:", spec_count, ")")
 
             # Booking lookup
             try:
@@ -389,21 +394,23 @@ def create_laundry_order(request):
             )
 
             print("✅ [DEBUG] LaundryTransaction created! ID:", transaction.id)
-            print ("Payment method:", payment_method)
-            # 💸 Update guest billing if charged to room
-            if payment_method == 'Charge to room':
-                print("💳 [DEBUG] Payment method is 'Charge to Room', updating guest billing.")
+            print("Payment method:", repr(payment_method))
+            # 💸 Update guest laundry_billing whenever charged to room (SOA uses this for balance)
+            pm = (payment_method or '').strip()
+            is_charge_to_room = (
+                pm == 'Charge to room' or pm.lower() == 'charge to room' or
+                pm == 'room' or 'charge' in pm.lower() and 'room' in pm.lower()
+            )
+            if is_charge_to_room:
+                print("💳 [DEBUG] Charge to room: updating guest.laundry_billing.")
                 try:
                     current_billing = float(guest.laundry_billing or 0)
-                    print(f"💰 [DEBUG] Current guest billing: {current_billing}")
-                except ValueError:
-                    print("⚠️ [WARN] Guest billing value invalid, resetting to 0")
+                except (ValueError, TypeError):
                     current_billing = 0
-
-                new_billing = current_billing + total_amount
+                new_billing = current_billing + float(total_amount)
                 guest.laundry_billing = str(new_billing)
-                guest.save()
-                print(f"💰 [DEBUG] Guest billing updated: {current_billing} → {new_billing}")
+                guest.save(update_fields=['laundry_billing'])
+                print(f"💰 [DEBUG] Guest laundry_billing updated: {current_billing} → {new_billing}")
 
             return JsonResponse({
                 'success': True,

@@ -458,14 +458,14 @@ def book_room(request):
                 except ValueError:
                     errors.append('Number of adults must be a valid number')
             
-            # Validate dates format and order
+            # Validate dates format and order (same-day check-in/check-out is allowed = 1 day)
             if check_in_date and check_out_date:
                 try:
                     check_in = datetime.strptime(check_in_date, '%Y-%m-%d').date()
                     check_out = datetime.strptime(check_out_date, '%Y-%m-%d').date()
                     
-                    if check_out <= check_in:
-                        errors.append('Check-out date must be after check-in date')
+                    if check_out < check_in:
+                        errors.append('Check-out date must be on or after check-in date')
                     
                     if check_in < datetime.now().date():
                         errors.append('Check-in date cannot be in the past')
@@ -502,14 +502,20 @@ def book_room(request):
                     'errors': errors
                 }, status=400)
 
-            # Create guest
+            # Create guest (date_of_birth is required on model; use default when not provided)
             print("[DEBUG] Creating guest")
+            guest_birth_raw = request.POST.get('guest_birth', '').strip()
+            try:
+                guest_dob = datetime.strptime(guest_birth_raw, '%Y-%m-%d').date() if guest_birth_raw else date(1900, 1, 1)
+            except ValueError:
+                guest_dob = date(1900, 1, 1)
             guest = Guest.objects.create(
                 name=guest_name,
-                address=request.POST.get('guest_address', ''),
-                zip_code=request.POST.get('guest_zip_code', ''),
+                address=request.POST.get('guest_address') or '',
+                zip_code=request.POST.get('guest_zip_code', '') or None,
                 email=guest_email,
-                date_of_birth=request.POST.get('guest_birth') or None
+                mobile=request.POST.get('guest_mobile', '').strip() or None,
+                date_of_birth=guest_dob
             )
             print(f"[DEBUG] Guest created: {guest}")
 
@@ -588,17 +594,17 @@ def book_room(request):
                 current_additional = 0.0
             guest.additional_charge_billing = str(current_additional + addons_total)
             
-            # Calculate billing based on room type and number of nights
+            # Calculate billing based on room type and number of nights (must match walk-in modal)
             room_prices = {
-                'standard': 1500,
-                'family': 2500,
-                'deluxe': 4500
+                'standard': 3500,
+                'family': 4700,
+                'deluxe': 8900
             }
             
             # Get room type from room number
             room_obj = Room.objects.get(room_number=room_number)
             room_type = room_obj.room_type
-            price_per_night = room_prices.get(room_type, 1500)
+            price_per_night = room_prices.get(room_type, 3500)
             
             # Calculate number of nights
             nights = (check_out_date - check_in_date).days
@@ -1272,24 +1278,19 @@ def statement_of_account(request, guest_id):
         guest = get_object_or_404(Guest, id=guest_id)
         print(f"[STATEMENT] Guest found: {guest.name}")
         
-        # Get the most recent booking
+        # Get the most recent booking (for room label / fallback dates)
         booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
         
-        # Get all payments
+        # Get all payments for this guest (all bookings)
         payments = []
-        if booking:
-            try:
-                payment = Payment.objects.get(booking=booking)
-                # Get payment method display name
-                method_display = dict(Payment.PAYMENT_METHODS).get(payment.method, payment.method.title())
-                payments.append({
-                    'date': payment.created_at,
-                    'method': method_display,
-                    'amount': payment.total_balance,
-                    'description': f'Payment for Booking #{booking.id}'
-                })
-            except Payment.DoesNotExist:
-                pass
+        for pay in Payment.objects.filter(booking__guest=guest).order_by('-created_at'):
+            method_display = dict(Payment.PAYMENT_METHODS).get(pay.method, pay.method.title())
+            payments.append({
+                'date': pay.created_at,
+                'method': method_display,
+                'amount': pay.total_balance,
+                'description': f'Payment for Booking #{pay.booking_id}'
+            })
         
         # Get laundry transactions
         from laundry.models import LaundryTransaction
@@ -1313,16 +1314,16 @@ def statement_of_account(request, guest_id):
         excess_pax = safe_float(guest.excess_pax_billing)
         additional_charges = safe_float(guest.additional_charge_billing)
         
-        # Calculate total charges
-        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        # Fallback: if laundry_billing wasn't updated when charging to room, use sum of charge-to-room laundry transactions
+        _laundry_from_txns = sum(
+            float(lt.total_amount) for lt in laundry_transactions
+            if ((lt.payment_method or '').strip().lower() == 'room' or
+                'charge to room' in ((lt.payment_method or '').lower()))
+        )
+        if _laundry_from_txns > 0 and laundry_total < _laundry_from_txns:
+            laundry_total = _laundry_from_txns
         
-        # Calculate total payments - convert Decimal to float
-        total_payments = sum(float(p['amount']) for p in payments)
-        
-        # Calculate outstanding balance - ensure both are floats
-        outstanding_balance = float(total_charges) - float(total_payments)
-        
-        # Prepare transaction history
+        # Prepare transaction history (total_charges/total_payments derived from it for accuracy)
         transactions = []
         
         # Helper function to normalize dates to timezone-aware datetime for consistent sorting
@@ -1349,11 +1350,14 @@ def statement_of_account(request, guest_id):
                 'category': 'Room'
             })
         
-        # Add laundry transactions
+        # Add laundry transactions (payment_method can be 'room' or 'Charge to room' from laundry app)
         print(f"[STATEMENT HTML] Processing {len(laundry_transactions)} laundry transactions")
         for lt in laundry_transactions:
-            print(f"[STATEMENT HTML] Laundry transaction: payment_method={lt.payment_method}, amount={lt.total_amount}")
-            if lt.payment_method == 'room':  # Charge to room
+            pm = (lt.payment_method or '').strip().lower()
+            is_charge_to_room = pm in ('room',) or 'charge to room' in (lt.payment_method or '').lower()
+            is_cash = pm == 'cash'
+            print(f"[STATEMENT HTML] Laundry transaction: payment_method={lt.payment_method!r}, is_charge_to_room={is_charge_to_room}, is_cash={is_cash}, amount={lt.total_amount}")
+            if is_charge_to_room:  # Charge to room
                 transactions.append({
                     'date': normalize_date(lt.date_time),
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1361,7 +1365,7 @@ def statement_of_account(request, guest_id):
                     'amount': float(lt.total_amount),
                     'category': 'Laundry'
                 })
-            elif lt.payment_method == 'cash':  # Cash payment
+            elif is_cash:  # Cash payment
                 transactions.append({
                     'date': normalize_date(lt.date_time),
                     'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1429,13 +1433,18 @@ def statement_of_account(request, guest_id):
                 'category': 'Additional'
             })
         
-        # Add payments to transactions
+        # Add payments to transactions (amount can be Decimal or None)
         for payment in payments:
+            amt = payment.get('amount')
+            try:
+                amt = float(amt) if amt is not None else 0.0
+            except (TypeError, ValueError):
+                amt = 0.0
             transactions.append({
                 'date': normalize_date(payment['date']),
                 'description': payment['description'],
                 'type': 'Payment',
-                'amount': float(payment['amount']),
+                'amount': amt,
                 'category': 'Payment'
             })
         
@@ -1450,6 +1459,16 @@ def statement_of_account(request, guest_id):
                 d = timezone.make_aware(datetime.combine(d, dt_time.min))
             return d.timestamp() if hasattr(d, 'timestamp') else 0.0
         transactions.sort(key=_txn_sort_key, reverse=True)
+        
+        # Total charges from billing breakdown so Laundry and Additional Charges are always included
+        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        def _txn_amount(t):
+            try:
+                return float(t.get('amount') or 0)
+            except (TypeError, ValueError):
+                return 0.0
+        total_payments = sum(_txn_amount(t) for t in transactions if t.get('type') == 'Payment')
+        outstanding_balance = total_charges - total_payments
         
         print(f"[STATEMENT HTML] Total transactions: {len(transactions)}")
         for i, txn in enumerate(transactions):
@@ -1519,24 +1538,19 @@ def statement_of_account_pdf(request, guest_id):
     try:
         guest = get_object_or_404(Guest, id=guest_id)
         
-        # Get the most recent booking
+        # Get the most recent booking (for room label / fallback dates)
         booking = Booking.objects.filter(guest=guest).order_by('-booking_date').first()
         
-        # Get all payments
+        # Get all payments for this guest (all bookings)
         payments = []
-        if booking:
-            try:
-                payment = Payment.objects.get(booking=booking)
-                # Get payment method display name
-                method_display = dict(Payment.PAYMENT_METHODS).get(payment.method, payment.method.title())
-                payments.append({
-                    'date': payment.created_at,
-                    'method': method_display,
-                    'amount': payment.total_balance,
-                    'description': f'Payment for Booking #{booking.id}'
-                })
-            except Payment.DoesNotExist:
-                pass
+        for pay in Payment.objects.filter(booking__guest=guest).order_by('-created_at'):
+            method_display = dict(Payment.PAYMENT_METHODS).get(pay.method, pay.method.title())
+            payments.append({
+                'date': pay.created_at,
+                'method': method_display,
+                'amount': pay.total_balance,
+                'description': f'Payment for Booking #{pay.booking_id}'
+            })
         
         # Get laundry transactions
         from laundry.models import LaundryTransaction
@@ -1560,16 +1574,16 @@ def statement_of_account_pdf(request, guest_id):
         excess_pax = safe_float(guest.excess_pax_billing)
         additional_charges = safe_float(guest.additional_charge_billing)
         
-        # Calculate total charges
-        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        # Fallback: if laundry_billing wasn't updated when charging to room, use sum of charge-to-room laundry transactions
+        _laundry_from_txns_pdf = sum(
+            float(lt.total_amount) for lt in laundry_transactions
+            if ((lt.payment_method or '').strip().lower() == 'room' or
+                'charge to room' in ((lt.payment_method or '').lower()))
+        )
+        if _laundry_from_txns_pdf > 0 and laundry_total < _laundry_from_txns_pdf:
+            laundry_total = _laundry_from_txns_pdf
         
-        # Calculate total payments - convert Decimal to float
-        total_payments = sum(float(p['amount']) for p in payments)
-        
-        # Calculate outstanding balance - ensure both are floats
-        outstanding_balance = float(total_charges) - float(total_payments)
-        
-        # Prepare transaction history
+        # Prepare transaction history (total_charges/total_payments derived from it for accuracy)
         transactions = []
         
         # Helper function to normalize dates to timezone-aware datetime for consistent sorting
@@ -1596,9 +1610,12 @@ def statement_of_account_pdf(request, guest_id):
                 'category': 'Room'
             })
         
-        # Add laundry transactions
+        # Add laundry transactions (payment_method can be 'room' or 'Charge to room' from laundry app)
         for lt in laundry_transactions:
-            if lt.payment_method == 'room':  # Charge to room
+            pm = (lt.payment_method or '').strip().lower()
+            is_charge_to_room = pm == 'room' or 'charge to room' in (lt.payment_method or '').lower()
+            is_cash = pm == 'cash'
+            if is_charge_to_room:
                 transactions.append({
                     'date': normalize_date(lt.date_time),
                     'description': f'Laundry - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1606,7 +1623,7 @@ def statement_of_account_pdf(request, guest_id):
                     'amount': float(lt.total_amount),
                     'category': 'Laundry'
                 })
-            elif lt.payment_method == 'cash':  # Cash payment
+            elif is_cash:
                 transactions.append({
                     'date': normalize_date(lt.date_time),
                     'description': f'Laundry Payment - {lt.service_type} ({lt.no_of_bags} bag{"s" if lt.no_of_bags > 1 else ""})',
@@ -1672,13 +1689,18 @@ def statement_of_account_pdf(request, guest_id):
                 'category': 'Additional'
             })
         
-        # Add payments to transactions
+        # Add payments to transactions (amount can be Decimal or None)
         for payment in payments:
+            amt = payment.get('amount')
+            try:
+                amt = float(amt) if amt is not None else 0.0
+            except (TypeError, ValueError):
+                amt = 0.0
             transactions.append({
                 'date': normalize_date(payment['date']),
                 'description': payment['description'],
                 'type': 'Payment',
-                'amount': float(payment['amount']),
+                'amount': amt,
                 'category': 'Payment'
             })
         
@@ -1693,6 +1715,16 @@ def statement_of_account_pdf(request, guest_id):
                 d = timezone.make_aware(datetime.combine(d, dt_time.min))
             return d.timestamp() if hasattr(d, 'timestamp') else 0.0
         transactions.sort(key=_txn_sort_key, reverse=True)
+        
+        # Total charges from billing breakdown so Laundry and Additional Charges are always included
+        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
+        def _txn_amount_pdf(t):
+            try:
+                return float(t.get('amount') or 0)
+            except (TypeError, ValueError):
+                return 0.0
+        total_payments = sum(_txn_amount_pdf(t) for t in transactions if t.get('type') == 'Payment')
+        outstanding_balance = total_charges - total_payments
         
         context = {
             'guest': guest,

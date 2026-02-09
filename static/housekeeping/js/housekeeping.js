@@ -48,7 +48,7 @@ document.querySelectorAll('.room-box').forEach((box) => {
             }
         }
         // Enable all inputs regardless of booking status
-        document.querySelectorAll('input[name="req"]').forEach((el) => {
+        document.querySelectorAll('input[name="request_types"]').forEach((el) => {
             el.disabled = false
         })
         // Enable/disable status buttons based on booking status
@@ -57,7 +57,7 @@ document.querySelectorAll('.room-box').forEach((box) => {
             const buttonText = el.innerText.toLowerCase().trim()
             const isUnderMaintenance = buttonText.includes('maintenance') || buttonText.includes('under maintenance')
             console.log(`Button ${index}: "${el.innerText}" -> isUnderMaintenance: ${isUnderMaintenance}, hasBooking: ${hasBooking}`)
-            
+
             if (isUnderMaintenance && hasBooking) {
                 // Disable under-maintenance button if guest is checked in
                 el.disabled = true
@@ -95,11 +95,11 @@ statusButton.forEach((button) => {
         console.log('Button clicked:', btn.target.innerText)
         console.log('Button disabled state:', btn.target.disabled)
         console.log('Selected room:', selectedRoomNo)
-        
+
         const buttonText = btn.target.innerText.toLowerCase().trim()
         const isUnderMaintenance = buttonText.includes('maintenance') || buttonText.includes('under maintenance')
         console.log('Is Under Maintenance button:', isUnderMaintenance)
-        
+
         // Check if button is disabled
         if (btn.target.disabled) {
             console.log('⚠️ Button is DISABLED - showing warning')
@@ -115,45 +115,46 @@ statusButton.forEach((button) => {
             return // Stop here if button is disabled
         }
 
-        let selectedReq = document.querySelector('input[name="req"]:checked')
-        console.log('Selected request:', selectedReq ? selectedReq.value : 'NONE')
+        const checkedInputs = document.querySelectorAll('input[name="request_types"]:checked')
+        const requestTypes = Array.from(checkedInputs).map((el) => el.value)
+        console.log('Selected requests:', requestTypes.length ? requestTypes : 'NONE')
 
         // For "Under Maintenance" and "No requests", request type is not required
-        // For other statuses, request type is required
+        // For other statuses, at least one request type is required
         if (!isUnderMaintenance && !buttonText.includes('no requests')) {
-            if (!selectedReq) {
+            if (requestTypes.length === 0) {
                 console.log('⚠️ No request selected - showing shake effect')
-                // Shake effect
                 document.body.classList.add('shake')
                 setTimeout(() => document.body.classList.remove('shake'), 500)
-                return // Stop here if nothing is selected
+                return
             }
         }
-        
-        // Use a default request type if none selected (for Under Maintenance and No requests)
-        const requestType = selectedReq ? selectedReq.value : 'Room Status Update'
-        
+
+        // For Under Maintenance and No requests we send a single placeholder; backend will use it for the one record
+        const typesToSend = requestTypes.length > 0 ? requestTypes : ['Room Status Update']
+
         console.log('✓ Proceeding with AJAX request')
         console.log('Request data:', {
             room_no: selectedRoomNo,
-            request_type: requestType,
+            request_types: typesToSend,
             status: btn.target.innerText
         })
-        
+
         $.ajax({
             type: 'POST',
             url: '/housekeeping/update_status/',
+            traditional: true,
             data: {
-                csrfmiddlewaretoken: '{{ csrf_token }}',
+                csrfmiddlewaretoken: document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value || '',
                 room_no: selectedRoomNo,
-                request_type: requestType,
+                request_types: typesToSend,
                 status: btn.target.innerText
             },
             success: function (response) {
                 console.log('=== AJAX SUCCESS ===')
                 console.log('Response:', response)
                 console.log('Response type:', typeof response)
-                
+
                 // Handle both string and object responses
                 let responseData = response
                 if (typeof response === 'string') {
@@ -164,16 +165,16 @@ statusButton.forEach((button) => {
                         console.log('Response is not JSON, using as-is')
                     }
                 }
-                
+
                 // Update room color based on selected status
                 const roomEl = document.querySelector(`.room-box[data-room="${selectedRoomNo}"]`)
                 console.log('Room element found:', roomEl)
-                
+
                 if (roomEl) {
                     roomEl.classList.remove('pending', 'progress', 'vacant', 'maintenance')
                     const s = btn.target.innerText.toLowerCase()
                     console.log('Status text:', s)
-                    
+
                     if (s.includes('pending')) {
                         roomEl.classList.add('pending')
                         console.log('✓ Added pending class')
@@ -187,7 +188,7 @@ statusButton.forEach((button) => {
                         roomEl.classList.add('vacant')
                         console.log('✓ Added vacant class')
                     }
-                    
+
                     // Only update booking flag if response indicates there's a guest
                     // Otherwise keep the current value (false if no guest)
                     if (responseData && responseData.has_guest !== undefined) {
@@ -197,13 +198,13 @@ statusButton.forEach((button) => {
                     } else {
                         console.log('⚠️ Response does not have has_guest field')
                     }
-                    
+
                     console.log('Final room classes:', roomEl.className)
                     console.log('Final data-has-booking:', roomEl.getAttribute('data-has-booking'))
                 } else {
                     console.error('❌ Room element not found!')
                 }
-                
+
                 Swal.fire({
                     title: 'Success',
                     text: 'Status updated successfully!',
@@ -215,7 +216,7 @@ statusButton.forEach((button) => {
             error: function (xhr, status, error) {
                 console.error('AJAX error:', xhr, status, error)
                 let errorMessage = 'Failed to update status.'
-                
+
                 if (xhr && xhr.status === 400) {
                     // Handle case when trying to set under-maintenance with checked-in guest
                     try {
@@ -250,7 +251,7 @@ statusButton.forEach((button) => {
                         }
                     }
                 }
-                
+
                 Swal.fire({
                     title: 'Error',
                     text: errorMessage,
@@ -260,6 +261,6 @@ statusButton.forEach((button) => {
             }
         })
         console.log(btn.target.innerText)
-        console.log('Selected request:', selectedReq.value)
+        console.log('Selected requests:', requestTypes)
     })
 })
