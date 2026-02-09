@@ -1314,14 +1314,18 @@ def statement_of_account(request, guest_id):
         excess_pax = safe_float(guest.excess_pax_billing)
         additional_charges = safe_float(guest.additional_charge_billing)
         
-        # Fallback: if laundry_billing wasn't updated when charging to room, use sum of charge-to-room laundry transactions
+        # Use the larger of guest billing vs sum from transactions so we never undercount
         _laundry_from_txns = sum(
             float(lt.total_amount) for lt in laundry_transactions
             if ((lt.payment_method or '').strip().lower() == 'room' or
                 'charge to room' in ((lt.payment_method or '').lower()))
         )
-        if _laundry_from_txns > 0 and laundry_total < _laundry_from_txns:
-            laundry_total = _laundry_from_txns
+        laundry_total = max(laundry_total, _laundry_from_txns)
+        _cafe_from_orders = sum(
+            float(co.total) for co in cafe_orders
+            if (co.payment_method or '').strip().lower() == 'room'
+        )
+        cafe_total = max(cafe_total, _cafe_from_orders)
         
         # Prepare transaction history (total_charges/total_payments derived from it for accuracy)
         transactions = []
