@@ -1314,18 +1314,14 @@ def statement_of_account(request, guest_id):
         excess_pax = safe_float(guest.excess_pax_billing)
         additional_charges = safe_float(guest.additional_charge_billing)
         
-        # Use the larger of guest billing vs sum from transactions so we never undercount
+        # Fallback: if laundry_billing wasn't updated when charging to room, use sum of charge-to-room laundry transactions
         _laundry_from_txns = sum(
             float(lt.total_amount) for lt in laundry_transactions
             if ((lt.payment_method or '').strip().lower() == 'room' or
                 'charge to room' in ((lt.payment_method or '').lower()))
         )
-        laundry_total = max(laundry_total, _laundry_from_txns)
-        _cafe_from_orders = sum(
-            float(co.total) for co in cafe_orders
-            if (co.payment_method or '').strip().lower() == 'room'
-        )
-        cafe_total = max(cafe_total, _cafe_from_orders)
+        if _laundry_from_txns > 0 and laundry_total < _laundry_from_txns:
+            laundry_total = _laundry_from_txns
         
         # Prepare transaction history (total_charges/total_payments derived from it for accuracy)
         transactions = []
@@ -1464,15 +1460,29 @@ def statement_of_account(request, guest_id):
             return d.timestamp() if hasattr(d, 'timestamp') else 0.0
         transactions.sort(key=_txn_sort_key, reverse=True)
         
-        # Total charges from billing breakdown so Laundry and Additional Charges are always included
-        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
         def _txn_amount(t):
             try:
                 return float(t.get('amount') or 0)
             except (TypeError, ValueError):
                 return 0.0
+        # Derive totals from the transaction list so outstanding balance matches what we show
+        # (fixes SOA showing only cafe when laundry was also charged to room but guest.laundry_billing was not updated)
+        total_charges = sum(_txn_amount(t) for t in transactions if t.get('type') == 'Charge')
         total_payments = sum(_txn_amount(t) for t in transactions if t.get('type') == 'Payment')
         outstanding_balance = total_charges - total_payments
+        # Recompute breakdown from transactions so Billing Summary matches totals and outstanding balance
+        charges_by_cat = {}
+        for t in transactions:
+            if t.get('type') != 'Charge':
+                continue
+            cat = t.get('category') or 'Other'
+            charges_by_cat[cat] = charges_by_cat.get(cat, 0) + _txn_amount(t)
+        room_charges = charges_by_cat.get('Room', 0)
+        room_service = charges_by_cat.get('Room Service', 0)
+        laundry_total = charges_by_cat.get('Laundry', 0)
+        cafe_total = charges_by_cat.get('Cafe', 0)
+        excess_pax = charges_by_cat.get('Excess Pax', 0)
+        additional_charges = charges_by_cat.get('Additional', 0)
         
         print(f"[STATEMENT HTML] Total transactions: {len(transactions)}")
         for i, txn in enumerate(transactions):
@@ -1720,15 +1730,28 @@ def statement_of_account_pdf(request, guest_id):
             return d.timestamp() if hasattr(d, 'timestamp') else 0.0
         transactions.sort(key=_txn_sort_key, reverse=True)
         
-        # Total charges from billing breakdown so Laundry and Additional Charges are always included
-        total_charges = room_charges + room_service + laundry_total + cafe_total + excess_pax + additional_charges
         def _txn_amount_pdf(t):
             try:
                 return float(t.get('amount') or 0)
             except (TypeError, ValueError):
                 return 0.0
+        # Derive totals from the transaction list so outstanding balance matches what we show
+        total_charges = sum(_txn_amount_pdf(t) for t in transactions if t.get('type') == 'Charge')
         total_payments = sum(_txn_amount_pdf(t) for t in transactions if t.get('type') == 'Payment')
         outstanding_balance = total_charges - total_payments
+        # Recompute breakdown from transactions so Billing Summary matches totals and outstanding balance
+        charges_by_cat_pdf = {}
+        for t in transactions:
+            if t.get('type') != 'Charge':
+                continue
+            cat = t.get('category') or 'Other'
+            charges_by_cat_pdf[cat] = charges_by_cat_pdf.get(cat, 0) + _txn_amount_pdf(t)
+        room_charges = charges_by_cat_pdf.get('Room', 0)
+        room_service = charges_by_cat_pdf.get('Room Service', 0)
+        laundry_total = charges_by_cat_pdf.get('Laundry', 0)
+        cafe_total = charges_by_cat_pdf.get('Cafe', 0)
+        excess_pax = charges_by_cat_pdf.get('Excess Pax', 0)
+        additional_charges = charges_by_cat_pdf.get('Additional', 0)
         
         context = {
             'guest': guest,
